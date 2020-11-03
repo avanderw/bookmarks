@@ -1,0 +1,39 @@
+h1 {
+    background-color: #eee;
+    padding: 2px 15px;
+    border: 1px solid #000000;
+    border-radius: 5px;
+}
+
+ul {
+    list-style-type: decimal;
+    color: #aaaaaa;
+    column-count: 5;
+    column-width: max-content;
+}
+
+div ul {
+    padding: 0 35px;
+    text-align: left;
+}
+
+a {
+    color: #000;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+#status {
+    color: darkred;
+    font-weight: bold;
+    display: block;
+    float: none;
+    visibility: collapse;
+}
+
+#info {
+    text-align: right;
+}

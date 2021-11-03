@@ -72,8 +72,10 @@ function createList(links) {
 
 String.prototype.lpad = function (padString, length) {
     let str = this;
-    while (str.length < length)
+    let count = length - str.length;
+    for (let i = 0; i < count; i++) {
         str = padString + str;
+    }
     return str;
 }
 

@@ -1,3 +1,7 @@
+body {
+    font-family: 'Courier New', Courier, monospace;
+}
+
 h1 {
     background-color: #eee;
     padding: 2px 15px;
@@ -8,7 +12,7 @@ h1 {
 ul {
     list-style-type: decimal;
     color: #aaaaaa;
-    column-count: 5;
+    column-count: 2;
     column-width: max-content;
 }
 
@@ -23,7 +27,7 @@ a {
 }
 
 a:hover {
-    text-decoration: underline;
+    font-weight: bold;
 }
 
 #status {

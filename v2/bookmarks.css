@@ -3,13 +3,16 @@ body {
     color: #22333B;
     background-color: #F5F7F9;
     font-size: small;
-    width: 80%;
+    width: 90%;
     margin: 0 auto;
 }
 
 h2 {
-    margin: 1em 0 0.33em;
-    color: #5E503F;
+    margin: 1em 0 0.33em 0;
+    padding: 0.25em 0.5em;
+    background-color: #5E503F;
+    color:#EAE0D5;
+    font-size: small;
 }
 
 a {
@@ -33,4 +36,13 @@ li div {
 span {
     font-size: 0.75em;
     color: #5E503F;
+}
+
+#footer {
+    margin: 1em 0;
+    padding: 0.25em 0.5em;
+    color: #5E503F;
+    background-color: #EAE0D5;
+    font-size: 0.75em;
+    text-align: center;
 }

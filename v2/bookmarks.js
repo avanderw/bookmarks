@@ -1,3 +1,23 @@
+function updateMeta(e) {
+    const id = e.id;
+    const meta = JSON.parse(localStorage.getItem(id)) || {"clicks":0,"last":"never"};
+    meta.clicks += 1;
+    meta.last = new Date().toISOString();
+    localStorage.setItem(id, JSON.stringify(meta))
+    window.setTimeout(() => location.reload(), 0);
+}
+
+function score(item) {
+    const id = md5(item.title);
+    const meta = JSON.parse(localStorage.getItem(id)) || {"clicks":0,"last":"never"};
+    const dayDifference = Math.floor((new Date() - new Date(meta.last)) / (1000 * 60 * 60 * 24)) || 0;
+    return Math.floor(meta.clicks * 100 / (dayDifference + 1));
+}
+
+function domain(url) {
+    return url.replace(/^https?:\/\/([^\/]+).*$/, "$1");
+}
+
 const BOOKMARK_TEMPLATE =
   "<li><a id='${id}' href='${url}' onclick='updateMeta(this)' target='_blank'>${title} <span>(${domain})</span></a><div>Score: ${score} | Last used: ${last}</div></li>";
 
@@ -21,22 +41,7 @@ for (const item of data) {
 }
 document.getElementById("bookmarks").innerHTML = html;
 
-function updateMeta(e) {
-    const id = e.id;
-    const meta = JSON.parse(localStorage.getItem(id)) || {"clicks":0,"last":"never"};
-    meta.clicks += 1;
-    meta.last = new Date().toISOString();
-    localStorage.setItem(id, JSON.stringify(meta))
-    window.setTimeout(() => location.reload(), 0);
+if (localStorage.getItem("last-clear") === null) {
+    localStorage.setItem("last-clear", new Date().toISOString());
 }
-
-function score(item) {
-    const id = md5(item.title);
-    const meta = JSON.parse(localStorage.getItem(id)) || {"clicks":0,"last":"never"};
-    const dayDifference = Math.floor((new Date() - new Date(meta.last)) / (1000 * 60 * 60 * 24)) || 0;
-    return Math.floor(meta.clicks * 100 / (dayDifference + 1));
-}
-
-function domain(url) {
-    return url.replace(/^https?:\/\/([^\/]+).*$/, "$1");
-}
+document.getElementById("footer").innerHTML = `Last cleared: ${localStorage.getItem("last-clear").replace(/T.*$/,"")}`;

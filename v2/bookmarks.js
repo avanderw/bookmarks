@@ -45,3 +45,25 @@ if (localStorage.getItem("last-clear") === null) {
     localStorage.setItem("last-clear", new Date().toISOString());
 }
 document.getElementById("footer").innerHTML = `Last cleared: ${localStorage.getItem("last-clear").replace(/T.*$/,"")}`;
+
+const encodedParams = new URLSearchParams();
+encodedParams.append("my-url", "https://xkcd.com/info.0.json");
+
+const options = {
+	method: 'POST',
+	headers: {
+		'content-type': 'application/x-www-form-urlencoded',
+		'X-RapidAPI-Key': 'df0a095253msh55f9dda5b8227efp1936b0jsn3622477a6bbd',
+		'X-RapidAPI-Host': 'cors-proxy3.p.rapidapi.com'
+	},
+	body: encodedParams
+};
+
+fetch('https://cors-proxy3.p.rapidapi.com/api', options)
+	.then(response => response.json())
+	.then(response => {
+		document.getElementById("comic").src = response.img;
+		document.getElementById("comic").alt = response.alt;
+		document.getElementById("comic-desc").innerText = response.alt;
+	})
+	.catch(err => console.error(err));

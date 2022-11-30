@@ -53,7 +53,7 @@ const options = {
 	method: 'POST',
 	headers: {
 		'content-type': 'application/x-www-form-urlencoded',
-		'X-RapidAPI-Key': 'df0a095253msh55f9dda5b8227efp1936b0jsn3622477a6bbd',
+		'X-RapidAPI-Key': '',
 		'X-RapidAPI-Host': 'cors-proxy3.p.rapidapi.com'
 	},
 	body: encodedParams

@@ -42,7 +42,7 @@
 </script>
 
 <h1>
-	<button on:click={remove}>x</button>
+	<button on:click={remove}><i class="bi bi-trash"></i></button>
 	{filter.name}
 	{#if filter.filter}
 		{#each filter.filter as f}
@@ -62,7 +62,4 @@
 </ol>
 
 <style>
-	form {
-		display: inline;
-	}
 </style>

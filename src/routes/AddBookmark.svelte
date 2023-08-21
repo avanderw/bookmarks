@@ -17,5 +17,5 @@
 <form on:submit={add}>
 	<input bind:value={url} placeholder="URL" />
 	<input bind:value={title} placeholder="Title" />
-	<button type="submit">add</button>
+	<button type="submit"><i class="bi bi-bookmark-plus-fill"></i></button>
 </form>

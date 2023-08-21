@@ -33,7 +33,7 @@
 		<!-- svelte-ignore a11y-autofocus -->
 		<input type="text" bind:value autofocus />
 	{/if}
-	<button type="submit">add-tag</button>
+	<button type="submit"><i class="bi bi-tag-fill"></i></button>
 </form>
 
 {#if id === undefined}

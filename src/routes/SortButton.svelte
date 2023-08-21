@@ -27,7 +27,7 @@
 	}
 </script>
 
-<button on:click={sort} class={desc ? 'desc' : 'asc'} class:active>{field}</button>
+<button on:click={sort} class="bi" class:active>{field} <i class="bi" class:bi-sort-up={active && !desc} class:bi-sort-down={active && desc} ></i></button>
 
 <style>
 	button {
@@ -44,11 +44,5 @@
 	button:hover {
 		font-weight: normal;
 		text-decoration: underline;
-	}
-	button.active.asc::after {
-		content: ' ^';
-	}
-	button.active.desc::after {
-		content: ' v';
 	}
 </style>

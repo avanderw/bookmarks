@@ -69,7 +69,7 @@
 		active={lastSort === 'accessed'}
 	/>
 
-	<button>export</button><button>import</button>
+	<button><i class="bi bi-box-arrow-in-down"></i></button><button><i class="bi bi-box-arrow-up"></i></button>
 	<AddFilter />
 </h1>
 <ol>

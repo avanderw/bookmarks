@@ -7,5 +7,5 @@
 </script>
 
 <form on:submit={addFilter}>
-    <button>filter</button>
+    <button><i class="bi bi-funnel"></i></button>
 </form>

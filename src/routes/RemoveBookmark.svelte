@@ -11,5 +11,5 @@
 </script>
 
 <form on:submit={remove}>
-	<button>remove-bm</button>
+	<button><i class="bi bi-bookmark-dash-fill"></button>
 </form>

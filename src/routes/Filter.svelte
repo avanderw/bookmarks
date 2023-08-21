@@ -4,29 +4,32 @@
 	import { filters, bookmarks } from '$lib/stores';
 
 	export let model;
-	let expr = model.filter;
 	let filteredList;
 
 	function remove() {
 		$filters = $filters.filter((f) => f !== model);
 	}
 
-	function update() {
-		$filters.find((f) => f === model).filter = expr;
-		$filters = $filters;
-		filter();
+	let isEditingExpr = false;
+	function editExpr() {
+		if (isEditingExpr) {
+			$filters.find((f) => f === model).filter = model.filter;
+			$filters = $filters;
+			filter();
+		}
+		isEditingExpr = !isEditingExpr;
 	}
 
 	function testTags(b) {
-		let tags = expr.match(/tags=([^&]+)/)[1].split(',');
+		let tags = model.filter.match(/tags=([^&]+)/)[1].split(',');
 		return tags.every((t) => b.tags && b.tags.some((bt) => bt === t));
 	}
 
 	function filter() {
 		const fn = {
-			tags: expr && expr.indexOf('tags=') > -1,
-			title: expr && expr.indexOf('title=') > -1,
-			url: expr && expr.indexOf('url=') > -1,
+			tags: model.filter && model.filter.indexOf('tags=') > -1,
+			title: model.filter && model.filter.indexOf('title=') > -1,
+			url: model.filter && model.filter.indexOf('url=') > -1,
 			test: function (b) {
 				return (
 					(this.tags ? testTags(b) : true) &&
@@ -38,21 +41,35 @@
 		filteredList = $bookmarks.filter((b) => fn.test(b));
 	}
 
+	let isEditingTitle = false;
+	function editTitle() {
+		if (isEditingTitle) {
+			$filters.find((f) => f === model).name = model.name;
+			$filters = $filters;
+		}
+		isEditingTitle = !isEditingTitle;
+	}
+
 	filter();
 </script>
 
 <h1>
-	<button on:click={remove}><i class="bi bi-trash"></i></button>
-	{filter.name}
-	{#if filter.filter}
-		{#each filter.filter as f}
-			<span>{f}</span>
-		{/each}
-	{:else}
-		<form on:submit={update}>
-			<input type="text" bind:value={expr} />
-		</form>
-	{/if}
+	<button on:click={remove}><i class="bi bi-trash" /></button>
+	<form on:submit={editTitle}>
+		{#if isEditingTitle}
+			<input type="text" bind:value={model.name} />
+		{:else}
+			<button type="submit">{model.name}</button>
+		{/if}
+	</form>
+
+	<form on:submit={editExpr}>
+		{#if isEditingExpr}
+			<input type="text" bind:value={model.filter} />
+		{:else}
+			<button type="submit">{model.filter}</button>
+		{/if}
+	</form>
 </h1>
 
 <ol>
@@ -61,5 +78,3 @@
 	{/each}
 </ol>
 
-<style>
-</style>

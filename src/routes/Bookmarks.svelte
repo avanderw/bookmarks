@@ -8,6 +8,7 @@
 	import RemoveBookmark from './RemoveBookmark.svelte';
 	import Tag from './Tag.svelte';
 	import Domain from './Domain.svelte';
+	import BookmarksExport from './BookmarksExport.svelte';
 
 	const score = (b) => {
 		const dayDifference = Math.floor((new Date() - new Date(b.last)) / (1000 * 60 * 60 * 24)) || 0;
@@ -69,7 +70,7 @@
 		active={lastSort === 'accessed'}
 	/>
 
-	<button><i class="bi bi-box-arrow-in-down"></i></button><button><i class="bi bi-box-arrow-up"></i></button>
+	<button><i class="bi bi-box-arrow-in-down"></i></button><BookmarksExport />
 	<AddFilter />
 </h1>
 <ol>
@@ -118,11 +119,5 @@
 	a:hover {
 		font-weight: bold;
 		text-decoration: none;
-	}
-	button + button::before,
-	span + span::before {
-		content: '|';
-		margin: 0 0.25em;
-		padding: 0;
 	}
 </style>

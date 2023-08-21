@@ -10,6 +10,7 @@
         if ($tagFilter === tag) {
             $bookmarks.find((b) => b.id === bookmarkId).tags = $bookmarks.find((b) => b.id === bookmarkId).tags.filter((t) => t !== tag);
             $bookmarks = $bookmarks;
+            $tagFilter = '';
         } else {
             $tagFilter = tag;
         }

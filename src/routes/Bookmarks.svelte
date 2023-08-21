@@ -1,32 +1,35 @@
-<svelte:head>
-    <title>Bookmark manager</title> 
-</svelte:head>
-
 <script>
 	// @ts-nocheck
 	import { bookmarks } from '$lib/stores';
 	import { friendly } from '$lib/time';
 	import AddTag from './AddTag.svelte';
 	import SortButton from './SortButton.svelte';
+	import AddFilter from './AddFilter.svelte';
+	import RemoveBookmark from './RemoveBookmark.svelte';
+	import Tag from './Tag.svelte';
+	import Domain from './Domain.svelte';
 
 	const score = (b) => {
 		const dayDifference = Math.floor((new Date() - new Date(b.last)) / (1000 * 60 * 60 * 24)) || 0;
-		return Math.floor(b.clicked * 100 / (dayDifference + 1));
-	}
+		return Math.floor((b.clicked * 100) / (dayDifference + 1));
+	};
 
 	$bookmarks.sort((a, b) => score(a) - score(b)).reverse();
 	let lastSort = 'score';
 
-	function domain(url) {
-		return url.replace(/^https?:\/\/([^\/]+).*$/, '$1');
-	}
-
 	function updateClicked(b) {
 		b.clicked += 1;
 		b.last = new Date();
+		if (lastSort === 'score') {
+			$bookmarks.sort((a, b) => score(a) - score(b)).reverse();
+		}
 		$bookmarks = $bookmarks;
 	}
 </script>
+
+<svelte:head>
+	<title>Bookmark manager</title>
+</svelte:head>
 
 <h1>
 	Bookmarks
@@ -67,21 +70,26 @@
 	/>
 
 	<button>export</button><button>import</button>
+	<AddFilter />
 </h1>
 <ol>
 	{#each $bookmarks as bookmark}
 		<li>
 			<div>
-				<a href={bookmark.href} target="_blank" on:click={() => updateClicked(bookmark)}
-					>{bookmark.title}</a
+				<a
+					href={bookmark.href}
+					target="_blank"
+					on:click={() => updateClicked(bookmark)}
+					on:auxclick={() => updateClicked(bookmark)}>{bookmark.title}</a
 				>
-				<button>({domain(bookmark.href)})</button>
+				<Domain {bookmark} />
 				{#if bookmark.tags}
 					{#each bookmark.tags as tag}
-						<button>{tag}</button>
+						<Tag bookmarkId={bookmark.id} {tag} />
 					{/each}
 				{/if}
 				<AddTag id={Number(bookmark.id)} />
+				<RemoveBookmark {bookmark} />
 			</div>
 			<div>
 				<span>{score(bookmark)} points</span>
@@ -92,19 +100,11 @@
 		</li>
 	{/each}
 </ol>
+{#if !$bookmarks.length}
+	<p>Add some bookmarks to get started.</p>
+{/if}
 
 <style>
-	h1 {
-		font-size: medium;
-		background-color: #5e503f;
-		color: #eae0d5;
-		padding: 0.25em;
-	}
-	h1 button {
-		color: #eae0d5;
-		font-weight: normal;
-		font-size: smaller;
-	}
 	span {
 		color: slategray;
 		font-weight: normal;
@@ -119,24 +119,10 @@
 		font-weight: bold;
 		text-decoration: none;
 	}
-	button {
-		background: none;
-		color: #5e503f;
-		border: none;
-		padding: 0;
-		font: inherit;
-		font-size: smaller;
-		cursor: pointer;
-		outline: inherit;
-	}
 	button + button::before,
 	span + span::before {
 		content: '|';
 		margin: 0 0.25em;
 		padding: 0;
-	}
-	button:hover {
-		font-weight: normal;
-		text-decoration: underline;
 	}
 </style>

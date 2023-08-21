@@ -1,0 +1,36 @@
+
+h1 {
+    font-size: medium;
+    background-color: #5e503f;
+    color: #eae0d5;
+    padding: 0.25em;
+}
+h1 button {
+    color: #eae0d5;
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    font-size: smaller;
+    font-weight: normal;
+    cursor: pointer;
+    outline: inherit;
+}
+button:hover {
+    font-weight: normal;
+    text-decoration: underline;
+}
+button {
+    background: none;
+    color: #5e503f;
+    border: none;
+    padding: 0;
+    font: inherit;
+    font-size: smaller;
+    cursor: pointer;
+    outline: inherit;
+}
+
+form {
+    display: inline;
+}

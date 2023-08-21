@@ -25,4 +25,12 @@ const BOOKMARK_DATA = [
 { "title": "Instana", "url": "https://production-capitecbank.instana.io/#/applications;app.orderBy=callsAgg;app.orderDirection=DESC;app.page=7;app.pageSize=20;app.query;app.disabledColumns=!~;app.enabledColumns=!~?timeline.ws=300000&timeline.to&timeline.fm&timeline.ar=true" },
 { "title": "Risk Register (cloud)", "url" : "https://capitecbank.atlassian.net/jira/software/c/projects/IRR/boards/2060"},
 { "title": "Team confluence (cloud)", "url": "https://capitecbank.atlassian.net/wiki/spaces/IBUSSD/overview"}, 
+{ "title": "IT Risk Dashboard", "url":"https://capitecbank.atlassian.net/jira/dashboards/10813"},
+{ "title": "Enterprise Risk Dashboard", "url": "https://capitecbank.atlassian.net/jira/dashboards/11093" },
+{ "title": "eVantage AWS Learning", "url":"https://evantage.gilmoreglobal.com/#/" },
+{ "title": "PagerDuty", "url": "https://capitec-bank.pagerduty.com/incidents" },
+{ "title": "Gitlab", "url":"https://git.int.capinet/" },
+{ "title": "1password (Capitec)", "url": "https://capitec.1password.com/signin?landing-page=%2Fintegrations%2Fdirectory" },
+{ "title": "Promofocus", "url":"https://pomofocus.io/" },
+{ "title": "Instana", "url":"https://production-capitecbank.instana.io/#/websiteMonitoring/website;websiteId=BQOqyKTDTduAB8-9CJTkYQ/summary?timeline.ws=86400000&timeline.to&timeline.fm&timeline.ar=false"},
 ];

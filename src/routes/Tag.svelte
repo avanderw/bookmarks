@@ -23,4 +23,10 @@
         background-color: #ccc;
         font-weight: bold;
     }
+    button {
+        border: solid 1px #ccc;
+        border-radius: 25%;
+        margin: 0 0.25em;
+        padding: 0 0.25em;
+    }
 </style>

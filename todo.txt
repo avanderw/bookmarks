@@ -3,4 +3,6 @@
 2023-08-21 SHOULD Update decay function to use a more accurate formula
 2023-08-21 MUST Add a way to filter on added date
 2023-08-21 MUST Add a way to filter on last accessed date
-2023-08-21 SHOULD Update the sort styles to use iconsDesign
+2023-08-21 SHOULD Update the sort styles to use icons
+2023-08-21 MUST Fix filters to update when tags are modified
+2023-08-21 SHOULD Add a title for a filter area

@@ -9,6 +9,7 @@
 	import Tag from './Tag.svelte';
 	import Domain from './Domain.svelte';
 	import BookmarksExport from './BookmarksExport.svelte';
+	import BookmarksImport from './BookmarksImport.svelte';
 
 	const score = (b) => {
 		const dayDifference = Math.floor((new Date() - new Date(b.last)) / (1000 * 60 * 60 * 24)) || 0;
@@ -70,7 +71,7 @@
 		active={lastSort === 'accessed'}
 	/>
 
-	<button><i class="bi bi-box-arrow-in-down"></i></button><BookmarksExport />
+	<BookmarksImport /><BookmarksExport />
 	<AddFilter />
 </h1>
 <ol>

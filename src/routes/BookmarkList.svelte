@@ -1,4 +1,5 @@
-<script>
+<script lang="ts">
+    import type {Bookmark} from '$lib/bookmarks';
 	import { appData } from '$lib/bookmarks';
 	import { friendly } from '$lib/time';
     import {createEventDispatcher} from "svelte";
@@ -6,6 +7,10 @@
     const dispatch = createEventDispatcher();
 
 	$: viewData = $appData.bookmarks;
+
+    function deleteBookmark(bookmark:Bookmark) {
+        $appData.bookmarks = $appData.bookmarks.filter((b) => b.url !== bookmark.url);
+    }
 </script>
 
 <ol>
@@ -34,7 +39,7 @@
                 <span>added {friendly(bookmark.added)}</span>
                 <span>last used {bookmark.last}</span> |
 				<button on:click={()=>dispatch('edit', bookmark)}><svg><use href="feather-sprite.svg#edit" /></svg> Edit</button>
-				<button><svg><use href="feather-sprite.svg#trash" /></svg> Delete</button>
+				<button on:click={()=>deleteBookmark(bookmark)}><svg><use href="feather-sprite.svg#trash" /></svg> Delete</button>
 				{#if bookmark.notes}
 					| <button><svg><use href="feather-sprite.svg#file-text" /></svg> Notes</button>
 				{/if}

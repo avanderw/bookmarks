@@ -1,4 +1,5 @@
-<script>
+<script lang="ts">
+	import type {Bookmark} from '$lib/bookmarks';
 	import { getUrlParameter } from '$lib/url';
 	import Bookmarklet from './Bookmarklet.svelte';
 	import AddBookmarkForm from './AddBookmarkForm.svelte';
@@ -7,7 +8,7 @@
 	import BookmarkList from './BookmarkList.svelte';
 
 	let state = 'default';
-	let selected = null;
+	let selected:Bookmark;
 
 	if (getUrlParameter('h') !== null) {
 		state = 'add';

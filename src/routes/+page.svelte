@@ -7,6 +7,7 @@
 	import ClearFilter from './ClearFilter.svelte';
 	import Bookmarklet from './Bookmarklet.svelte';
 	import AddBookmarkForm from './AddBookmarkForm.svelte';
+	import DebugStore from './DebugStore.svelte';
 
 	let state = 'add';
 </script>
@@ -24,3 +25,4 @@
 {#if state === 'add'}
 	<AddBookmarkForm on:close={() => (state = 'default')} />
 {/if}
+<DebugStore />

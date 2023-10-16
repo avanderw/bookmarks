@@ -42,7 +42,7 @@
 </script>
 
 <form on:submit={save} on:reset={close}>
-	<h1>New bookmark</h1>
+	<h1><svg><use href="feather-sprite.svg#bookmark"></use></svg> New bookmark</h1>
 	<label for="url">URL</label>
 	<input id="url" type="url" bind:value={url} class:error={errUrl} />
 

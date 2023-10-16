@@ -7,13 +7,17 @@ export interface Bookmark {
     description: string | null;
     tags: string[];
     notes: string | null;
+    added: Date | null;
+    clicked: number | null;
 }
 
 export interface BookmarkStore {
+    version: string;
     bookmarks: Bookmark[];
 }
 
-let data: BookmarkStore = { bookmarks: [] };
+const version = "2023-10-16";
+let data: BookmarkStore = { version: version, bookmarks: [] };
 if (browser) {
     const localStore = localStorage.getItem("bookmarks");
 
@@ -28,5 +32,5 @@ appData.subscribe((value) => {
     if (browser)
         localStorage.setItem("bookmarks", JSON.stringify(value));
 }); // local storage
-appData.subscribe((value) => { console.log("updating bookmark store\n", value); }); // for debugging
+appData.subscribe((value) => { console.log("Updating bookmark store\n", value); }); // for debugging
 // update filehandle

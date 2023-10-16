@@ -26,7 +26,9 @@
 			title,
 			description,
 			tags: tags.split(' ').filter((tag) => tag !== ''),
-			notes
+			notes,
+            added: new Date(),
+            clicked: 0,
 		};
 		$appData.bookmarks.push(data);
         $appData = $appData;
@@ -42,9 +44,9 @@
 </script>
 
 <form on:submit={save} on:reset={close}>
-	<h1><svg><use href="feather-sprite.svg#bookmark"></use></svg> New bookmark</h1>
+	<h1><svg><use href="feather-sprite.svg#bookmark" /></svg> New bookmark</h1>
 	<label for="url">URL</label>
-	<input id="url" type="url" bind:value={url} class:error={errUrl} />
+	<input id="url" type="url" bind:value={url} class:error={errUrl} autofocus/>
 
 	<label for="title">Title (optional)</label>
 	<input id="title" type="text" bind:value={title} />

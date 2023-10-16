@@ -2,7 +2,6 @@
 	import { appData } from '$lib/bookmarks';
 </script>
 
-<p>
-    {JSON.stringify($appData)}
-</p>
+<h1>Debug store</h1>
+<pre>{JSON.stringify($appData, null, 2)}</pre>
 

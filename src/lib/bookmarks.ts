@@ -2,13 +2,14 @@ import { writable } from "svelte/store";
 import { browser } from "$app/environment";
 
 export interface Bookmark {
-    url: string | null;
+    url: string;
     title: string | null;
     description: string | null;
     tags: string[];
     notes: string | null;
-    added: Date | null;
+    added: Date;
     clicked: number | null;
+    last: Date | null;
 }
 
 export interface BookmarkStore {

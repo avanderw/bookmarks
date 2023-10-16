@@ -2,7 +2,7 @@
  * Return a friendly date string.
  * The string will mention how many days, hours, minutes, or seconds ago the date was.
  */
-export function friendly(date:string) {
+export function friendly(date:Date) {
     if (!date) return "never";
     const now = new Date();
     const diff = now.getTime() - new Date(date).getTime();

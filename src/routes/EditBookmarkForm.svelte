@@ -1,72 +1,50 @@
-<script>
-	import { getUrlParameter } from '$lib/url';
+<script lang="ts">
+	import type { Bookmark } from '$lib/bookmarks';
 	import { createEventDispatcher } from 'svelte';
 	import { appData } from '$lib/bookmarks';
 
 	const dispatch = createEventDispatcher();
 
-	let url = getUrlParameter('h');
-	let title = getUrlParameter('t');
-	let description = getUrlParameter('d');
-	let tags = '';
-	let notes = '';
+	export let data: Bookmark;
+    let tags = data.tags.join(' ');
 
-    let errUrl = false;
+	let errUrl = false;
 
 	function save() {
-        if (url === null || url === '') {
-            errUrl = true;
-            return;
-        }
-        if ($appData.bookmarks.find((bookmark) => bookmark.url === url)) {
-            errUrl = true;
-            return;
-        }
-        if (title === '') {
-            title = url;
-        }
-		const data = {
-			url,
-			title,
-			description,
-			tags: tags.split(' ').filter((tag) => tag !== ''),
-			notes,
-            added: new Date(),
-            clicked: 0,
-            last: null,
-		};
-		$appData.bookmarks.push(data);
-        $appData = $appData;
+		if (data.url === null || data.url === '') {
+			errUrl = true;
+			return;
+		}
+		if (data.title === '') {
+			data.title = data.url;
+		}
+		data.tags = tags.split(' ').filter((tag) => tag !== '');
+		$appData = $appData;
 		close();
 	}
 
 	function close() {
-		if (getUrlParameter('h') !== null) {
-			window.close();
-		}
 		dispatch('close');
 	}
 </script>
 
 <form on:submit={save} on:reset={close}>
-	<h1><svg><use href="feather-sprite.svg#bookmark" /></svg> New bookmark</h1>
+	<h1><svg><use href="feather-sprite.svg#bookmark" /></svg> Edit bookmark</h1>
 	<label for="url">URL</label>
-	<input id="url" type="url" bind:value={url} class:error={errUrl} autofocus/>
+	<input id="url" type="url" bind:value={data.url} class:error={errUrl} autofocus />
 
 	<label for="title">Title (optional)</label>
-	<input id="title" type="text" bind:value={title} />
+	<input id="title" type="text" bind:value={data.title} />
 
 	<label for="description">Description (optional)</label>
-	<textarea id="description" bind:value={description} />
+	<textarea id="description" bind:value={data.description} />
 
 	<label for="tags">Tags (optional)</label>
 	<input id="tags" type="text" bind:value={tags} />
-	<p>
-		Enter any number of tags separated by space and without the hash (#).
-	</p>
+	<p>Enter any number of tags separated by space and without the hash (#).</p>
 
 	<label for="notes">Notes (optional)</label>
-	<textarea id="notes" bind:value={notes} />
+	<textarea id="notes" bind:value={data.notes} />
 	<p>Additional notes, supports Markdown.</p>
 
 	<div>
@@ -157,25 +135,25 @@
 		background-color: var(--reset-active);
 	}
 
-    @keyframes shake {
-        0% {
-            transform: translateX(0);
-        }
-        25% {
-            transform: translateX(-0.25rem);
-        }
-        50% {
-            transform: translateX(0);
-        }
-        75% {
-            transform: translateX(0.25rem);
-        }
-        100% {
-            transform: translateX(0);
-        }
-    }
-    .error {
-        border-color: var(--error);
-        animation: shake 0.2s ease-in-out 0s 2;
-    }
+	@keyframes shake {
+		0% {
+			transform: translateX(0);
+		}
+		25% {
+			transform: translateX(-0.25rem);
+		}
+		50% {
+			transform: translateX(0);
+		}
+		75% {
+			transform: translateX(0.25rem);
+		}
+		100% {
+			transform: translateX(0);
+		}
+	}
+	.error {
+		border-color: var(--error);
+		animation: shake 0.2s ease-in-out 0s 2;
+	}
 </style>

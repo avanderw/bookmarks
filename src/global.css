@@ -34,10 +34,13 @@
         --panel: var(--primary-1);
         --border: var(--primary-7);
         --text: var(--primary-9);
+        --text-muted: var(--primary-5);
         --error: var(--accent-6);
         --link: var(--secondary-6);
         --link-visited: var(--secondary-4);
         --link-hover: var(--secondary-8);
+        --tag: var(--accent-2);
+        --tag-text: var(--accent-9);
         --feedback-background: var(--accent-2);
         --feedback-text: var(--primary-9);
         --input-focus: var(--secondary-6);
@@ -58,12 +61,15 @@
         --panel: var(--primary-9);
         --border: var(--primary-3);
         --text: var(--primary-1);
+        --text-muted: var(--primary-5);
         --error: var(--accent-6);
         --link: var(--secondary-5);
         --link-visited: var(--secondary-7);
         --link-hover: var(--secondary-3);
         --feedback-background: var(--accent-8);
         --feedback-text: var(--primary-1);
+        --tag: var(--accent-8);
+        --tag-text: var(--primary-1);
         --input-focus: var(--secondary-4);
         --submit-background: var(--secondary-7);
         --submit-hover: var(--secondary-8);
@@ -81,6 +87,15 @@ body {
     background-color: var(--background);
     font-family: et-book,Palatino,Palatino Linotype,Palatino LT STD,Book Antiqua,Georgia,serif;
     padding: 0
+}
+
+a {
+    color: var(--link);
+    text-decoration: none;
+}
+a:hover {
+    color: var(--link-hover);
+    text-decoration: underline;
 }
 
 svg {

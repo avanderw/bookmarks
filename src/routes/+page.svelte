@@ -5,6 +5,10 @@
 
 	import { filters } from '$lib/stores';
 	import ClearFilter from './ClearFilter.svelte';
+	import Bookmarklet from './Bookmarklet.svelte';
+	import AddBookmarkForm from './AddBookmarkForm.svelte';
+
+	let state = 'add';
 </script>
 
 <AddBookmark /><ClearFilter />
@@ -14,4 +18,9 @@
 	{#each $filters as filter}
 		<Filter model={filter} />
 	{/each}
+{/if}
+
+<Bookmarklet />
+{#if state === 'add'}
+	<AddBookmarkForm on:close={() => (state = 'default')} />
 {/if}

@@ -33,4 +33,5 @@ const BOOKMARK_DATA = [
 { "title": "1password (Capitec)", "url": "https://capitec.1password.com/signin?landing-page=%2Fintegrations%2Fdirectory" },
 { "title": "Promofocus", "url":"https://pomofocus.io/" },
 { "title": "Instana", "url":"https://production-capitecbank.instana.io/#/websiteMonitoring/website;websiteId=BQOqyKTDTduAB8-9CJTkYQ/summary?timeline.ws=86400000&timeline.to&timeline.fm&timeline.ar=false"},
+{ "title": "Cloud Masters", "url": "https://capitecbank.sharepoint.com/sites/CapitecCloudMasters/SitePages/Home.aspx" },
 ];

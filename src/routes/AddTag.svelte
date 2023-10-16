@@ -1,7 +1,9 @@
 <script>
+	// @ts-nocheck
+
 	import { bookmarks } from '$lib/stores';
 
-	/** @type {number} */ export let id;
+	export let id;
 
 	let state = 'idle';
 	let value = '';
@@ -17,7 +19,7 @@
 	}
 
 	function updateStore() {
-		const bookmark = $bookmarks.find( (/** @type {{ id: number; }} */ b) => b.id === id);
+		const bookmark = $bookmarks.find((b) => b.id === id);
 		if (!bookmark.tags) {
 			bookmark.tags = [];
 		}
@@ -33,11 +35,11 @@
 		<!-- svelte-ignore a11y-autofocus -->
 		<input type="text" bind:value autofocus />
 	{/if}
-	<button type="submit"><i class="bi bi-tag-fill"></i></button>
+	<button type="submit"><i class="bi bi-tag-fill" /></button>
 </form>
 
 {#if id === undefined}
-    <span style="color:#cc0000">!AddTag:id</span>
+	<span style="color:#cc0000">!AddTag:id</span>
 {/if}
 
 <style>

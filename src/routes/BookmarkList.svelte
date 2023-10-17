@@ -45,7 +45,7 @@
 
 	function toggleTag(tag: string) {
 		if (search.includes('#' + tag)) {
-			search = search.replace('#' + tag, '');
+			search = search.replace('#' + tag, '').trim();
 		} else {
 			if (search !== '') search += ' ';
 			search += '#' + tag;
@@ -55,7 +55,7 @@
 
 <div class="container">
 	<div class="header">
-		<h1>Bookmarks</h1>
+		<h1><svg><use href="feather-sprite.svg#bookmark" /></svg> Bookmarks</h1>
 		<input type="text" placeholder="Search for words or #tags" bind:value={search} />
 	</div>
 	<ol>
@@ -103,6 +103,7 @@
 
 <style>
 	h1 {
+        display: inline-block;
 		font-size: 1.5rem;
 		margin: 0 0 0.5rem 0;
 	}
@@ -116,6 +117,7 @@
 		width: 100%;
 	}
 	div.header {
+        display: block;
 		border-bottom: 1px solid var(--border);
 		gap: 1rem;
 	}
@@ -150,8 +152,9 @@
 		border: 2px solid var(--border);
 		border-radius: 0.25rem;
 		padding: 0.25rem;
-		width: 95%;
 		margin: 0 auto;
+        width: 33%;
+        float:right;
 	}
 	input:focus {
 		outline: none;

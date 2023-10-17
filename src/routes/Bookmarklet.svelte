@@ -11,4 +11,4 @@
 	};
 </script>
 
-<a href="javascript:({bookmarklet})()">bookmarklet</a>
+<a href="javascript:({bookmarklet})()" title="Drag this link to your bookmark bar">Bookmarklet</a>

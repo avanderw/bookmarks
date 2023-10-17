@@ -16,9 +16,12 @@
 	}
 </script>
 
-<button on:click={() => (state = 'add')}
-	><svg><use href="feather-sprite.svg#plus-square" /></svg></button
->
+<div>
+	<Bookmarklet />
+	<button on:click={() => (state = 'add')}>
+		<svg><use href="feather-sprite.svg#plus-circle" /></svg> <span>Add Bookmark</span>
+	</button>
+</div>
 
 <BookmarkList
 	on:edit={(e) => {
@@ -30,10 +33,9 @@
 		selected = e.detail;
 	}}
 	on:click={(e) => {
-		state = "default";
+		state = 'default';
 	}}
 />
-<Bookmarklet />
 {#if state === 'add'}
 	<AddBookmarkForm on:close={() => (state = 'default')} />
 {/if}
@@ -43,4 +45,25 @@
 {#if state === 'notes'}
 	<Notes on:close={() => (state = 'default')} data={selected} />
 {/if}
-<DebugStore />
+
+<style>
+	div {
+		display: flex;
+		align-items: center;
+		justify-content: right;
+		gap: 0.5rem;
+	}
+	button {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+		border: none;
+		background-color: var(--reset-background);
+		color: var(--reset-text);
+		font-weight: 300;
+		padding: 0.25rem 0.5rem;
+		border-radius: 0.25rem;
+		margin: 0.5rem 0;
+		cursor: pointer;
+	}
+</style>

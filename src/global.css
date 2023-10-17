@@ -86,7 +86,10 @@ body {
     color: var(--text);
     background-color: var(--background);
     font-family: et-book,Palatino,Palatino Linotype,Palatino LT STD,Book Antiqua,Georgia,serif;
-    padding: 0
+    padding: 0;
+    margin: 1rem auto;
+    max-width: 80%;
+    overflow-x: hidden;
 }
 
 a {

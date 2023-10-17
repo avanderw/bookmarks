@@ -42,6 +42,15 @@
 	function deleteBookmark(bookmark: Bookmark) {
 		$appData.bookmarks = $appData.bookmarks.filter((b) => b.url !== bookmark.url);
 	}
+
+	function toggleTag(tag: string) {
+		if (search.includes('#' + tag)) {
+			search = search.replace('#' + tag, '');
+		} else {
+			if (search !== '') search += ' ';
+			search += '#' + tag;
+		}
+	}
 </script>
 
 <div class="container">
@@ -60,7 +69,7 @@
 				<div>
 					{#if bookmark.tags.length > 0}
 						{#each bookmark.tags as tag}
-							<button class="tag">#{tag}</button>
+							<button on:click={() => toggleTag(tag)} class="tag">#{tag}</button>
 						{/each}
 						{#if bookmark.description}
 							<span>|</span>
@@ -82,7 +91,9 @@
 						><svg><use href="feather-sprite.svg#trash" /></svg> Delete</button
 					>
 					{#if bookmark.notes}
-						| <button on:click={() => dispatch('notes', bookmark)}><svg><use href="feather-sprite.svg#file-text" /></svg> Notes</button>
+						| <button on:click={() => dispatch('notes', bookmark)}
+							><svg><use href="feather-sprite.svg#file-text" /></svg> Notes</button
+						>
 					{/if}
 				</div>
 			</li>
@@ -91,18 +102,6 @@
 </div>
 
 <style>
-	@media (orientation: portrait) {
-		div.container {
-			width: 350px;
-		}
-	}
-
-	@media (orientation: landscape) {
-		div.container {
-			width: 512px;
-		}
-	}
-
 	h1 {
 		font-size: 1.5rem;
 		margin: 0 0 0.5rem 0;
@@ -114,6 +113,7 @@
 	}
 	div.container {
 		display: block;
+		width: 100%;
 	}
 	div.header {
 		border-bottom: 1px solid var(--border);

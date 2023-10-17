@@ -1,7 +1,8 @@
-(A) 2023-08-21 Add a way to filter on added date
-(A) 2023-08-21 Add a way to filter on last accessed date
+(A) 2023-08-22 Add filesystemAPI and sync
+(A) 2023-10-17 Add the feedback button
 (B) 2023-08-21 Update decay function to use a more accurate formula
-(B) 2023-08-22 Convert from using local storage to use filesystemAPI
+(C) 2023-08-21 Add a way to filter on added date
+(C) 2023-08-21 Add a way to filter on last accessed date
 x 2023-08-21 2023-08-21 Add a title for a filter area
 x 2023-08-21 2023-08-21 Add export functionality
 x 2023-08-21 2023-08-21 Update the sort styles to use icons

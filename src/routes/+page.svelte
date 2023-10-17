@@ -20,9 +20,11 @@
 </svelte:head>
 
 <div>
+	<a href="https://avanderw.co.za"><svg><use href="feather-sprite.svg#home" /></svg>My homepage</a>
+	<a href="https://github.com/avanderw/bookmarks"><svg><use href="feather-sprite.svg#github" /></svg>Repo</a>
 	<Bookmarklet />
 	<button on:click={() => (state = 'add')}>
-		<svg><use href="feather-sprite.svg#plus-circle" /></svg> <span>Add Bookmark</span>
+		<svg><use href="feather-sprite.svg#bookmark" /></svg> <span>Add Bookmark</span>
 	</button>
 </div>
 
@@ -50,11 +52,15 @@
 {/if}
 
 <style>
+	a {
+		display: inline-flex;
+		gap: 0.5rem;
+	}
 	div {
 		display: flex;
 		align-items: center;
 		justify-content: right;
-		gap: 0.5rem;
+		gap: 2rem;
 	}
 	button {
 		display: flex;

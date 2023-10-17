@@ -1,10 +1,10 @@
 (A) 2023-08-21 Add a way to filter on added date
 (A) 2023-08-21 Add a way to filter on last accessed date
-(A) 2023-08-21 Fix filters to update when tags are modified
-(A) 2023-08-22 Fix a big with tags not adding to the last bookmark element
 (B) 2023-08-21 Update decay function to use a more accurate formula
 (B) 2023-08-22 Convert from using local storage to use filesystemAPI
 x 2023-08-21 2023-08-21 Add a title for a filter area
 x 2023-08-21 2023-08-21 Add export functionality
 x 2023-08-21 2023-08-21 Update the sort styles to use icons
 x 2023-08-22 2023-08-21 Add import functionality
+x 2023-10-17 2023-08-21 Fix filters to update when tags are modified
+x 2023-10-17 2023-08-22 Fix a bug with tags not adding to the last bookmark element

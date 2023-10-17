@@ -4,7 +4,6 @@
 	import Bookmarklet from './Bookmarklet.svelte';
 	import AddBookmarkForm from './AddBookmarkForm.svelte';
 	import EditBookmarkForm from './EditBookmarkForm.svelte';
-	import DebugStore from './DebugStore.svelte';
 	import BookmarkList from './BookmarkList.svelte';
 	import Notes from './Notes.svelte';
 
@@ -15,6 +14,10 @@
 		state = 'add';
 	}
 </script>
+
+<svelte:head>
+	<title>Bookmarks</title>
+</svelte:head>
 
 <div>
 	<Bookmarklet />

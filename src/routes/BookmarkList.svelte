@@ -51,6 +51,12 @@
 			search += '#' + tag;
 		}
 	}
+
+	function doClick(bookmark:Bookmark) {
+		bookmark.clicked++;
+		bookmark.last = new Date();
+		$appData.bookmarks = [...$appData.bookmarks];
+	}
 </script>
 
 <div class="container">
@@ -62,7 +68,7 @@
 		{#each viewData as bookmark}
 			<li title={bookmark.description}>
 				<div>
-					<a href={bookmark.url}>{bookmark.title}</a>
+					<a href={bookmark.url} on:click={()=>doClick(bookmark)} on:auxclick={()=>doClick(bookmark)}>{bookmark.title}</a>
 					<span class="muted">added {friendly(bookmark.added)}</span>
 					<button class="muted">({bookmark.url.replace(/^https?:\/\/([^\/]+).*$/, '$1')})</button>
 				</div>
@@ -82,7 +88,7 @@
 				<div class="muted">
 					<span>43 points</span>
 					<span>with {bookmark.clicked} clicks</span>
-					<span>and last {bookmark.last === null ? 'never' : bookmark.last}</span>
+					<span>and last {friendly(bookmark.last)}</span>
 					|
 					<button on:click={() => dispatch('edit', bookmark)}
 						><svg><use href="feather-sprite.svg#edit" /></svg> Edit</button

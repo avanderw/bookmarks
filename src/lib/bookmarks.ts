@@ -8,7 +8,7 @@ export interface Bookmark {
     tags: string[];
     notes: string | null;
     added: Date;
-    clicked: number | null;
+    clicked: number;
     last: Date | null;
 }
 

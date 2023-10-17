@@ -1,6 +1,6 @@
 <script lang="ts">
 	const bookmarklet = () => {
-		let url = 'http://localhost:5173/bookmarks/';
+		let url = "https://avanderw.co.za/bookmarks/";
 		url += '?h=' + encodeURIComponent(location.href);
 		url += '&t=' + encodeURIComponent(document.title);
 		const meta = document.querySelector('meta[name="description"]');

@@ -19,7 +19,6 @@
 	><svg><use href="feather-sprite.svg#plus-square" /></svg></button
 >
 
-<h1>Bookmarks</h1>
 <BookmarkList on:edit={(e) => {state = 'edit'; selected = e.detail}} />
 <Bookmarklet />
 {#if state === 'add'}

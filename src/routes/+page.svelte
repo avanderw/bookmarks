@@ -6,6 +6,7 @@
 	import EditBookmarkForm from './EditBookmarkForm.svelte';
 	import BookmarkList from './BookmarkList.svelte';
 	import Notes from './Notes.svelte';
+	import Feedback from './Feedback.svelte';
 
 	let state = 'default';
 	let selected: Bookmark;
@@ -26,6 +27,7 @@
 	<button on:click={() => (state = 'add')}>
 		<svg><use href="feather-sprite.svg#bookmark" /></svg> <span>Add Bookmark</span>
 	</button>
+	<a href="#"><svg><use href="feather-sprite.svg#help-circle" /></svg>Help</a>
 </div>
 
 <BookmarkList
@@ -50,6 +52,7 @@
 {#if state === 'notes'}
 	<Notes on:close={() => (state = 'default')} data={selected} />
 {/if}
+<Feedback />
 
 <style>
 	a {

@@ -1,5 +1,5 @@
 (A) 2023-08-22 Add filesystemAPI and sync
-(A) 2023-10-17 Add the feedback button
+x 2023-10-18 2023-10-17 Add the feedback button
 (B) 2023-08-21 Update decay function to use a more accurate formula
 (C) 2023-08-21 Add a way to filter on added date
 (C) 2023-08-21 Add a way to filter on last accessed date
@@ -12,3 +12,4 @@ x 2023-10-17 2023-08-22 Fix a bug with tags not adding to the last bookmark elem
 2023-10-17 Add sort functionality
 2023-10-17 Add a tag cloud filter
 2023-10-17 Link on main website
+2023-10-17 Add cleanup functionality

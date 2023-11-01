@@ -1,4 +1,5 @@
 (A) 2023-08-22 Add filesystemAPI and sync
+(A) 2023-08-29 Add a random joke to the bookmarks manager
 x 2023-10-18 2023-10-17 Add the feedback button
 (B) 2023-08-21 Update decay function to use a more accurate formula
 (C) 2023-08-21 Add a way to filter on added date
@@ -11,5 +12,7 @@ x 2023-10-17 2023-08-21 Fix filters to update when tags are modified
 x 2023-10-17 2023-08-22 Fix a bug with tags not adding to the last bookmark element
 2023-10-17 Add sort functionality
 2023-10-17 Add a tag cloud filter
-2023-10-17 Link on main website
+x 2023-10-18 2023-10-17 Link on main website
 2023-10-17 Add cleanup functionality
+x 2023-11-01 2023-10-24 When returning to the tab, reload the data stores
+(A) 2023-10-24 Add sync to chrome bookmark format

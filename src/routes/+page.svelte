@@ -7,6 +7,7 @@
 	import BookmarkList from './BookmarkList.svelte';
 	import Notes from './Notes.svelte';
 	import Feedback from './Feedback.svelte';
+	import ReloadOnVisibility from './ReloadOnVisibility.svelte';
 
 	let state = 'default';
 	let selected: Bookmark;
@@ -53,6 +54,7 @@
 	<Notes on:close={() => (state = 'default')} data={selected} />
 {/if}
 <Feedback />
+<ReloadOnVisibility />
 
 <style>
 	a {

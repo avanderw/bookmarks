@@ -28,40 +28,43 @@ interface OldBookmark {
     last: Date | null;
 }
 
-const version = "2023-10-16";
-let data: BookmarkStore | Array<OldBookmark> = { version: version, bookmarks: [] };
-if (browser) {
-    console.log("Loading bookmark store");
-    const localStore = localStorage.getItem("bookmarks");
-
-    if (localStore) {
-        data = JSON.parse(localStore);
-
-        if (data instanceof Array) {
-            console.log("Converting unversioned bookmark store to new format");
-            const tmp = data;
-            data = { version: version, bookmarks: [] };
-            for (const bookmark of tmp) {
-                data.bookmarks.push({
-                    url: bookmark.href,
-                    title: bookmark.title,
-                    description: "",
-                    tags: [],
-                    notes: "",
-                    added: bookmark.added,
-                    clicked: bookmark.clicked,
-                    last: bookmark.last
-                });
-            }
-        }
-    }
-}
-
-export const appData = writable(data);
+export const appData = writable(loadFromLocalStorage());
 
 appData.subscribe((value) => {
     if (browser)
         localStorage.setItem("bookmarks", JSON.stringify(value));
 }); // local storage
-appData.subscribe((value) => { console.log("Saving bookmark store\n", value); }); // for debugging
+appData.subscribe((value) => { console.debug("Saving bookmark store\n", value); }); // for debugging
 // update filehandle
+
+export function loadFromLocalStorage(): BookmarkStore {
+    const version = "2023-10-16";
+    let data: BookmarkStore | Array<OldBookmark> = { version: version, bookmarks: [] };
+    if (browser) {
+        console.log("Loading bookmark store from local storage");
+        const localStore = localStorage.getItem("bookmarks");
+
+        if (localStore) {
+            data = JSON.parse(localStore);
+
+            if (data instanceof Array) {
+                console.log("Converting unversioned bookmark store to new format");
+                const tmp = data;
+                data = { version: version, bookmarks: [] };
+                for (const bookmark of tmp) {
+                    data.bookmarks.push({
+                        url: bookmark.href,
+                        title: bookmark.title,
+                        description: "",
+                        tags: [],
+                        notes: "",
+                        added: bookmark.added,
+                        clicked: bookmark.clicked,
+                        last: bookmark.last
+                    });
+                }
+            }
+        }
+    }
+    return data;
+}

@@ -10,7 +10,7 @@
 	}
 </script>
 
-<a href="#" on:click={show}>Give Feedback</a>
+<a href="https://avanderw.tplinkdns.com:31026">Give Feedback</a>
 
 {#if display}
 	<iframe src="https://avanderw.tplinkdns.com:31026" title="Feedback Form" />

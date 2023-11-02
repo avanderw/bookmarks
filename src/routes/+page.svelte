@@ -56,6 +56,10 @@
 <Feedback />
 <ReloadOnVisibility />
 
+<div>
+<a href="https://avanderw.tplinkdns.com:31024/avanderw.co.za"><svg><use href="feather-sprite.svg#bar-chart-2" /></svg>Analytics</a>
+</div>
+
 <style>
 	a {
 		display: inline-flex;

@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
-
 	let display = false;
 
 	function show() {
@@ -15,7 +13,7 @@
 <a href="#" on:click={show}>Give Feedback</a>
 
 {#if display}
-	<iframe src="https://avanderw.tplinkdns.com:31026/embed/feedback" title="Feedback Form" />
+	<iframe src="https://avanderw.tplinkdns.com:31026" title="Feedback Form" />
 	<div style="position:fixed;top:0;left:0;right:0;bottom:0;" on:click={hide} />
 {/if}
 

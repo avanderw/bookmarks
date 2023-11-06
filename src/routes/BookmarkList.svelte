@@ -104,6 +104,12 @@
 				</div>
 			</li>
 		{/each}
+		{#if viewData.length == 0} 
+		<li>No bookmarks found. You need to add a bookmark.</li>
+		<li>Drag the bookmarklit to your browser bookmarks bar.</li>
+		<li>Use the bookmarklit on a site you want to bookmark.</li>
+		<li>Alternatively, you can use the add bookmark button.</li>
+		{/if}
 	</ol>
 </div>
 

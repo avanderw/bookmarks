@@ -3,6 +3,7 @@
 	import { cacheStore } from '$lib/cache-store';
 	import { friendly } from '$lib/time';
 	import { createEventDispatcher } from 'svelte';
+	import Bookmarklet from './Bookmarklet.svelte';
 
 	const dispatch = createEventDispatcher();
 
@@ -47,14 +48,16 @@
 		<h1><svg><use href="feather-sprite.svg#bookmark" /></svg> Bookmarks</h1>
 
 		<button on:click={() => dispatch('add')}>Add</button>
+
+		<Bookmarklet />
 	</div>
 	{#if cacheView.length === 0}
 		<p>There are no bookmarks.</p>
 		<h2>Getting started</h2>
 		<ul>
-			<li>The quickest is to <a href="#" on:click={preload}>pre-load web comics</a>.</li>
-			<li>The hardest is to manually <a href="#">add a new bookmark</a>.</li>
-			<li>The easiest is to use the <a href="#">bookmarklet</a> when browsing the web.</li>
+			<li>The quickest is to <a href="#preload" on:click={preload}>pre-load web comics</a>.</li>
+			<li>The hardest is to manually <a href="#add">add a new bookmark</a>.</li>
+			<li>The easiest is to use the <a href="#bookmarklet">bookmarklet</a> when browsing the web.</li>
 		</ul>
 	{:else}
 		<ol>
@@ -160,18 +163,6 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
-	}
-	input {
-		border: 2px solid var(--border);
-		border-radius: 0.25rem;
-		padding: 0.25rem;
-		margin: 0 auto;
-		width: 33%;
-		float: right;
-	}
-	input:focus {
-		outline: none;
-		border: 2px solid var(--input-focus);
 	}
 	.tag {
 		overflow: initial;

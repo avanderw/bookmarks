@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { Bookmark } from '$lib/bookmarks';
 	import { getUrlParameter } from '$lib/url';
-	import Bookmarklet from './Bookmarklet.svelte';
 	import AddBookmarkForm from './AddBookmarkForm.svelte';
 	import EditBookmarkForm from './EditBookmarkForm.svelte';
 	import Notes from './Notes.svelte';
@@ -20,20 +19,6 @@
 <svelte:head>
 	<title>Bookmarks</title>
 </svelte:head>
-
-<div>
-	<a href="https://avanderw.co.za"><svg><use href="feather-sprite.svg#home" /></svg>My homepage</a>
-	<a href="https://github.com/avanderw/bookmarks">
-		<svg><use href="feather-sprite.svg#github" /></svg>
-		Repo
-	</a>
-	<Bookmarklet />
-	<a href="#help"><svg><use href="feather-sprite.svg#help-circle" /></svg>Help</a>
-	<a href="https://avanderw.tplinkdns.com:31024/avanderw.co.za">
-		<svg><use href="feather-sprite.svg#bar-chart-2" /></svg>
-		Analytics
-	</a>
-</div>
 
 {#if state === 'add'}
 	<AddBookmarkForm on:close={() => (state = 'default')} />
@@ -63,6 +48,19 @@
 		state = 'default';
 	}}
 />
+
+<div>
+	<a href="https://avanderw.co.za"><svg><use href="feather-sprite.svg#home" /></svg>My homepage</a>
+	<a href="https://github.com/avanderw/bookmarks">
+		<svg><use href="feather-sprite.svg#github" /></svg>
+		Repo
+	</a>
+	<a href="#help"><svg><use href="feather-sprite.svg#help-circle" /></svg>Help</a>
+	<a href="https://avanderw.tplinkdns.com:31024/avanderw.co.za">
+		<svg><use href="feather-sprite.svg#bar-chart-2" /></svg>
+		Analytics
+	</a>
+</div>
 
 <style>
 	a {

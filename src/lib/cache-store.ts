@@ -1,5 +1,6 @@
 import { browser } from "$app/environment";
 import { writable, readonly } from "svelte/store";
+import { onMount, onDestroy } from "svelte";
 import type { CacheStore } from "$lib/index";
 
 const CACHE_NAME = "bookmarks/cache-store"
@@ -46,10 +47,10 @@ export const cacheStore = writable(getLocalStorage());
 cacheStore.subscribe((value) => {
     if (value) {
         cacheObject = value;
-        const cacheObjectJson = JSON.stringify(cacheObject);
-        cacheHash = hashFn(cacheObjectJson);
+        const json = JSON.stringify(cacheObject);
+        cacheHash = hashFn(json);
         if (browser) {
-            localStorage.setItem(CACHE_NAME, JSON.stringify(value));
+            localStorage.setItem(CACHE_NAME, json);
         }
         if (fileSystem.handle && fileSystem.cache.hash !== cacheHash) {
             sync.set({ available: true, running: true, changes: true });
@@ -96,7 +97,7 @@ async function watchFileSystem() {
 
 export function downloadCache() {
     let a = document.createElement('a');
-    a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(cacheStore, null, 2));
+    a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(cacheObject, null, 2));
     a.download = `bookmarks-${new Date().toISOString().split('T')[0]}.json`;
     a.style.display = 'none';
     document.body.appendChild(a);
@@ -129,7 +130,18 @@ export async function readFile(file: File) {
 export async function saveCache() {
     if (fileSystem.handle) {
         const writable = await fileSystem.handle.createWritable();
-        await writable.write(JSON.stringify(cacheObject));
+        const json = JSON.stringify(cacheObject, null, 2);
+        await writable.write(json);
         await writable.close();
+        fileSystem.cache.file = await fileSystem.handle.getFile();
+        fileSystem.cache.hash = hashFn(json);
+        sync.set({ available: true, running: true, changes: false });
     }
 }
+
+export function refreshFromCache() {
+    if (document.visibilityState === 'visible') {
+        console.log("View restored, refreshing from cache.");
+        cacheStore.set(getLocalStorage());
+    }
+};

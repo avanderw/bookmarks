@@ -1,7 +1,15 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { onMount, onDestroy } from 'svelte';
-	import { downloadCache, syncFile, unsyncFile, readFile, saveCache, syncStatus } from '$lib/file-system';
+	import {
+		downloadCache,
+		syncFile,
+		unsyncFile,
+		readFile,
+		saveCache,
+		syncStatus,
+		refreshFromCache,
+	} from '$lib/cache-store';
 
 	async function uploadFile() {
 		let fileInput = document.createElement('input');
@@ -72,6 +80,7 @@
 		window.addEventListener('dragover', showDrag);
 		window.addEventListener('dragleave', hideDrag);
 		window.addEventListener('drop', loadFile);
+		document.addEventListener('visibilitychange', refreshFromCache);
 	});
 	onDestroy(() => {
 		if (!browser) {
@@ -80,6 +89,7 @@
 		window.removeEventListener('dragover', showDrag);
 		window.removeEventListener('dragleave', hideDrag);
 		window.removeEventListener('drop', loadFile);
+		document.removeEventListener('visibilitychange', refreshFromCache);
 	});
 </script>
 

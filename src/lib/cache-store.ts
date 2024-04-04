@@ -1,5 +1,8 @@
 import { browser } from "$app/environment";
 import { writable, readonly } from "svelte/store";
+import type { CacheStore } from "$lib/index";
+
+const CACHE_NAME = "bookmarks/cache-store"
 
 function hashFn(str: string): string {
     let hash = 0;
@@ -12,22 +15,6 @@ function hashFn(str: string): string {
     return hash.toString();
 }
 
-const sync = writable({ available: browser && 'showOpenFilePicker' in window, running: false, changes: false })
-export const syncStatus = readonly(sync);
-
-let cacheHash: string;
-let cacheObject: object;
-export const cacheStore = writable();
-cacheStore.subscribe((value) => {
-    if (value) {
-        cacheObject = value;
-        cacheHash = hashFn(JSON.stringify(cacheObject));
-        if (fileSystem.handle && fileSystem.cache.hash !== cacheHash) {
-            sync.set({ available: true, running: true, changes: true });
-        }
-    }
-});
-
 const fileSystem = {
     handle: null as FileSystemFileHandle | null,
     cache: {
@@ -35,6 +22,40 @@ const fileSystem = {
         hash: null as string | null,
     }
 }
+
+function getLocalStorage(): CacheStore {
+    const version = "2023-10-16";
+    let data: CacheStore = { version: version, bookmarks: [] };
+    if (browser) {
+        console.log("Loading bookmark store from local storage");
+        const localStore = localStorage.getItem(CACHE_NAME);
+
+        if (localStore) {
+            data = JSON.parse(localStore);
+        }
+    }
+    return data;
+}
+
+const sync = writable({ available: browser && 'showOpenFilePicker' in window, running: false, changes: false })
+export const syncStatus = readonly(sync);
+
+let cacheHash: string;
+let cacheObject: object;
+export const cacheStore = writable(getLocalStorage());
+cacheStore.subscribe((value) => {
+    if (value) {
+        cacheObject = value;
+        const cacheObjectJson = JSON.stringify(cacheObject);
+        cacheHash = hashFn(cacheObjectJson);
+        if (browser) {
+            localStorage.setItem(CACHE_NAME, JSON.stringify(value));
+        }
+        if (fileSystem.handle && fileSystem.cache.hash !== cacheHash) {
+            sync.set({ available: true, running: true, changes: true });
+        }
+    }
+});
 
 async function watchFileSystem() {
     console.log("watchFileSystem");

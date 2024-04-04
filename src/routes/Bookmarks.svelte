@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	// @ts-nocheck
 	import { bookmarks } from '$lib/stores';
 	import { friendly } from '$lib/time';
@@ -8,8 +8,8 @@
 	import RemoveBookmark from './RemoveBookmark.svelte';
 	import Tag from './Tag.svelte';
 	import Domain from './Domain.svelte';
-	import BookmarksExport from './BookmarksExport.svelte';
-	import BookmarksImport from './BookmarksImport.svelte';
+	import BookmarksExport from './SaveFile.svelte';
+	import BookmarksImport from './LinkFile.svelte';
 
 	const score = (b) => {
 		const dayDifference = Math.floor((new Date() - new Date(b.last)) / (1000 * 60 * 60 * 24)) || 0;

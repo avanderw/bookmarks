@@ -1,0 +1,6 @@
+- browser neutral
+- easy sharing
+- pretty view
+- learn svelte
+- offline first
+- your data

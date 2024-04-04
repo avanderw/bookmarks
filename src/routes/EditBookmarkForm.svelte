@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Bookmark } from '$lib/bookmarks';
 	import { createEventDispatcher } from 'svelte';
-	import { appData } from '$lib/bookmarks';
+	import { cacheStore } from '$lib/cache-store';
 
 	const dispatch = createEventDispatcher();
 
@@ -19,7 +19,7 @@
 			data.title = data.url;
 		}
 		data.tags = tags.split(' ').filter((tag) => tag !== '');
-		$appData = $appData;
+		$cacheStore = $cacheStore;
 		close();
 	}
 

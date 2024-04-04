@@ -1,7 +1,7 @@
 <script>
 	import { getUrlParameter } from '$lib/url';
 	import { createEventDispatcher } from 'svelte';
-	import { appData } from '$lib/bookmarks';
+	import { cacheStore } from '$lib/cache-store';
 
 	const dispatch = createEventDispatcher();
 
@@ -18,7 +18,7 @@
             errUrl = true;
             return;
         }
-        if ($appData.bookmarks.find((bookmark) => bookmark.url === url)) {
+        if ($cacheStore.bookmarks.find((bookmark) => bookmark.url === url)) {
             errUrl = true;
             return;
         }
@@ -35,8 +35,8 @@
             clicked: 0,
             last: null,
 		};
-		$appData.bookmarks.push(data);
-        $appData = $appData;
+		$cacheStore.bookmarks.push(data);
+        $cacheStore = $cacheStore;
 		close();
 	}
 

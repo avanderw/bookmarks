@@ -28,7 +28,7 @@
 		Repo
 	</a>
 	<Bookmarklet />
-	<a href="#"><svg><use href="feather-sprite.svg#help-circle" /></svg>Help</a>
+	<a href="#help"><svg><use href="feather-sprite.svg#help-circle" /></svg>Help</a>
 	<a href="https://avanderw.tplinkdns.com:31024/avanderw.co.za">
 		<svg><use href="feather-sprite.svg#bar-chart-2" /></svg>
 		Analytics
@@ -48,7 +48,9 @@
 
 <CacheStore />
 <CacheView
-	on:add={(e)=>{state = 'add'}}
+	on:add={(e) => {
+		state = 'add';
+	}}
 	on:edit={(e) => {
 		state = 'edit';
 		selected = e.detail;
@@ -72,18 +74,5 @@
 		align-items: center;
 		justify-content: right;
 		gap: 2rem;
-	}
-	button {
-		display: flex;
-		align-items: center;
-		gap: 0.25rem;
-		border: none;
-		background-color: var(--reset-background);
-		color: var(--reset-text);
-		font-weight: 300;
-		padding: 0.25rem 0.5rem;
-		border-radius: 0.25rem;
-		margin: 0.5rem 0;
-		cursor: pointer;
 	}
 </style>

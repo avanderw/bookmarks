@@ -55,9 +55,9 @@
 		<p>There are no bookmarks.</p>
 		<h2>Getting started</h2>
 		<ul>
-			<li>The quickest is to <a href="#preload" on:click={preload}>pre-load web comics</a>.</li>
-			<li>The hardest is to manually <a href="#add">add a new bookmark</a>.</li>
-			<li>The easiest is to use the <a href="#bookmarklet">bookmarklet</a> when browsing the web.</li>
+			<li>The quickest is to <a href="#" on:click={preload}>pre-load web comics</a>.</li>
+			<li>The hardest is to manually <a href="#">add a new bookmark</a>.</li>
+			<li>The easiest is to use the <a href="#">bookmarklet</a> when browsing the web.</li>
 		</ul>
 	{:else}
 		<ol>

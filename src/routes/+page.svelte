@@ -55,7 +55,7 @@
 		<svg><use href="feather-sprite.svg#github" /></svg>
 		Repo
 	</a>
-	<a href="#help"><svg><use href="feather-sprite.svg#help-circle" /></svg>Help</a>
+	<a href="#"><svg><use href="feather-sprite.svg#help-circle" /></svg>Help</a>
 	<a href="https://avanderw.tplinkdns.com:31024/avanderw.co.za">
 		<svg><use href="feather-sprite.svg#bar-chart-2" /></svg>
 		Analytics

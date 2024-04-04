@@ -45,6 +45,8 @@
 <div class="container">
 	<div class="header">
 		<h1><svg><use href="feather-sprite.svg#bookmark" /></svg> Bookmarks</h1>
+
+		<button on:click={() => dispatch('add')}>Add</button>
 	</div>
 	{#if cacheView.length === 0}
 		<p>There are no bookmarks.</p>
@@ -125,7 +127,7 @@
 	div.container {
 		display: block;
 		width: 100%;
-        margin-top: 1rem;
+		margin-top: 1rem;
 	}
 	div.header {
 		display: block;

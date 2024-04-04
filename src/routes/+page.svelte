@@ -28,9 +28,6 @@
 		Repo
 	</a>
 	<Bookmarklet />
-	<button on:click={() => (state = 'add')}>
-		<svg><use href="feather-sprite.svg#bookmark" /></svg> <span>Add Bookmark</span>
-	</button>
 	<a href="#"><svg><use href="feather-sprite.svg#help-circle" /></svg>Help</a>
 	<a href="https://avanderw.tplinkdns.com:31024/avanderw.co.za">
 		<svg><use href="feather-sprite.svg#bar-chart-2" /></svg>
@@ -51,6 +48,7 @@
 
 <CacheStore />
 <CacheView
+	on:add={(e)=>{state = 'add'}}
 	on:edit={(e) => {
 		state = 'edit';
 		selected = e.detail;

@@ -16,10 +16,20 @@
 
 	function preload() {
 		$cacheStore.bookmarks.push({
-			url: '',
-			title: 'xkcd.com',
-			description: 'description',
+			url: 'https://xkcd.com/',
+			title: 'xkcd',
+			description: 'A webcomic of romance, sarcasm, math, and language.',
 			tags: ['comic'],
+			notes: 'preloaded',
+			added: new Date(),
+			clicked: 0,
+			last: null
+		});
+		$cacheStore.bookmarks.push({
+			url: 'https://news.ycombinator.com/',
+			title: 'Hacker News',
+			description: '',
+			tags: ['news'],
 			notes: 'preloaded',
 			added: new Date(),
 			clicked: 0,
@@ -55,7 +65,7 @@
 		<p>There are no bookmarks.</p>
 		<h2>Getting started</h2>
 		<ul>
-			<li>The quickest is to <a href="#" on:click={preload}>pre-load web comics</a>.</li>
+			<li>The quickest is to <a href="#" on:click={preload}>pre-load news and comics</a>.</li>
 			<li>The hardest is to manually <a href="#">add a new bookmark</a>.</li>
 			<li>The easiest is to use the <a href="#">bookmarklet</a> when browsing the web.</li>
 		</ul>
@@ -66,6 +76,7 @@
 					<div>
 						<a
 							href={bookmark.url}
+							target="_blank"
 							on:click={() => handleClick(bookmark)}
 							on:auxclick={() => handleClick(bookmark)}>{bookmark.title}</a
 						>

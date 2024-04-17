@@ -1,6 +1,5 @@
 import { browser } from "$app/environment";
 import { writable, readonly } from "svelte/store";
-import { onMount, onDestroy } from "svelte";
 import type { CacheStore } from "$lib/index";
 
 const CACHE_NAME = "bookmarks/cache-store"
@@ -45,6 +44,7 @@ let cacheHash: string;
 let cacheObject: object;
 export const cacheStore = writable(getLocalStorage());
 cacheStore.subscribe((value) => {
+    console.log("Updating cache store", value);
     if (value) {
         cacheObject = value;
         const json = JSON.stringify(cacheObject);

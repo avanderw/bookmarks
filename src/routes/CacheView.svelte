@@ -11,7 +11,34 @@
 	$: cacheView = buildView($cacheStore, andFilter, notFilter, orFilter);
 
 	function buildView(store: CacheStore, andFilter: string, notFilter: string, orFilter: string) {
-		return store.bookmarks;
+		if (store.bookmarks.length === 0) return [];
+
+		const andTokens = andFilter ? andFilter.split(/\s+/) : [];
+		const notTokens = notFilter ? notFilter.split(/\s+/).filter((token) => token.length !== 0) : [];
+		const orTokens = orFilter ? orFilter.split(/\s+/) : [];
+
+		if (andTokens.length === 0 && notTokens.length === 0 && orTokens.length === 0)
+			return store.bookmarks;
+
+		return store.bookmarks.filter((bm) => {
+			let text = '';
+			text += bm.title?.toLowerCase();
+			text += ' ' + bm.description?.toLowerCase();
+			text +=
+				' ' +
+				bm.tags
+					.map((t) => '#' + t)
+					.join(' ')
+					.toLowerCase();
+			text += ' ' + bm.notes?.toLowerCase();
+			text += ' ' + bm.url.toLowerCase();
+
+			const and = andTokens.every((token) => text.includes(token.toLowerCase()));
+			const not = notTokens.every((token) => !text.includes(token.toLowerCase()));
+			const or = orTokens.some((token) => text.includes(token.toLowerCase()));
+
+			return (and || or) && not;
+		});
 	}
 
 	function preload() {
@@ -55,11 +82,21 @@
 
 <div class="container">
 	<div class="header">
-		<h1><svg><use href="feather-sprite.svg#bookmark" /></svg> Bookmarks</h1>
+		<div style="display:inline-flex;gap:2rem;">
+			<h1><svg><use href="feather-sprite.svg#bookmark" /></svg> Bookmarks</h1>
 
-		<button on:click={() => dispatch('add')}>Add</button>
+			<button on:click={() => dispatch('add')}>Add</button>
 
-		<Bookmarklet />
+			<Bookmarklet />
+		</div>
+		<div style="display:inline-flex;gap:1rem;float:right;">
+			<label for="andFilter">AND:</label>
+			<input id="andFilter" type="text" bind:value={andFilter} />
+			<label for="notFilter">NOT:</label>
+			<input id="notFilter" type="text" bind:value={notFilter} />
+			<label for="orFilter">OR:</label>
+			<input id="orFilter" type="text" bind:value={orFilter} />
+		</div>
 	</div>
 	{#if cacheView.length === 0}
 		<p>There are no bookmarks.</p>

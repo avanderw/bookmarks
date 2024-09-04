@@ -31,7 +31,7 @@
 					.join(' ')
 					.toLowerCase();
 			text += ' ' + bm.notes?.toLowerCase();
-			text += ' ' + bm.url.toLowerCase();
+			bm.url += ' ' + bm.url.toLowerCase();
 
 			const and = andTokens.every((token) => text.includes(token.toLowerCase()));
 			const not = notTokens.every((token) => !text.includes(token.toLowerCase()));

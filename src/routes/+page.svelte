@@ -20,6 +20,19 @@
 	<title>Bookmarks</title>
 </svelte:head>
 
+<div>
+	<a href="https://avanderw.co.za"><svg><use href="feather-sprite.svg#home" /></svg>My homepage</a>
+	<a href="https://github.com/avanderw/bookmarks">
+		<svg><use href="feather-sprite.svg#github" /></svg>
+		Repo
+	</a>
+	<a href="#"><svg><use href="feather-sprite.svg#help-circle" /></svg>Help</a>
+	<a href="https://tracking.avanderw.co.za/avanderw.co.za">
+		<svg><use href="feather-sprite.svg#bar-chart-2" /></svg>
+		Analytics
+	</a>
+</div>
+
 {#if state === 'add'}
 	<AddBookmarkForm on:close={() => (state = 'default')} />
 {/if}
@@ -49,18 +62,6 @@
 	}}
 />
 
-<div>
-	<a href="https://avanderw.co.za"><svg><use href="feather-sprite.svg#home" /></svg>My homepage</a>
-	<a href="https://github.com/avanderw/bookmarks">
-		<svg><use href="feather-sprite.svg#github" /></svg>
-		Repo
-	</a>
-	<a href="#"><svg><use href="feather-sprite.svg#help-circle" /></svg>Help</a>
-	<a href="https://avanderw.tplinkdns.com:31024/avanderw.co.za">
-		<svg><use href="feather-sprite.svg#bar-chart-2" /></svg>
-		Analytics
-	</a>
-</div>
 
 <style>
 	a {

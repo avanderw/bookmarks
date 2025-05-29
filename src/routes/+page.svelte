@@ -4,7 +4,7 @@
 	import AddBookmarkForm from './AddBookmarkForm.svelte';
 	import EditBookmarkForm from './EditBookmarkForm.svelte';
 	import Notes from './Notes.svelte';
-	import CacheStore from './FileManager.svelte';
+	import FileManager from './FileManager.svelte';
 	import CacheView from './CacheView.svelte';
 
 	let state = 'default';
@@ -42,7 +42,7 @@
 	<Notes on:close={() => (state = 'default')} data={selected} />
 {/if}
 
-<CacheStore />
+<FileManager />
 <CacheView
 	on:add={(e) => {
 		state = 'add';

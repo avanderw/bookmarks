@@ -1,7 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
     import type { FilterOptions, FilterResult } from './Logic';
-    import { parseFilterQuery, applyFilter } from './Logic';
+    import { applyFilter } from './Logic';
     
     export let data: any[] = [];
     export let placeholder: string = "Search (use + for AND, | for OR, - for NOT)";
@@ -16,13 +16,9 @@
     function handleInput() {
       clearTimeout(timer);
       timer = setTimeout(() => {
-        filterOptions = parseFilterQuery(query);
-        const filteredData = applyFilter(data, filterOptions);
-        dispatch('filtered', { 
-          data: filteredData, 
-          options: filterOptions, 
-          query 
-        });
+        let filterResult = applyFilter(data, query);
+        filterOptions = filterResult.options;
+        dispatch('filtered', filterResult);
       }, debounceTime);
     }
     

@@ -6,6 +6,7 @@
 	import Notes from './Notes.svelte';
 	import FileManager from './FileManager.svelte';
 	import CacheView from './CacheView.svelte';
+	import { SearchQueryFilter } from '$lib/component/SearchQueryFilter';
 
 	let state = 'default';
 	let selected: Bookmark;
@@ -13,11 +14,33 @@
 	if (getUrlParameter('h') !== null) {
 		state = 'add';
 	}
+
+	function handleFiltered(event) {
+		// Create a serializable version of the data
+		const serializableData = {
+			...event.detail,
+			scores: Object.fromEntries(
+				// Convert Map entries to a format that can be serialized
+				Array.from(event.detail.scores.entries()).map((entry) => {
+					// Use type assertion to handle the entry correctly
+					const [key, value] = entry as [any, any];
+					// For primitive data like strings, we can use them directly as keys
+					// For objects, we need to find a way to identify them (like an index)
+					const keyIdentifier = typeof key === 'object' ? event.detail.data.indexOf(key) : key;
+					return [keyIdentifier, value];
+				})
+			)
+		};
+
+		console.log('Filtered Data:', JSON.stringify(serializableData, null, 2));
+	}
 </script>
 
 <svelte:head>
 	<title>Bookmarks</title>
 </svelte:head>
+
+<SearchQueryFilter data={['data', 'beta', 'alpha']} on:filtered={handleFiltered} />
 
 <div>
 	<a href="https://avanderw.co.za"><svg><use href="feather-sprite.svg#home" /></svg>My homepage</a>
@@ -59,7 +82,6 @@
 		state = 'default';
 	}}
 />
-
 
 <style>
 	a {

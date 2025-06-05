@@ -1,7 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
-    import type { FilterOptions, FilterResult } from './Filter';
-    import { parseFilterQuery, applyFilter } from './Filter';
+    import type { FilterOptions, FilterResult } from './Logic';
+    import { parseFilterQuery, applyFilter } from './Logic';
     
     export let data: any[] = [];
     export let placeholder: string = "Search (use + for AND, | for OR, - for NOT)";

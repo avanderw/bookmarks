@@ -14,6 +14,8 @@
 	let bookmarks: Bookmark[] = [];
 	let filteredBookmarks: Bookmark[] = [];
 	let sortOrder: string = 'clicks'; // Changed default sort to clicks
+	let isSearchActive = false; // Track if search is active
+	let previousSortOrder: string = sortOrder; // Store previous sort order when search becomes active
 	
 	// Pagination state
 	let currentPage = 1;
@@ -49,6 +51,19 @@
 	// Handle filtered results from SearchQueryFilter
 	function onFiltered(event: CustomEvent<any>) {
 		filteredBookmarks = event.detail.data;
+		const newSearchActive = event.detail.query && event.detail.query.trim() !== '';
+		
+		// If search is becoming active, store current sort and switch to relevance
+		if (!isSearchActive && newSearchActive) {
+			previousSortOrder = sortOrder;
+			sortOrder = 'relevance';
+		}
+		// If search is being cleared, restore previous sort order
+		else if (isSearchActive && !newSearchActive) {
+			sortOrder = previousSortOrder;
+		}
+		
+		isSearchActive = newSearchActive;
 		currentPage = 1; // Reset to first page when filter changes
 	}
 
@@ -100,7 +115,9 @@
 	}
 
 	// Sort bookmarks when sort order changes
-	$: sortedBookmarks = sortBookmarks(filteredBookmarks, sortOrder);
+	$: sortedBookmarks = sortOrder === 'relevance' && isSearchActive 
+		? filteredBookmarks // Keep the relevancy order from search
+		: sortBookmarks(filteredBookmarks, sortOrder);
 	
 	// Calculate pagination values
 	$: totalPages = Math.max(1, Math.ceil(sortedBookmarks.length / itemsPerPage));
@@ -134,11 +151,17 @@
 				<label>
 					Sort by:
 					<select bind:value={sortOrder}>
+						{#if isSearchActive}
+							<option value="relevance">Relevance</option>
+						{/if}
 						<option value="clicks">Clicks</option>
 						<option value="date">Date Added</option>
 						<option value="title">Title</option>
 						<option value="url">URL</option>
 					</select>
+					{#if isSearchActive && sortOrder !== 'relevance'}
+						<small class="info-text">(search relevance overridden)</small>
+					{/if}
 				</label>
 				
 				<label>
@@ -388,5 +411,11 @@
 	.pagination-current {
 		padding: 0.25rem 0.5rem;
 		font-size: 0.8rem;
+	}
+
+	.info-text {
+		font-style: italic;
+		color: var(--text-muted, #6a737d);
+		margin-left: 0.5rem;
 	}
 </style>

@@ -13,7 +13,7 @@
 	// Component state
 	let bookmarks: Bookmark[] = [];
 	let filteredBookmarks: Bookmark[] = [];
-	let sortOrder: string = 'date'; // Default sort
+	let sortOrder: string = 'clicks'; // Changed default sort to clicks
 
 	// Initialize data from props if available
 	onMount(() => {
@@ -78,25 +78,27 @@
 </script>
 
 <div class="bookmark-manager">
-	<div class="controls">
-		<FileManager on:fileImported={onFileImported} on:exportRequested={onExportRequested} />
+	<div class="header">
+		<div class="controls">
+			<FileManager on:fileImported={onFileImported} on:exportRequested={onExportRequested} />
 
-		<SearchQueryFilter
-			data={bookmarks}
-			on:filtered={onFiltered}
-			placeholder="Search bookmarks..."
-		/>
+			<SearchQueryFilter
+				data={bookmarks}
+				on:filtered={onFiltered}
+				placeholder="Search bookmarks..."
+			/>
 
-		<div class="sort-controls">
-			<label>
-				Sort by:
-				<select bind:value={sortOrder}>
-					<option value="date">Date Added</option>
-					<option value="title">Title</option>
-					<option value="clicks">Clicks</option>
-					<option value="url">URL</option>
-				</select>
-			</label>
+			<div class="sort-controls">
+				<label>
+					Sort by:
+					<select bind:value={sortOrder}>
+						<option value="clicks">Clicks</option>
+						<option value="date">Date Added</option>
+						<option value="title">Title</option>
+						<option value="url">URL</option>
+					</select>
+				</label>
+			</div>
 		</div>
 	</div>
 
@@ -106,117 +108,144 @@
 				<p>No bookmarks found. Import a bookmark file or add new bookmarks.</p>
 			</div>
 		{:else}
-			{#each sortedBookmarks as bookmark (bookmark.url)}
-				<div class="bookmark-item">
-					<a
-						href={bookmark.url}
-						target="_blank"
-						rel="noopener noreferrer"
-						on:click|preventDefault={() => onBookmarkClick(bookmark)}
-					>
-						<div class="bookmark-title">{bookmark.title || 'Untitled'}</div>
-						<div class="bookmark-url">{bookmark.url}</div>
-						<div class="bookmark-meta">
-							Added: {new Date(bookmark.added).toLocaleDateString()}
-							• Clicks: {bookmark.clicked}
-							{#if bookmark.last}
-								• Last visited: {new Date(bookmark.last).toLocaleDateString()}
+			<ol>
+				{#each sortedBookmarks as bookmark (bookmark.url)}
+					<li>
+						<div>
+							<a
+								href={bookmark.url}
+								target="_blank"
+								rel="noopener noreferrer"
+								on:click|preventDefault={() => onBookmarkClick(bookmark)}
+							>{bookmark.title || 'Untitled'}</a>
+							{#if bookmark.url}
+								<button class="muted">
+									({bookmark.url.replace(/^https?:\/\/([^\/]+).*$/, '$1')})
+								</button>
 							{/if}
 						</div>
-						{#if bookmark.tags && bookmark.tags.length > 0}
-							<div class="bookmark-tags">
+						<div>
+							{#if bookmark.tags && bookmark.tags.length > 0}
 								{#each bookmark.tags as tag}
-									<span class="tag">{tag}</span>
+									<button class="tag">#{tag}</button>
 								{/each}
-							</div>
-						{/if}
-					</a>
-				</div>
-			{/each}
+								{#if bookmark.description}
+									<span>|</span>
+								{/if}
+							{/if}
+							{#if bookmark.description}
+								<span>{bookmark.description}</span>
+							{/if}
+						</div>
+						<div class="muted">
+							{#if bookmark.clicked > 0}
+								<span>{bookmark.clicked} clicks</span>
+								{#if bookmark.last}
+									<span>last visited {new Date(bookmark.last).toLocaleDateString()}</span>
+								{/if}
+							{:else}
+								<span>Never visited</span>
+							{/if}
+						</div>
+					</li>
+				{/each}
+			</ol>
 		{/if}
 	</div>
 </div>
 
 <style>
 	.bookmark-manager {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
+		display: block;
+		width: 100%;
+		margin-top: 1rem;
+	}
+
+	.header {
+		display: block;
+		border-bottom: 1px solid var(--border);
+		margin-bottom: 1rem;
 	}
 
 	.controls {
 		display: flex;
-		flex-direction: column;
+		align-items: center;
 		gap: 1rem;
+		flex-wrap: wrap;
+		padding-bottom: 0.5rem;
 	}
 
 	.sort-controls {
-		display: flex;
-		justify-content: flex-end;
+		margin-left: auto;
 	}
 
 	.bookmark-list {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
+		width: 100%;
 	}
 
 	.empty-state {
 		text-align: center;
-		padding: 2rem;
-		background-color: var(--panel);
-		border-radius: 0.5rem;
-		color: var(--text-muted);
-	}
-
-	.bookmark-item {
-		border: 1px solid var(--border);
-		border-radius: 0.5rem;
-		overflow: hidden;
-		background-color: var(--panel);
-	}
-
-	.bookmark-item a {
-		display: block;
 		padding: 1rem;
-		color: inherit;
-		text-decoration: none;
-	}
-
-	.bookmark-item:hover {
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-		border-color: var(--primary);
-	}
-
-	.bookmark-title {
-		font-weight: 500;
-		font-size: 1.1rem;
-		margin-bottom: 0.25rem;
-	}
-
-	.bookmark-url {
-		color: var(--primary);
-		margin-bottom: 0.5rem;
-		font-size: 0.9rem;
-		word-break: break-all;
-	}
-
-	.bookmark-meta {
-		font-size: 0.8rem;
 		color: var(--text-muted);
-		margin-bottom: 0.5rem;
 	}
 
-	.bookmark-tags {
+	ol {
+		padding: 0 1rem;
+	}
+
+	li {
+		padding: 0.25rem 0;
+		border-bottom: 1px solid var(--border-light, #eee);
+	}
+
+	li:last-child {
+		border-bottom: none;
+	}
+
+	li div {
 		display: flex;
+		align-items: center;
 		gap: 0.25rem;
-		flex-wrap: wrap;
+	}
+
+	a {
+		text-decoration: none;
+		color: var(--primary, #0366d6);
+	}
+
+	a:hover {
+		text-decoration: underline;
+	}
+
+	button {
+		border: none;
+		background: none;
+		padding: 0;
+		margin: 0;
+		cursor: pointer;
+		color: inherit;
 	}
 
 	.tag {
-		background-color: var(--bg-accent);
-		padding: 0.2rem 0.5rem;
+		overflow: initial;
+		background-color: var(--tag, #f1f8ff);
+		color: var(--tag-text, #0366d6);
 		border-radius: 0.25rem;
+		padding: 0.15rem;
+		margin: 0.1rem 0;
+		border: none;
 		font-size: 0.75rem;
+	}
+
+	.muted {
+		font-size: 0.75rem;
+		color: var(--text-muted, #6a737d);
+	}
+
+	span, button {
+		display: inline-block;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 </style>

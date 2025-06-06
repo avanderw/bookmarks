@@ -124,7 +124,9 @@ export async function unsyncFile() {
 }
 
 export async function readFile(file: File) {
-    cacheStore.set(JSON.parse(await file.text()));
+    const data = JSON.parse(await file.text());
+    cacheStore.set(data);
+    return data;
 }
 
 export async function saveCache() {

@@ -7,6 +7,7 @@
 	import { FileManager } from '$lib/component/FileManager';
 	import CacheView from './CacheView.svelte';
 	import { SearchQueryFilter } from '$lib/component/SearchQueryFilter';
+	import { BookmarkManager } from '$lib/component/BookmarkManager';
 
 	let state = 'default';
 	let selected: Bookmark;
@@ -40,8 +41,7 @@
 	<title>Bookmarks</title>
 </svelte:head>
 
-<FileManager />
-<SearchQueryFilter data={['data', 'beta', 'alpha']} on:filtered={handleFiltered} />
+<BookmarkManager />
 
 <div>
 	<a href="https://avanderw.co.za"><svg><use href="feather-sprite.svg#home" /></svg>My homepage</a>

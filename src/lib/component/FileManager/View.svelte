@@ -1,12 +1,17 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { onMount, onDestroy } from 'svelte';
-	import { downloadCache, readFile } from '$lib/cache-store';
+	import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+	import { downloadCache } from '$lib/cache-store';
 
 	let expanded = false;
 	let isDragging = false;
 	let dragCounter = 0;
 	let previousExpandedState = false; // Store previous state
+
+	const dispatch = createEventDispatcher<{
+		fileImported: File;
+		exportRequested: void;
+	}>();
 
 	function toggleExpand() {
 		expanded = !expanded;
@@ -61,7 +66,8 @@
 		}
 
 		const file = e.dataTransfer.files[0];
-		await readFile(file);
+		dispatch('fileImported', file);
+		// OLD action = await readFile(file);
 
 		// Close the panel after successful file drop (after a brief delay)
 		setTimeout(() => {
@@ -76,12 +82,17 @@
 		input.onchange = (e) => {
 			const file = (e.target as HTMLInputElement).files?.[0];
 			if (file) {
-				readFile(file);
+				dispatch('fileImported', file);
+				// OLD action = readFile(file);
 			}
 			document.body.removeChild(input);
 		};
 		document.body.appendChild(input);
 		input.click();
+	}
+
+	function handleExportClick() {
+		dispatch('exportRequested');
 	}
 
 	onMount(() => {
@@ -139,7 +150,7 @@
 				<span>{isDragging ? 'Drop file here' : 'Click or drag file to import'}</span>
 			</div>
 
-			<button class="btn export" on:click={downloadCache}>
+			<button class="btn export" on:click={handleExportClick}>
 				<svg><use href="feather-sprite.svg#download" /></svg> Export
 			</button>
 		</div>
@@ -195,11 +206,6 @@
 	.file-manager.dragging .drop-zone {
 		border-color: var(--primary);
 		background-color: rgba(67, 97, 238, 0.1);
-	}
-
-	.actions {
-		display: flex;
-		gap: 0.5rem;
 	}
 
 	.btn {

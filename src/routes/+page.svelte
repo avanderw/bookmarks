@@ -4,7 +4,7 @@
 	import AddBookmarkForm from './AddBookmarkForm.svelte';
 	import EditBookmarkForm from './EditBookmarkForm.svelte';
 	import Notes from './Notes.svelte';
-	import FileManager from './FileManager.svelte';
+	import { FileManager } from '$lib/component/FileManager';
 	import CacheView from './CacheView.svelte';
 	import { SearchQueryFilter } from '$lib/component/SearchQueryFilter';
 
@@ -40,6 +40,7 @@
 	<title>Bookmarks</title>
 </svelte:head>
 
+<FileManager />
 <SearchQueryFilter data={['data', 'beta', 'alpha']} on:filtered={handleFiltered} />
 
 <div>
@@ -65,7 +66,6 @@
 	<Notes on:close={() => (state = 'default')} data={selected} />
 {/if}
 
-<FileManager />
 <CacheView
 	on:add={(e) => {
 		state = 'add';

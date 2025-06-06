@@ -1,0 +1,104 @@
+:root {
+    /* Core brand colors */
+    --primary: #4361ee;
+    --primary-light: #6888ff;
+    --primary-dark: #2541b2;
+  
+    --secondary: #7209b7;
+    --secondary-light: #9d4eda;
+    --secondary-dark: #560090;
+    
+    --accent: #f72585;
+    --accent-light: #ff67a4;
+    --accent-dark: #d10063;
+    
+    /* Neutral colors - simplified */
+    --neutral-white: #ffffff;
+    --neutral-lightest: #fafafa;
+    --neutral-lighter: #f0f0f0;
+    --neutral-light: #e0e0e0;
+    --neutral-medium: #a0a0a0;
+    --neutral-dark: #505050;
+    --neutral-darker: #303030;
+    --neutral-darkest: #1a1a1a;
+    
+    /* Feedback colors */
+    --success: #2ecc71;
+    --warning: #f39c12;
+    --error: #e74c3c;
+    --info: #3498db;
+}
+
+/* Light theme colors (default) */
+:root {
+    --success-bg: rgba(46, 204, 113, 0.1);
+    --warning-bg: rgba(243, 156, 18, 0.1);
+    --error-bg: rgba(231, 76, 60, 0.1);
+    --info-bg: rgba(52, 152, 219, 0.1);
+    
+    /* Text colors */
+    --text-primary: var(--neutral-darkest);   /* Main text: body text, headings, labels */
+    --text-secondary: var(--neutral-dark);    /* Supporting text: captions, help text */
+    --text-contrast: var(--neutral-white);    /* Text on colored backgrounds */
+    --text-disabled: var(--neutral-medium);   /* Disabled text */
+    --text-link: var(--primary);              /* Link text */
+    
+    /* Background colors */
+    --bg-main: var(--neutral-lightest);       /* Main background */
+    --bg-card: var(--neutral-white);          /* Component background */
+    --bg-elevated: var(--neutral-white);      /* Elevated elements */
+    --bg-hover: var(--neutral-lighter);       /* Hover states */
+    --bg-selected: var(--primary-light);      /* Selected states */
+    --bg-disabled: var(--neutral-lighter);    /* Disabled elements */
+    
+    /* Border colors */
+    --border-default: var(--neutral-light);   /* Default borders */
+    --border-focus: var(--primary-light);     /* Focus states */
+    --border-hover: var(--neutral-medium);    /* Hover borders */
+    
+    /* Feedback backgrounds */
+    --bg-success: var(--success-bg);          /* Success backgrounds */
+    --bg-error: var(--error-bg);              /* Error backgrounds */
+    --bg-warning: var(--warning-bg);          /* Warning backgrounds */
+    --bg-info: var(--info-bg);                /* Info backgrounds */
+}
+
+* {
+    transition: color 150ms ease, background-color 150ms ease;
+}
+
+:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Dark theme colors */
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* Background variants have higher opacity for dark mode */
+        --success-bg: rgba(46, 204, 113, 0.2); /* Increased opacity for dark mode */
+        --warning-bg: rgba(243, 156, 18, 0.2); /* Increased opacity for dark mode */
+        --error-bg: rgba(231, 76, 60, 0.2);    /* Increased opacity for dark mode */
+        --info-bg: rgba(52, 152, 219, 0.2);    /* Increased opacity for dark mode */
+        
+        /* Text colors - inverted from light mode */
+        --text-primary: var(--neutral-white);    /* Main text */
+        --text-secondary: var(--neutral-light);  /* Supporting text */
+        --text-contrast: var(--neutral-darkest); /* Text on colored backgrounds */
+        --text-disabled: var(--neutral-medium);  /* Disabled text */
+        --text-link: var(--primary-light);       /* Link text */
+        
+        /* Background colors - inverted from light mode */
+        --bg-main: var(--neutral-darkest);       /* Main background */
+        --bg-card: var(--neutral-darker);        /* Component background */
+        --bg-elevated: var(--neutral-dark);      /* Elevated elements */
+        --bg-hover: var(--neutral-dark);         /* Hover states */
+        --bg-selected: var(--primary-dark);      /* Selected states */
+        --bg-disabled: var(--neutral-darker);    /* Disabled elements */
+        
+        /* Border colors - adjusted for dark mode */
+        --border-default: var(--neutral-dark);   /* Default borders */
+        --border-focus: var(--primary);          /* Focus states */
+        --border-hover: var(--neutral-medium);   /* Hover borders */
+    }
+}

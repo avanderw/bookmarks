@@ -428,20 +428,33 @@
 			<ol start={startIndex}>
 				{#each paginatedBookmarks as bookmark (bookmark.url)}					<li>
 						<div class="bookmark-row">
-							<div class="bookmark-content">
-								<div class="bookmark-title-row">
-									<a
-										href={bookmark.url}
-										target="_blank"
-										rel="noopener noreferrer"
-										on:click|preventDefault={() => onBookmarkClick(bookmark)}
-										>{bookmark.title || 'Untitled'}</a
-									>
-									{#if bookmark.url}
-										<span class="domain-name">
-											({bookmark.url.replace(/^https?:\/\/([^\/]+).*$/, '$1')})
-										</span>
-									{/if}
+							<div class="bookmark-content">								<div class="bookmark-title-row">
+									<div class="title-section">
+										<a
+											href={bookmark.url}
+											target="_blank"
+											rel="noopener noreferrer"
+											on:click|preventDefault={() => onBookmarkClick(bookmark)}
+											>{bookmark.title || 'Untitled'}</a
+										>
+										{#if bookmark.url}
+											<span class="domain-name">
+												({bookmark.url.replace(/^https?:\/\/([^\/]+).*$/, '$1')})
+											</span>
+										{/if}
+										
+										{#if bookmark.description}
+											<span class="description">{bookmark.description}</span>
+										{/if}
+										
+										{#if bookmark.tags && bookmark.tags.length > 0}
+											<div class="tags">
+												{#each bookmark.tags as tag}
+													<span class="tag">#{tag}</span>
+												{/each}
+											</div>
+										{/if}
+									</div>
 									<div class="bookmark-actions">
 										<button
 											class="action-icon edit-button"
@@ -457,23 +470,7 @@
 										>
 											<svg><use href="feather-sprite.svg#trash-2" /></svg>
 										</button>
-									</div>
-								</div>
-								
-								{#if bookmark.description || (bookmark.tags && bookmark.tags.length > 0)}
-									<div class="bookmark-meta">
-										{#if bookmark.tags && bookmark.tags.length > 0}
-											<div class="tags">
-												{#each bookmark.tags as tag}
-													<span class="tag">#{tag}</span>
-												{/each}
-											</div>
-										{/if}
-										{#if bookmark.description}
-											<div class="description">{bookmark.description}</div>
-										{/if}
-									</div>
-								{/if}
+									</div>								</div>
 								
 								<div class="bookmark-info">
 									{#if bookmark.clicked > 0}
@@ -926,23 +923,30 @@
 		min-width: 0; /* Ensures text ellipsis works */
 		font-size: 0.9rem;
 	}
-
 	.bookmark-title-row {
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		justify-content: space-between;
 		margin-bottom: 0.15rem;
+	}
+
+	.title-section {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.4rem;
+		flex: 1;
+		min-width: 0;
 	}
 
 	.bookmark-title-row a {
 		font-weight: 500;
 		text-decoration: none;
 		color: var(--primary, #0366d6);
-		margin-right: 0.5rem;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
-		max-width: 70%;
+		max-width: fit-content;
 	}
 
 	.bookmark-title-row a:hover {
@@ -955,21 +959,21 @@
 		white-space: nowrap;
 	}
 
-	.bookmark-meta {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		margin-bottom: 0.15rem;
+	.description {
+		color: var(--text, #333);
 		font-size: 0.8rem;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		margin-right: 0.5rem;
 	}
 
 	.tags {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.25rem;
-		margin-right: 0.5rem;
+		margin-left: auto;
 	}
-
 	.tag {
 		display: inline-block;
 		background-color: var(--background-alt, #f1f8ff);
@@ -977,6 +981,7 @@
 		border-radius: 12px;
 		padding: 0.1rem 0.5rem;
 		font-size: 0.75rem;
+		line-height: 1;
 	}
 
 	.description {
@@ -1081,15 +1086,14 @@
 	.view-toggle-button:hover:not(.active) {
 		background-color: var(--background-hover, #e1e4e8);
 	}
-	
-	/* Compact view styles */
+		/* Compact view styles */
 	.bookmark-list.compact-view li {
-		margin-bottom: 0.25rem;
-		padding-bottom: 0.25rem;
+		margin-bottom: 0.15rem;
+		padding-bottom: 0.15rem;
 	}
 	
 	.bookmark-list.compact-view .bookmark-row {
-		padding: 0.1rem 0;
+		padding: 0.05rem 0;
 	}
 	
 	.bookmark-list.compact-view .bookmark-content {
@@ -1097,11 +1101,11 @@
 	}
 	
 	.bookmark-list.compact-view .bookmark-title-row {
-		margin-bottom: 0.1rem;
+		margin-bottom: 0.05rem;
 	}
 	
-	.bookmark-list.compact-view .bookmark-meta {
-		margin-bottom: 0.1rem;
+	.bookmark-list.compact-view .title-section {
+		gap: 0.25rem;
 	}
 	
 	.bookmark-list.compact-view .bookmark-info {
@@ -1113,7 +1117,7 @@
 	}
 	
 	.bookmark-list.compact-view .tag {
-		padding: 0.05rem 0.4rem;
+		padding: 0.05rem 0.35rem;
 		font-size: 0.7rem;
 	}
 	

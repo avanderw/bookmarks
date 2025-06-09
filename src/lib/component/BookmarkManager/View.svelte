@@ -1,5 +1,6 @@
 <!-- src/lib/component/BookmarkManager/View.svelte -->
-<script lang="ts">	import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+<script lang="ts">
+	import { onMount, onDestroy, createEventDispatcher } from 'svelte';
 	import { browser } from '$app/environment';
 	import type { Bookmark, BookmarkStore } from '$lib/bookmarks';
 	import { SearchQueryFilter } from '$lib/component/SearchQueryFilter';
@@ -24,19 +25,19 @@
 	let filteredBookmarks: Bookmark[] = [];
 	let sortedBookmarks: Bookmark[] = [];
 	let paginatedBookmarks: Bookmark[] = [];
-	let sortOrder: string = 'clicks'; 
-	let isSearchActive = false; 
-	let previousSortOrder: string = sortOrder; 
-	let selectedBookmark: Bookmark | null = null; 
-	let viewingNotes: Bookmark | null = null; 
-	
+	let sortOrder: string = 'clicks';
+	let isSearchActive = false;
+	let previousSortOrder: string = sortOrder;
+	let selectedBookmark: Bookmark | null = null;
+	let viewingNotes: Bookmark | null = null;
+
 	// Pagination state
 	let currentPage = 1;
 	let itemsPerPage = 10;
 	let totalPages = 0;
 	let startIndex = 0;
 	let endIndex = 0;
-	
+
 	// Drag and drop state
 	let isDragging = false;
 	let dragCounter = 0;
@@ -47,7 +48,7 @@
 			bookmarks = initialData.bookmarks;
 			filteredBookmarks = [...bookmarks];
 		}
-		
+
 		// Set up global drag and drop handlers
 		if (browser) {
 			window.addEventListener('dragenter', handleDragEnter);
@@ -56,7 +57,7 @@
 			window.addEventListener('drop', handleDrop);
 		}
 	});
-	
+
 	onDestroy(() => {
 		if (browser) {
 			window.removeEventListener('dragenter', handleDragEnter);
@@ -65,7 +66,7 @@
 			window.removeEventListener('drop', handleDrop);
 		}
 	});
-	
+
 	// File handling
 	// -------------------------------------
 	// File handling functions
@@ -90,17 +91,17 @@
 	 */
 	function onExportRequested() {
 		downloadCache();
-	}// Search handlers
+	} // Search handlers
 	// -------------------------------------
-	
+
 	/**
 	 * Handle filtered results from SearchQueryFilter
 	 * @param event CustomEvent containing filtered data and search query
 	 */
-	function onFiltered(event: CustomEvent<{data: Bookmark[], query: string}>) {
+	function onFiltered(event: CustomEvent<{ data: Bookmark[]; query: string }>) {
 		filteredBookmarks = event.detail.data;
 		const newSearchActive = event.detail.query && event.detail.query.trim() !== '';
-		
+
 		// If search is becoming active, store current sort and switch to relevance
 		if (!isSearchActive && newSearchActive) {
 			previousSortOrder = sortOrder;
@@ -110,10 +111,10 @@
 		else if (isSearchActive && !newSearchActive) {
 			sortOrder = previousSortOrder;
 		}
-		
+
 		isSearchActive = newSearchActive;
 		currentPage = 1; // Reset to first page when filter changes
-	}// Bookmark handlers
+	} // Bookmark handlers
 	// -------------------------------------
 
 	/**
@@ -146,11 +147,11 @@
 	function onDeleteBookmarkClick(bookmark: Bookmark) {
 		if (confirm(`Are you sure you want to delete "${bookmark.title || bookmark.url}"?`)) {
 			// Remove from bookmarks array
-			bookmarks = bookmarks.filter(b => b.url !== bookmark.url);
-			
+			bookmarks = bookmarks.filter((b) => b.url !== bookmark.url);
+
 			// Update filtered bookmarks to match
-			filteredBookmarks = filteredBookmarks.filter(b => b.url !== bookmark.url);
-			
+			filteredBookmarks = filteredBookmarks.filter((b) => b.url !== bookmark.url);
+
 			// Notify parent component of data change
 			dispatch('dataChanged', bookmarks);
 		}
@@ -168,16 +169,18 @@
 	 */
 	function onNotesClose() {
 		viewingNotes = null;
-	}	/**
+	}
+
+	/**
 	 * Handle bookmark save (both add and edit)
 	 * @param event CustomEvent containing the saved bookmark
 	 */
 	function onBookmarkSave(event: CustomEvent<Bookmark>) {
 		const savedBookmark = event.detail;
-		
+
 		// Check if we're updating an existing bookmark or adding a new one
-		const existingIndex = bookmarks.findIndex(b => b.url === savedBookmark.url);
-		
+		const existingIndex = bookmarks.findIndex((b) => b.url === savedBookmark.url);
+
 		if (existingIndex >= 0) {
 			// Update existing bookmark
 			bookmarks[existingIndex] = savedBookmark;
@@ -186,18 +189,20 @@
 			// Add new bookmark
 			bookmarks = [...bookmarks, savedBookmark];
 		}
-		
+
 		// Update filtered bookmarks to match
 		if (!isSearchActive) {
 			filteredBookmarks = [...bookmarks];
 		}
-			
+
 		// Reset selected bookmark
 		selectedBookmark = null;
-		
+
 		// Notify parent component of data change
 		dispatch('dataChanged', bookmarks);
-	}	// Pagination functions
+	}
+
+	// Pagination functions
 	/**
 	 * Navigate to a specific page
 	 * @param page The page number to navigate to
@@ -219,7 +224,7 @@
 	function prevPage() {
 		currentPage = PaginationUtils.prevPage(currentPage);
 	}
-		/**
+	/**
 	 * Generate bookmarklet code for the drag-and-drop bookmarklet
 	 */
 	function getBookmarkletCode(): string {
@@ -235,7 +240,7 @@
 			isDragging = true;
 		}
 	}
-	
+
 	function handleDragOver(e: DragEvent) {
 		e.preventDefault();
 		e.stopPropagation();
@@ -243,7 +248,7 @@
 			e.dataTransfer.dropEffect = 'copy';
 		}
 	}
-	
+
 	function handleDragLeave(e: DragEvent) {
 		e.preventDefault();
 		e.stopPropagation();
@@ -252,12 +257,12 @@
 			isDragging = false;
 		}
 	}
-		async function handleDrop(e: DragEvent) {
+	async function handleDrop(e: DragEvent) {
 		e.preventDefault();
 		e.stopPropagation();
 		isDragging = false;
 		dragCounter = 0;
-		
+
 		if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
 			const file = e.dataTransfer.files[0];
 			await onFileImported(FileUtils.createFileEvent(file));
@@ -266,24 +271,29 @@
 
 	// Reactive declarations
 	// -------------------------------------
-	
+
 	// Watch for changes to bookmarks and notify parent
 	$: if (bookmarks.length > 0) {
 		dispatch('dataChanged', bookmarks);
 	}
-		// Sort bookmarks based on sort order and search state
-	$: sortedBookmarks = sortOrder === 'relevance' && isSearchActive 
-		? filteredBookmarks // Keep the relevancy order from search
-		: sortBookmarks(filteredBookmarks, sortOrder);
-		
+	// Sort bookmarks based on sort order and search state
+	$: sortedBookmarks =
+		sortOrder === 'relevance' && isSearchActive
+			? filteredBookmarks // Keep the relevancy order from search
+			: sortBookmarks(filteredBookmarks, sortOrder);
+
 	// Calculate pagination values using utility
 	$: {
-		const pagination = PaginationUtils.calculatePagination(sortedBookmarks, currentPage, itemsPerPage);
+		const pagination = PaginationUtils.calculatePagination(
+			sortedBookmarks,
+			currentPage,
+			itemsPerPage
+		);
 		totalPages = pagination.totalPages;
 		paginatedBookmarks = pagination.paginatedItems;
 		startIndex = pagination.startIndex;
 		endIndex = pagination.endIndex;
-		
+
 		// Update current page if it's out of bounds
 		if (currentPage !== pagination.validCurrentPage) {
 			currentPage = pagination.validCurrentPage;
@@ -303,29 +313,43 @@
 			</div>
 
 			<div class="action-section">
-				<button class="action-button import-button" on:click={() => document.getElementById('fileInput').click()} title="Import bookmarks">
+				<button
+					class="action-button import-button"
+					on:click={() => document.getElementById('fileInput').click()}
+					title="Import bookmarks"
+				>
 					<svg class="icon"><use href="feather-sprite.svg#upload" /></svg>
 					<span>Import</span>
 				</button>
-				
-				<button class="action-button export-button" on:click={onExportRequested} title="Export bookmarks">
+
+				<button
+					class="action-button export-button"
+					on:click={onExportRequested}
+					title="Export bookmarks"
+				>
 					<svg class="icon"><use href="feather-sprite.svg#download" /></svg>
 					<span>Export</span>
 				</button>
-				
-				<BookmarkForm.Button 
+
+				<BookmarkForm.Button
 					on:save={onBookmarkSave}
 					buttonClass="action-button primary-button"
-					buttonText="Add Bookmark" 
+					buttonText="Add Bookmark"
 				/>
-				
-				<a href="#" class="bookmarklet-button" title="Drag to your bookmarks bar" draggable="true" on:dragstart={e => e.dataTransfer.setData('text/plain', getBookmarkletCode())}>
+
+				<a
+					href="#"
+					class="bookmarklet-button"
+					title="Drag to your bookmarks bar"
+					draggable="true"
+					on:dragstart={(e) => e.dataTransfer.setData('text/plain', getBookmarkletCode())}
+				>
 					<svg class="icon"><use href="feather-sprite.svg#bookmark" /></svg>
 					<span>Save to Bookmarks</span>
 				</a>
 			</div>
 		</div>
-		
+
 		<div class="settings-bar">
 			<div class="display-settings">
 				<label class="setting-label">
@@ -343,7 +367,7 @@
 						<small class="info-text">(search relevance overridden)</small>
 					{/if}
 				</label>
-				
+
 				<label class="setting-label">
 					<span>Items per page:</span>
 					<select bind:value={itemsPerPage} class="setting-select">
@@ -355,7 +379,7 @@
 					</select>
 				</label>
 			</div>
-			
+
 			<div class="pagination-info">
 				{#if sortedBookmarks.length > 0}
 					Showing {startIndex}-{endIndex} of {sortedBookmarks.length} bookmarks
@@ -364,22 +388,21 @@
 				{/if}
 			</div>
 		</div>
-	</div>	<!-- Hidden file input for importing -->				
-				<input 
-					type="file" 
-					id="fileInput" 
-					accept=".json,.html,.htm" 
-					style="display:none" 
-					on:change={e => {
-						if (e.target.files && e.target.files[0]) {
-							onFileImported(FileUtils.createFileEvent(e.target.files[0]));
-						}
-					}} 
-				/>
+	</div>
+	<!-- Hidden file input for importing -->
+	<input
+		type="file"
+		id="fileInput"
+		accept=".json,.html,.htm"
+		style="display:none"
+		on:change={(e) => {
+			if (e.target.files && e.target.files[0]) {
+				onFileImported(FileUtils.createFileEvent(e.target.files[0]));
+			}
+		}}
+	/>
 
-	<div class="bookmark-list"
-		class:is-dragging={isDragging}
-	>
+	<div class="bookmark-list" class:is-dragging={isDragging}>
 		{#if sortedBookmarks.length === 0}
 			<div class="empty-state">
 				<p>No bookmarks found. Import a bookmark file or add new bookmarks.</p>
@@ -396,7 +419,8 @@
 										target="_blank"
 										rel="noopener noreferrer"
 										on:click|preventDefault={() => onBookmarkClick(bookmark)}
-									>{bookmark.title || 'Untitled'}</a>
+										>{bookmark.title || 'Untitled'}</a
+									>
 									{#if bookmark.url}
 										<button class="muted">
 											({bookmark.url.replace(/^https?:\/\/([^\/]+).*$/, '$1')})
@@ -415,8 +439,7 @@
 									{#if bookmark.description}
 										<span>{bookmark.description}</span>
 									{/if}
-								</div>								<div class="muted">
-									{#if bookmark.clicked > 0}
+								</div>								<div class="muted">									{#if bookmark.clicked > 0}
 										<span>{bookmark.clicked} clicks</span>
 										{#if bookmark.last}
 											<span title={formatFriendlyDate(bookmark.last)}>
@@ -426,10 +449,16 @@
 									{:else}
 										<span>Never visited</span>
 									{/if}
+									{#if bookmark.added}
+										<span class="separator">|</span>
+										<span title={formatFriendlyDate(bookmark.added)}>
+											added {formatRelativeTime(bookmark.added)}
+										</span>
+									{/if}
 									{#if bookmark.notes}
-										<span>|</span>
-										<button 
-											class="notes-button" 
+										<span class="separator">|</span>
+										<button
+											class="notes-button"
 											on:click={() => onViewNotesClick(bookmark)}
 											title="View notes"
 										>
@@ -440,8 +469,8 @@
 								</div>
 							</div>
 							<div class="bookmark-actions">
-								<button 
-									class="edit-button" 
+								<button
+									class="edit-button"
 									on:click={() => onEditBookmarkClick(bookmark)}
 									title="Edit bookmark"
 								>
@@ -449,8 +478,8 @@
 										<use href="feather-sprite.svg#edit" />
 									</svg>
 								</button>
-								<button 
-									class="delete-button" 
+								<button
+									class="delete-button"
 									on:click={() => onDeleteBookmarkClick(bookmark)}
 									title="Delete bookmark"
 								>
@@ -463,7 +492,7 @@
 					</li>
 				{/each}
 			</ol>
-			
+
 			<div class="pagination">
 				<div class="pagination-info">
 					{#if sortedBookmarks.length > 0}
@@ -473,31 +502,27 @@
 					{/if}
 				</div>
 				<div class="pagination-controls">
-					<button 
-						class="pagination-button" 
-						disabled={currentPage === 1} 
+					<button
+						class="pagination-button"
+						disabled={currentPage === 1}
 						on:click={() => goToPage(1)}
 					>
 						First
 					</button>
-					<button 
-						class="pagination-button" 
-						disabled={currentPage === 1} 
-						on:click={prevPage}
-					>
+					<button class="pagination-button" disabled={currentPage === 1} on:click={prevPage}>
 						Previous
 					</button>
 					<span class="pagination-current">{currentPage} of {totalPages}</span>
-					<button 
-						class="pagination-button" 
-						disabled={currentPage === totalPages} 
+					<button
+						class="pagination-button"
+						disabled={currentPage === totalPages}
 						on:click={nextPage}
 					>
 						Next
 					</button>
-					<button 
-						class="pagination-button" 
-						disabled={currentPage === totalPages} 
+					<button
+						class="pagination-button"
+						disabled={currentPage === totalPages}
 						on:click={() => goToPage(totalPages)}
 					>
 						Last
@@ -506,7 +531,7 @@
 			</div>
 		{/if}
 	</div>
-	
+
 	<!-- Edit bookmark form (conditionally rendered) -->
 	{#if selectedBookmark}
 		<BookmarkForm.View
@@ -514,7 +539,7 @@
 			bookmark={selectedBookmark}
 			isEdit={true}
 			on:save={onBookmarkSave}
-			on:close={() => selectedBookmark = null}
+			on:close={() => (selectedBookmark = null)}
 		/>
 	{/if}
 
@@ -582,7 +607,8 @@
 		flex-wrap: wrap;
 	}
 
-	.action-button, .bookmarklet-button {
+	.action-button,
+	.bookmarklet-button {
 		display: flex;
 		align-items: center;
 		gap: 0.25rem;
@@ -597,11 +623,13 @@
 		transition: background-color 0.2s, transform 0.1s;
 	}
 
-	.action-button:hover, .bookmarklet-button:hover {
+	.action-button:hover,
+	.bookmarklet-button:hover {
 		background-color: var(--background-hover, #e1e4e8);
 	}
 
-	.action-button:active, .bookmarklet-button:active {
+	.action-button:active,
+	.bookmarklet-button:active {
 		transform: translateY(1px);
 	}
 
@@ -619,7 +647,8 @@
 		color: white;
 	}
 
-	.import-button, .export-button {
+	.import-button,
+	.export-button {
 		min-width: 90px;
 	}
 
@@ -679,13 +708,13 @@
 		padding: 0.5rem;
 		border-top: 1px solid var(--border-light, #eee);
 	}
-	
+
 	.pagination-controls {
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
 	}
-	
+
 	.pagination-button {
 		background-color: var(--background-alt, #f6f8fa);
 		border: 1px solid var(--border, #e1e4e8);
@@ -694,16 +723,16 @@
 		font-size: 0.8rem;
 		cursor: pointer;
 	}
-	
+
 	.pagination-button:hover:not(:disabled) {
 		background-color: var(--background-hover, #e1e4e8);
 	}
-	
+
 	.pagination-button:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
 	}
-	
+
 	.pagination-current {
 		padding: 0.25rem 0.5rem;
 		font-size: 0.8rem;
@@ -713,6 +742,12 @@
 		font-style: italic;
 		color: var(--text-muted, #6a737d);
 		margin-left: 0.5rem;
+	}
+
+	/* Separator styling */
+	.separator {
+		margin: 0 0.5rem;
+		color: var(--text-muted, #6a737d);
 	}
 
 	/* Notes button and modal styles */
@@ -814,7 +849,7 @@
 	}
 
 	.bookmark-list.is-dragging::before {
-		content: "";
+		content: '';
 		position: absolute;
 		top: 0;
 		left: 0;
@@ -826,7 +861,7 @@
 	}
 
 	.bookmark-list.is-dragging::after {
-		content: "Drop bookmark file here";
+		content: 'Drop bookmark file here';
 		position: absolute;
 		top: 50%;
 		left: 50%;

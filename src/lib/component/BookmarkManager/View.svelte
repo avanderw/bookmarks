@@ -19,6 +19,7 @@
 	let isSearchActive = false; // Track if search is active
 	let previousSortOrder: string = sortOrder; // Store previous sort order when search becomes active
 	let selectedBookmark: Bookmark | null = null; // Track selected bookmark for editing
+	let viewingNotes: Bookmark | null = null; // Track bookmark for viewing notes
 	
 	// Pagination state
 	let currentPage = 1;
@@ -103,6 +104,16 @@
 			// Notify parent component of data change
 			dispatch('dataChanged', bookmarks);
 		}
+	}
+
+	// Handle view notes
+	function onViewNotesClick(bookmark: Bookmark) {
+		viewingNotes = bookmark;
+	}
+
+	// Handle close notes
+	function onNotesClose() {
+		viewingNotes = null;
 	}
 
 	// Handle bookmark save (both add and edit)
@@ -286,6 +297,17 @@
 									{:else}
 										<span>Never visited</span>
 									{/if}
+									{#if bookmark.notes}
+										<span>|</span>
+										<button 
+											class="notes-button" 
+											on:click={() => onViewNotesClick(bookmark)}
+											title="View notes"
+										>
+											<svg><use href="feather-sprite.svg#file-text" /></svg>
+											Notes
+										</button>
+									{/if}
 								</div>
 							</div>
 							<div class="bookmark-actions">
@@ -365,6 +387,27 @@
 			on:save={onBookmarkSave}
 			on:close={() => selectedBookmark = null}
 		/>
+	{/if}
+
+	<!-- Notes viewer (conditionally rendered) -->
+	{#if viewingNotes}
+		<div class="notes-modal-overlay" on:click|self={onNotesClose}>
+			<div class="notes-modal">
+				<div class="notes-header">
+					<h2>Notes for "{viewingNotes.title || 'Untitled'}"</h2>
+					<button class="close-button" on:click={onNotesClose} title="Close">
+						<svg><use href="feather-sprite.svg#x" /></svg>
+					</button>
+				</div>
+				<div class="notes-content">
+					{#if viewingNotes.notes}
+						<pre>{viewingNotes.notes}</pre>
+					{:else}
+						<p>No notes for this bookmark.</p>
+					{/if}
+				</div>
+			</div>
+		</div>
 	{/if}
 </div>
 
@@ -583,5 +626,91 @@
 		font-style: italic;
 		color: var(--text-muted, #6a737d);
 		margin-left: 0.5rem;
+	}
+
+	/* Notes button and modal styles */
+	.notes-button {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		color: var(--text-muted, #6a737d);
+	}
+
+	.notes-button:hover {
+		color: var(--primary, #0366d6);
+	}
+
+	.notes-button svg {
+		width: 12px;
+		height: 12px;
+	}
+
+	.notes-modal-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0, 0, 0, 0.5);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		z-index: 1000;
+	}
+
+	.notes-modal {
+		background-color: var(--panel, white);
+		border-radius: 8px;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+		width: 90%;
+		max-width: 600px;
+		max-height: 80vh;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+	}
+
+	.notes-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1rem;
+		border-bottom: 1px solid var(--border-light, #eee);
+	}
+
+	.notes-header h2 {
+		font-size: 1.25rem;
+		margin: 0;
+	}
+
+	.notes-content {
+		padding: 1rem;
+		overflow-y: auto;
+		flex: 1;
+		max-height: 60vh;
+	}
+
+	.notes-content pre {
+		white-space: pre-wrap;
+		word-wrap: break-word;
+		margin: 0;
+		font-family: inherit;
+		font-size: 0.9rem;
+	}
+
+	.close-button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 28px;
+		height: 28px;
+		border-radius: 4px;
+		background-color: var(--background-alt, #f6f8fa);
+		border: 1px solid var(--border, #e1e4e8);
+	}
+
+	.close-button svg {
+		width: 16px;
+		height: 16px;
 	}
 </style>

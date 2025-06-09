@@ -5,6 +5,7 @@
 	import { FileManager } from '$lib/component/FileManager';
 	import { SearchQueryFilter } from '$lib/component/SearchQueryFilter';
 	import { BookmarkForm } from '$lib/component/BookmarkForm';
+	import { Bookmarklet } from '$lib/component/Bookmarklet';
 	import { downloadCache } from '$lib/cache-store';
 	import { handleFileImport, updateBookmarkClickCount, sortBookmarks } from './Logic';
 
@@ -232,6 +233,11 @@
 				</label>
 			</div>
 		</div>
+
+		<!-- Bookmarklet component -->
+		<div class="bookmarklet-wrapper">
+			<Bookmarklet.View />
+		</div>
 	</div>
 
 	<div class="bookmark-list">
@@ -391,6 +397,11 @@
 		display: flex;
 		gap: 1rem;
 		align-items: center;
+	}
+
+	.bookmarklet-wrapper {
+		margin-top: 1rem;
+		margin-bottom: 1rem;
 	}
 
 	.bookmark-list {

@@ -1,7 +1,12 @@
-<script lang="ts">
-	import { config } from '$lib/config';
-	
-	// Create a self-contained bookmarklet function that doesn't rely on any external dependencies
+// src/lib/component/Bookmarklet/Logic.ts
+import { config } from '$lib/config';
+
+/**
+ * Creates a bookmarklet function that doesn't rely on any external dependencies
+ * @returns A stringified version of the bookmarklet code ready to be used in javascript: URL
+ */
+export function createBookmarkletCode(): string {
+	// Create a self-contained bookmarklet function
 	const bookmarklet = () => {
 		try {
 			// Use the configuration but have it embedded directly in the function
@@ -35,50 +40,5 @@
 		.replace('config.basePath', `"${config.basePath}"`);
 	
 	// Generate the final bookmarklet code
-	const bookmarkletCode = `(${bookmarkletString})()`;
-</script>
-
-<div class="bookmarklet-container">
-	<a 
-		href={`javascript:${bookmarkletCode}`} 
-		title="Drag this link to your bookmark bar"
-		class="bookmarklet-link"
-	>
-		Bookmark This Site
-	</a>
-	<p class="bookmarklet-instruction">
-		Drag this link to your bookmarks bar to quickly save websites to your bookmark collection.
-	</p>
-</div>
-
-<style>
-	.bookmarklet-container {
-		margin: 1rem 0;
-		padding: 1rem;
-		border: 1px dashed var(--border, #ccc);
-		border-radius: 0.5rem;
-		background-color: var(--bg-card, #f8f9fa);
-		text-align: center;
-	}
-	
-	.bookmarklet-link {
-		display: inline-block;
-		padding: 0.5rem 1rem;
-		background-color: var(--primary, #0366d6);
-		color: var(--text-contrast, white);
-		border-radius: 0.25rem;
-		font-weight: bold;
-		text-decoration: none;
-		cursor: move; /* Indicates it's draggable */
-	}
-	
-	.bookmarklet-link:hover {
-		background-color: var(--primary-dark, #0257ba);
-	}
-	
-	.bookmarklet-instruction {
-		margin-top: 0.5rem;
-		font-size: 0.8rem;
-		color: var(--text-secondary, #6a737d);
-	}
-</style>
+	return `(${bookmarkletString})()`;
+}

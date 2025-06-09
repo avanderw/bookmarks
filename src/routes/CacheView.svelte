@@ -3,7 +3,6 @@
 	import { cacheStore } from '$lib/cache-store';
 	import { friendly } from '$lib/time';
 	import { createEventDispatcher } from 'svelte';
-	import Bookmarklet from './Bookmarklet.svelte';
 
 	const dispatch = createEventDispatcher();
 
@@ -84,8 +83,6 @@
 	<div class="header">
 		<div style="display:inline-flex;gap:2rem;">
 			<h1><svg><use href="feather-sprite.svg#bookmark" /></svg> Bookmarks</h1>
-
-			<Bookmarklet />
 		</div>
 	</div>
 	{#if cacheView.length === 0}

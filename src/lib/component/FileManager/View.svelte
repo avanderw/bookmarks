@@ -1,12 +1,10 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
-	import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+	import { createEventDispatcher } from 'svelte';
 	import { downloadCache } from '$lib/cache-store';
 
 	let expanded = false;
 	let isDragging = false;
 	let dragCounter = 0;
-	let previousExpandedState = false; // Store previous state
 
 	const dispatch = createEventDispatcher<{
 		fileImported: File;
@@ -17,16 +15,13 @@
 		expanded = !expanded;
 	}
 
-	// Existing drag event handlers
+	// Component-local drag event handlers
 	function handleDragEnter(e: DragEvent) {
 		e.preventDefault();
 		e.stopPropagation();
 		dragCounter++;
 		if (dragCounter === 1) {
 			isDragging = true;
-			// Store current expanded state and auto-expand
-			previousExpandedState = expanded;
-			expanded = true;
 		}
 	}
 
@@ -36,8 +31,6 @@
 		dragCounter--;
 		if (dragCounter === 0) {
 			isDragging = false;
-			// Restore previous expanded state when dragging ends without drop
-			expanded = previousExpandedState;
 		}
 	}
 
@@ -53,26 +46,16 @@
 		dragCounter = 0;
 
 		if (!e.dataTransfer?.files.length) {
-			// Restore previous state when no files are dropped
-			expanded = previousExpandedState;
 			return;
 		}
 
 		if (e.dataTransfer.files.length > 1) {
 			alert('Please drop only one file at a time');
-			// Restore previous state on error
-			expanded = previousExpandedState;
 			return;
 		}
 
 		const file = e.dataTransfer.files[0];
 		dispatch('fileImported', file);
-		// OLD action = await readFile(file);
-
-		// Close the panel after successful file drop (after a brief delay)
-		setTimeout(() => {
-			expanded = previousExpandedState;
-		}, 500); // Half-second delay to show the success state
 	}
 
 	function handleImportClick() {
@@ -83,7 +66,6 @@
 			const file = (e.target as HTMLInputElement).files?.[0];
 			if (file) {
 				dispatch('fileImported', file);
-				// OLD action = readFile(file);
 			}
 			document.body.removeChild(input);
 		};
@@ -94,24 +76,6 @@
 	function handleExportClick() {
 		dispatch('exportRequested');
 	}
-
-	onMount(() => {
-		if (!browser) return;
-
-		window.addEventListener('dragenter', handleDragEnter);
-		window.addEventListener('dragleave', handleDragLeave);
-		window.addEventListener('dragover', handleDragOver);
-		window.addEventListener('drop', handleDrop);
-	});
-
-	onDestroy(() => {
-		if (!browser) return;
-
-		window.removeEventListener('dragenter', handleDragEnter);
-		window.removeEventListener('dragleave', handleDragLeave);
-		window.removeEventListener('dragover', handleDragOver);
-		window.removeEventListener('drop', handleDrop);
-	});
 </script>
 
 <div class="file-manager {expanded ? 'expanded' : 'collapsed'} {isDragging ? 'dragging' : ''}">

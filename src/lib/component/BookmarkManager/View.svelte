@@ -1,6 +1,7 @@
 <!-- src/lib/component/BookmarkManager/View.svelte -->
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
+	import { browser } from '$app/environment';
 	import type { Bookmark, BookmarkStore } from '$lib/bookmarks';
 	import { FileManager } from '$lib/component/FileManager';
 	import { SearchQueryFilter } from '$lib/component/SearchQueryFilter';
@@ -169,6 +170,72 @@
 		bookmarkClicked: Bookmark;
 		dataChanged: Bookmark[];
 	}>();
+	
+	// Bookmarklet code generator
+	function getBookmarkletCode(): string {
+		return `javascript:${encodeURIComponent(Bookmarklet.createBookmarkletCode())}`;
+	}
+	
+	// Handle drag and drop for file import
+	let isDragging = false;
+	let dragCounter = 0;
+	
+	function handleDragEnter(e: DragEvent) {
+		e.preventDefault();
+		e.stopPropagation();
+		dragCounter++;
+		if (dragCounter === 1) {
+			isDragging = true;
+		}
+	}
+	
+	function handleDragOver(e: DragEvent) {
+		e.preventDefault();
+		e.stopPropagation();
+		if (e.dataTransfer) {
+			e.dataTransfer.dropEffect = 'copy';
+		}
+	}
+	
+	function handleDragLeave(e: DragEvent) {
+		e.preventDefault();
+		e.stopPropagation();
+		dragCounter--;
+		if (dragCounter === 0) {
+			isDragging = false;
+		}
+	}
+	
+	async function handleDrop(e: DragEvent) {
+		e.preventDefault();
+		e.stopPropagation();
+		isDragging = false;
+		dragCounter = 0;
+		
+		if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+			const file = e.dataTransfer.files[0];
+			await onFileImported(new CustomEvent('fileImported', { detail: file }));
+		}
+	}
+	
+	// Set up global drag and drop handlers
+	onMount(() => {
+		if (browser) {
+			window.addEventListener('dragenter', handleDragEnter);
+			window.addEventListener('dragover', handleDragOver);
+			window.addEventListener('dragleave', handleDragLeave);
+			window.addEventListener('drop', handleDrop);
+		}
+	});
+	
+	onDestroy(() => {
+		if (browser) {
+			window.removeEventListener('dragenter', handleDragEnter);
+			window.removeEventListener('dragover', handleDragOver);
+			window.removeEventListener('dragleave', handleDragLeave);
+			window.removeEventListener('drop', handleDrop);
+		}
+	});
 
 	// Watch for changes to bookmarks and notify parent
 	$: if (bookmarks.length > 0) {
@@ -199,26 +266,44 @@
 
 <div class="bookmark-manager">
 	<div class="header">
-		<div class="controls">
-			<FileManager on:fileImported={onFileImported} on:exportRequested={onExportRequested} />
-
-			<SearchQueryFilter
-				data={bookmarks}
-				on:filtered={onFiltered}
-				placeholder="Search bookmarks..."
-			/>
-
-			<div class="add-bookmark">
-				<BookmarkForm.Button 
-					on:save={onBookmarkSave}
-					buttonText="Add Bookmark" 
+		<div class="toolbar">
+			<div class="search-section">
+				<SearchQueryFilter
+					data={bookmarks}
+					on:filtered={onFiltered}
+					placeholder="Search bookmarks..."
 				/>
 			</div>
 
-			<div class="sort-controls">
-				<label>
-					Sort by:
-					<select bind:value={sortOrder}>
+			<div class="action-section">
+				<button class="action-button import-button" on:click={() => document.getElementById('fileInput').click()} title="Import bookmarks">
+					<svg class="icon"><use href="feather-sprite.svg#upload" /></svg>
+					<span>Import</span>
+				</button>
+				
+				<button class="action-button export-button" on:click={onExportRequested} title="Export bookmarks">
+					<svg class="icon"><use href="feather-sprite.svg#download" /></svg>
+					<span>Export</span>
+				</button>
+				
+				<BookmarkForm.Button 
+					on:save={onBookmarkSave}
+					buttonClass="action-button primary-button"
+					buttonText="Add Bookmark" 
+				/>
+				
+				<a href="#" class="bookmarklet-button" title="Drag to your bookmarks bar" draggable="true" on:dragstart={e => e.dataTransfer.setData('text/plain', getBookmarkletCode())}>
+					<svg class="icon"><use href="feather-sprite.svg#bookmark" /></svg>
+					<span>Save to Bookmarks</span>
+				</a>
+			</div>
+		</div>
+		
+		<div class="settings-bar">
+			<div class="display-settings">
+				<label class="setting-label">
+					<span>Sort by:</span>
+					<select bind:value={sortOrder} class="setting-select">
 						{#if isSearchActive}
 							<option value="relevance">Relevance</option>
 						{/if}
@@ -232,9 +317,9 @@
 					{/if}
 				</label>
 				
-				<label>
-					Items per page:
-					<select bind:value={itemsPerPage}>
+				<label class="setting-label">
+					<span>Items per page:</span>
+					<select bind:value={itemsPerPage} class="setting-select">
 						<option value={5}>5</option>
 						<option value={10}>10</option>
 						<option value={25}>25</option>
@@ -243,15 +328,29 @@
 					</select>
 				</label>
 			</div>
-		</div>
-
-		<!-- Bookmarklet component -->
-		<div class="bookmarklet-wrapper">
-			<Bookmarklet.View />
+			
+			<div class="pagination-info">
+				{#if sortedBookmarks.length > 0}
+					Showing {startIndex}-{endIndex} of {sortedBookmarks.length} bookmarks
+				{:else}
+					No bookmarks to display
+				{/if}
+			</div>
 		</div>
 	</div>
 
-	<div class="bookmark-list">
+	<!-- Hidden file input for importing -->
+	<input 
+		type="file" 
+		id="fileInput" 
+		accept=".json,.html,.htm" 
+		style="display:none" 
+		on:change={e => onFileImported(new CustomEvent('fileImported', {detail: e.target.files[0]}))} 
+	/>
+
+	<div class="bookmark-list"
+		class:is-dragging={isDragging}
+	>
 		{#if sortedBookmarks.length === 0}
 			<div class="empty-state">
 				<p>No bookmarks found. Import a bookmark file or add new bookmarks.</p>
@@ -424,160 +523,124 @@
 		margin-bottom: 1rem;
 	}
 
-	.controls {
+	.toolbar {
 		display: flex;
 		align-items: center;
 		gap: 1rem;
 		flex-wrap: wrap;
-		padding-bottom: 0.5rem;
+		padding: 0.75rem 0;
 	}
 
-	.add-bookmark {
-		margin-left: auto;
-	}
-
-	.sort-controls {
-		display: flex;
-		gap: 1rem;
-		align-items: center;
-	}
-
-	.bookmarklet-wrapper {
-		margin-top: 1rem;
-		margin-bottom: 1rem;
-	}
-
-	.bookmark-list {
-		width: 100%;
-	}
-
-	.empty-state {
-		text-align: center;
-		padding: 1rem;
-		color: var(--text-muted);
-	}
-
-	ol {
-		padding: 0 1rem;
-	}
-
-	li {
-		padding: 0.25rem 0;
-		border-bottom: 1px solid var(--border-light, #eee);
-	}
-
-	li:last-child {
-		border-bottom: none;
-	}
-
-	.bookmark-row {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-
-	.bookmark-content {
+	.search-section {
 		flex: 1;
+		min-width: 300px;
+		display: flex;
+		align-items: center;
 	}
 
-	.bookmark-content div {
+	.search-section :global(input) {
+		height: 38px;
+		padding: 0.5rem 0.75rem;
+		border-radius: 4px;
+		box-sizing: border-box;
+	}
+
+	.action-section {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+	}
+
+	.action-button, .bookmarklet-button {
 		display: flex;
 		align-items: center;
 		gap: 0.25rem;
-	}
-
-	.bookmark-actions {
-		margin-left: 1rem;
-		display: flex;
-		gap: 0.5rem;
-	}
-
-	.edit-button {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 28px;
-		height: 28px;
+		padding: 0.5rem 0.75rem;
 		border-radius: 4px;
-		background-color: var(--background-alt, #f6f8fa);
 		border: 1px solid var(--border, #e1e4e8);
+		background-color: var(--background-alt, #f6f8fa);
+		color: var(--text, #333);
+		font-size: 0.9rem;
 		cursor: pointer;
+		text-decoration: none;
+		transition: background-color 0.2s, transform 0.1s;
 	}
-	
-	.edit-button:hover {
+
+	.action-button:hover, .bookmarklet-button:hover {
 		background-color: var(--background-hover, #e1e4e8);
 	}
-	
-	.edit-button svg {
-		width: 16px;
-		height: 16px;
-		color: var(--text-muted, #6a737d);
+
+	.action-button:active, .bookmarklet-button:active {
+		transform: translateY(1px);
 	}
 
-	.delete-button {
+	.primary-button {
+		background-color: var(--primary, #0366d6);
+		color: white;
+		border-color: var(--primary-dark, #005cc5);
+	}
+
+	.primary-button:hover {
+		background-color: var(--primary-dark, #005cc5);
+	}
+
+	.primary-button .icon {
+		color: white;
+	}
+
+	.import-button, .export-button {
+		min-width: 90px;
+	}
+
+	.bookmarklet-button {
+		border-style: dashed;
+		cursor: grab;
+	}
+
+	.icon {
+		width: 16px;
+		height: 16px;
+	}
+
+	.settings-bar {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 1rem;
+		padding: 0.75rem 0;
+		border-top: 1px solid var(--border-light, #eee);
+	}
+
+	.display-settings {
+		display: flex;
+		gap: 1.5rem;
+		align-items: center;
+	}
+
+	.setting-label {
 		display: flex;
 		align-items: center;
-		justify-content: center;
-		width: 28px;
-		height: 28px;
+		gap: 0.5rem;
+		font-size: 0.9rem;
+	}
+
+	.setting-select {
+		padding: 0.25rem 0.5rem;
 		border-radius: 4px;
-		background-color: var(--danger-bg, #ffeef0);
-		border: 1px solid var(--danger-border, #f5c2c7);
-		color: var(--danger-text, #b71c1c);
+		border: 1px solid var(--border, #e1e4e8);
+		background-color: var(--background-alt, #f6f8fa);
+		color: var(--text, #333);
+		font-size: 0.9rem;
 		cursor: pointer;
 	}
-	
-	.delete-button:hover {
-		background-color: var(--danger-hover, #f5c2c7);
-	}
-	
-	.delete-button svg {
-		width: 16px;
-		height: 16px;
-		color: inherit;
-	}
 
-	a {
-		text-decoration: none;
-		color: var(--primary, #0366d6);
-	}
-
-	a:hover {
-		text-decoration: underline;
-	}
-
-	button {
-		border: none;
-		background: none;
-		padding: 0;
-		margin: 0;
-		cursor: pointer;
-		color: inherit;
-	}
-
-	.tag {
-		overflow: initial;
-		background-color: var(--tag, #f1f8ff);
-		color: var(--tag-text, #0366d6);
-		border-radius: 0.25rem;
-		padding: 0.15rem;
-		margin: 0.1rem 0;
-		border: none;
-		font-size: 0.75rem;
-	}
-
-	.muted {
-		font-size: 0.75rem;
+	.pagination-info {
+		font-size: 0.9rem;
 		color: var(--text-muted, #6a737d);
 	}
 
-	span, button {
-		display: inline-block;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-	
 	.pagination {
 		display: flex;
 		flex-direction: column;
@@ -585,12 +648,6 @@
 		margin-top: 1rem;
 		padding: 0.5rem;
 		border-top: 1px solid var(--border-light, #eee);
-	}
-	
-	.pagination-info {
-		font-size: 0.8rem;
-		color: var(--text-muted, #6a737d);
-		margin-bottom: 0.5rem;
 	}
 	
 	.pagination-controls {
@@ -712,5 +769,52 @@
 	.close-button svg {
 		width: 16px;
 		height: 16px;
+	}
+
+	.bookmark-list {
+		width: 100%;
+		min-height: 200px;
+		position: relative;
+		border-radius: 4px;
+	}
+
+	.bookmark-list.is-dragging {
+		border: 3px dashed var(--primary, #0366d6);
+		background-color: rgba(3, 102, 214, 0.05);
+	}
+
+	.bookmark-list.is-dragging::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(3, 102, 214, 0.1);
+		z-index: 1;
+		pointer-events: none;
+	}
+
+	.bookmark-list.is-dragging::after {
+		content: "Drop bookmark file here";
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		background-color: var(--panel, white);
+		color: var(--primary, #0366d6);
+		font-size: 1.5rem;
+		font-weight: bold;
+		padding: 1rem 2rem;
+		border-radius: 8px;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+		z-index: 2;
+		pointer-events: none;
+	}
+
+	.empty-state {
+		text-align: center;
+		padding: 2rem 1rem;
+		color: var(--text-muted);
 	}
 </style>

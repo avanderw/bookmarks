@@ -17,7 +17,6 @@
 		bookmarkClicked: Bookmark;
 		dataChanged: Bookmark[];
 	}>();
-
 	// Component props
 	export let initialData: BookmarkStore | null = null;	// Component state
 	let bookmarks: Bookmark[] = [];
@@ -29,7 +28,6 @@
 	let previousSortOrder: string = sortOrder;
 	let selectedBookmark: Bookmark | null = null;
 	let viewingNotes: Bookmark | null = null;
-	let isCompactView: boolean = true;
 	// Pagination state
 	let currentPage = 1;
 	let itemsPerPage = 20;
@@ -375,26 +373,6 @@
 						<option value={100}>100</option>
 					</select>
 				</label>
-				
-				<label class="setting-label">
-					<span>View:</span>
-					<button 
-						class="view-toggle-button" 
-						class:active={isCompactView} 
-						on:click={() => isCompactView = true}
-						title="Compact view"
-					>
-						<svg class="icon"><use href="feather-sprite.svg#list" /></svg>
-					</button>
-					<button 
-						class="view-toggle-button" 
-						class:active={!isCompactView} 
-						on:click={() => isCompactView = false}
-						title="Detailed view"
-					>
-						<svg class="icon"><use href="feather-sprite.svg#grid" /></svg>
-					</button>
-				</label>
 			</div>
 
 			<div class="pagination-info">
@@ -418,92 +396,93 @@
 			}
 		}}
 	/>
-
-	<div class="bookmark-list" class:is-dragging={isDragging} class:compact-view={isCompactView}>
+	<div class="bookmark-list" class:is-dragging={isDragging}>
 		{#if sortedBookmarks.length === 0}
 			<div class="empty-state">
 				<p>No bookmarks found. Import a bookmark file or add new bookmarks.</p>
 			</div>
 		{:else}
-			<ol start={startIndex}>
-				{#each paginatedBookmarks as bookmark (bookmark.url)}					<li>
-						<div class="bookmark-row">
-							<div class="bookmark-content">								<div class="bookmark-title-row">
-									<div class="title-section">
-										<a
-											href={bookmark.url}
-											target="_blank"
-											rel="noopener noreferrer"
-											on:click|preventDefault={() => onBookmarkClick(bookmark)}
-											>{bookmark.title || 'Untitled'}</a
-										>
-										{#if bookmark.url}
-											<span class="domain-name">
-												({bookmark.url.replace(/^https?:\/\/([^\/]+).*$/, '$1')})
-											</span>
-										{/if}
-										
-										{#if bookmark.description}
-											<span class="description">{bookmark.description}</span>
-										{/if}
-										
-										{#if bookmark.tags && bookmark.tags.length > 0}
-											<div class="tags">
-												{#each bookmark.tags as tag}
-													<span class="tag">#{tag}</span>
-												{/each}
-											</div>
-										{/if}
-									</div>
-									<div class="bookmark-actions">
-										<button
-											class="action-icon edit-button"
-											on:click={() => onEditBookmarkClick(bookmark)}
-											title="Edit bookmark"
-										>
-											<svg><use href="feather-sprite.svg#edit" /></svg>
-										</button>
-										<button
-											class="action-icon delete-button"
-											on:click={() => onDeleteBookmarkClick(bookmark)}
-											title="Delete bookmark"
-										>
-											<svg><use href="feather-sprite.svg#trash-2" /></svg>
-										</button>
-									</div>								</div>
-								
-								<div class="bookmark-info">
-									{#if bookmark.clicked > 0}
-										<span class="info-item clicks">{bookmark.clicked} clicks</span>
-										{#if bookmark.last}
-											<span class="info-item last-visited" title={formatFriendlyDate(bookmark.last)}>
-												visited {formatRelativeTime(bookmark.last)}
-											</span>
-										{/if}
-									{:else}
-										<span class="info-item">Never visited</span>
-									{/if}
-									{#if bookmark.added}
-										<span class="info-item added-date" title={formatFriendlyDate(bookmark.added)}>
-											added {formatRelativeTime(bookmark.added)}
+			<div class="bookmark-items">
+				{#each paginatedBookmarks as bookmark, index (bookmark.url)}
+					<div class="bookmark-row">
+						<div class="bookmark-content">
+							<div class="bookmark-title-row">
+								<div class="title-section">
+									<span class="bookmark-number">{startIndex + index}.</span>
+									<a
+										href={bookmark.url}
+										target="_blank"
+										rel="noopener noreferrer"
+										on:click|preventDefault={() => onBookmarkClick(bookmark)}
+										>{bookmark.title || 'Untitled'}</a
+									>
+									{#if bookmark.url}
+										<span class="domain-name">
+											({bookmark.url.replace(/^https?:\/\/([^\/]+).*$/, '$1')})
 										</span>
 									{/if}
-									{#if bookmark.notes}
-										<button
-											class="info-item notes-button"
-											on:click={() => onViewNotesClick(bookmark)}
-											title="View notes"
-										>
-											<svg><use href="feather-sprite.svg#file-text" /></svg>
-											Notes
-										</button>
+									
+									{#if bookmark.description}
+										<span class="description">{bookmark.description}</span>
+									{/if}
+									
+									{#if bookmark.tags && bookmark.tags.length > 0}
+										<div class="tags">
+											{#each bookmark.tags as tag}
+												<span class="tag">#{tag}</span>
+											{/each}
+										</div>
 									{/if}
 								</div>
+								<div class="bookmark-actions">
+									<button
+										class="action-icon edit-button"
+										on:click={() => onEditBookmarkClick(bookmark)}
+										title="Edit bookmark"
+									>
+										<svg><use href="feather-sprite.svg#edit" /></svg>
+									</button>
+									<button
+										class="action-icon delete-button"
+										on:click={() => onDeleteBookmarkClick(bookmark)}
+										title="Delete bookmark"
+									>
+										<svg><use href="feather-sprite.svg#trash-2" /></svg>
+									</button>
+								</div>
+							</div>
+							
+							<div class="bookmark-info">
+								{#if bookmark.clicked > 0}
+									<span class="info-item clicks">{bookmark.clicked} clicks</span>
+									{#if bookmark.last}
+										<span class="info-item last-visited" title={formatFriendlyDate(bookmark.last)}>
+											visited {formatRelativeTime(bookmark.last)}
+										</span>
+									{/if}
+								{:else}
+									<span class="info-item">Never visited</span>
+								{/if}
+								{#if bookmark.added}
+									<span class="info-item added-date" title={formatFriendlyDate(bookmark.added)}>
+										added {formatRelativeTime(bookmark.added)}
+									</span>
+								{/if}
+								{#if bookmark.notes}
+									<button
+										class="info-item notes-button"
+										on:click={() => onViewNotesClick(bookmark)}
+										title="View notes"
+									>
+										<svg><use href="feather-sprite.svg#file-text" /></svg>
+										Notes
+									</button>
+								{/if}
 							</div>
 						</div>
-					</li>
+					</div>
 				{/each}
-			</ol>
+			</div>
 
 			<div class="pagination">
 				<div class="pagination-info">
@@ -915,26 +894,33 @@
 
 	.bookmark-row {
 		display: flex;
-		padding: 0.25rem 0;
+		padding: 0.1rem 0;
+		margin-bottom: 0.2rem;
+		border-bottom: 1px solid var(--border-light, #eee);
 	}
-
+	
+	.bookmark-row:last-child {
+		margin-bottom: 0;
+		border-bottom: none;
+	}
+	
 	.bookmark-content {
 		flex: 1;
 		min-width: 0; /* Ensures text ellipsis works */
-		font-size: 0.9rem;
+		font-size: 0.85rem;
 	}
 	.bookmark-title-row {
 		display: flex;
 		align-items: flex-start;
 		justify-content: space-between;
-		margin-bottom: 0.15rem;
+		margin-bottom: 0.1rem;
 	}
 
 	.title-section {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
-		gap: 0.4rem;
+		gap: 0.25rem;
 		flex: 1;
 		min-width: 0;
 	}
@@ -979,8 +965,8 @@
 		background-color: var(--background-alt, #f1f8ff);
 		color: var(--primary, #0366d6);
 		border-radius: 12px;
-		padding: 0.1rem 0.5rem;
-		font-size: 0.75rem;
+		padding: 0.05rem 0.35rem;
+		font-size: 0.7rem;
 		line-height: 1;
 	}
 
@@ -998,7 +984,7 @@
 		flex-wrap: wrap;
 		align-items: center;
 		gap: 0.5rem;
-		font-size: 0.75rem;
+		font-size: 0.7rem;
 		color: var(--text-muted, #6a737d);
 	}
 
@@ -1006,6 +992,7 @@
 		display: flex;
 		align-items: center;
 		white-space: nowrap;
+		margin-right: 0.5rem;
 	}
 
 	.notes-button {
@@ -1038,8 +1025,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 1.5rem;
-		height: 1.5rem;
+		width: 1.25rem;
+		height: 1.25rem;
 		border-radius: 3px;
 		background: none;
 		border: 1px solid transparent;
@@ -1055,79 +1042,18 @@
 	}
 
 	.action-icon svg {
-		width: 1rem;
-		height: 1rem;
+		width: 0.875rem;
+		height: 0.875rem;
 	}
-
 	.separator {
 		margin: 0 0.25rem;
 	}
-
-	.view-toggle-button {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 28px;
-		height: 28px;
-		border-radius: 4px;
-		background-color: var(--background-alt, #f6f8fa);
-		border: 1px solid var(--border, #e1e4e8);
+	.bookmark-number {
+		display: inline-block;
+		font-size: 0.8rem;
 		color: var(--text-muted, #6a737d);
-		padding: 0;
-		cursor: pointer;
-	}
-	
-	.view-toggle-button.active {
-		background-color: var(--primary-light, #dcefff);
-		color: var(--primary, #0366d6);
-		border-color: var(--primary, #0366d6);
-	}
-	
-	.view-toggle-button:hover:not(.active) {
-		background-color: var(--background-hover, #e1e4e8);
-	}
-		/* Compact view styles */
-	.bookmark-list.compact-view li {
-		margin-bottom: 0.15rem;
-		padding-bottom: 0.15rem;
-	}
-	
-	.bookmark-list.compact-view .bookmark-row {
-		padding: 0.05rem 0;
-	}
-	
-	.bookmark-list.compact-view .bookmark-content {
-		font-size: 0.85rem;
-	}
-	
-	.bookmark-list.compact-view .bookmark-title-row {
-		margin-bottom: 0.05rem;
-	}
-	
-	.bookmark-list.compact-view .title-section {
-		gap: 0.25rem;
-	}
-	
-	.bookmark-list.compact-view .bookmark-info {
-		font-size: 0.7rem;
-	}
-	
-	.bookmark-list.compact-view .info-item {
-		margin-right: 0.5rem;
-	}
-	
-	.bookmark-list.compact-view .tag {
-		padding: 0.05rem 0.35rem;
-		font-size: 0.7rem;
-	}
-	
-	.bookmark-list.compact-view .action-icon {
-		width: 1.25rem;
-		height: 1.25rem;
-	}
-	
-	.bookmark-list.compact-view .action-icon svg {
-		width: 0.875rem;
-		height: 0.875rem;
+		margin-right: 0.2rem;
+		min-width: 1.5rem;
+		text-align: right;
 	}
 </style>

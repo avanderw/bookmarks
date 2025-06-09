@@ -19,8 +19,7 @@
 	}>();
 
 	// Component props
-	export let initialData: BookmarkStore | null = null;
-	// Component state
+	export let initialData: BookmarkStore | null = null;	// Component state
 	let bookmarks: Bookmark[] = [];
 	let filteredBookmarks: Bookmark[] = [];
 	let sortedBookmarks: Bookmark[] = [];
@@ -30,10 +29,10 @@
 	let previousSortOrder: string = sortOrder;
 	let selectedBookmark: Bookmark | null = null;
 	let viewingNotes: Bookmark | null = null;
-
+	let isCompactView: boolean = true;
 	// Pagination state
 	let currentPage = 1;
-	let itemsPerPage = 10;
+	let itemsPerPage = 20;
 	let totalPages = 0;
 	let startIndex = 0;
 	let endIndex = 0;
@@ -366,9 +365,7 @@
 					{#if isSearchActive && sortOrder !== 'relevance'}
 						<small class="info-text">(search relevance overridden)</small>
 					{/if}
-				</label>
-
-				<label class="setting-label">
+				</label>				<label class="setting-label">
 					<span>Items per page:</span>
 					<select bind:value={itemsPerPage} class="setting-select">
 						<option value={5}>5</option>
@@ -377,6 +374,26 @@
 						<option value={50}>50</option>
 						<option value={100}>100</option>
 					</select>
+				</label>
+				
+				<label class="setting-label">
+					<span>View:</span>
+					<button 
+						class="view-toggle-button" 
+						class:active={isCompactView} 
+						on:click={() => isCompactView = true}
+						title="Compact view"
+					>
+						<svg class="icon"><use href="feather-sprite.svg#list" /></svg>
+					</button>
+					<button 
+						class="view-toggle-button" 
+						class:active={!isCompactView} 
+						on:click={() => isCompactView = false}
+						title="Detailed view"
+					>
+						<svg class="icon"><use href="feather-sprite.svg#grid" /></svg>
+					</button>
 				</label>
 			</div>
 
@@ -402,18 +419,17 @@
 		}}
 	/>
 
-	<div class="bookmark-list" class:is-dragging={isDragging}>
+	<div class="bookmark-list" class:is-dragging={isDragging} class:compact-view={isCompactView}>
 		{#if sortedBookmarks.length === 0}
 			<div class="empty-state">
 				<p>No bookmarks found. Import a bookmark file or add new bookmarks.</p>
 			</div>
 		{:else}
 			<ol start={startIndex}>
-				{#each paginatedBookmarks as bookmark (bookmark.url)}
-					<li>
+				{#each paginatedBookmarks as bookmark (bookmark.url)}					<li>
 						<div class="bookmark-row">
 							<div class="bookmark-content">
-								<div>
+								<div class="bookmark-title-row">
 									<a
 										href={bookmark.url}
 										target="_blank"
@@ -422,43 +438,62 @@
 										>{bookmark.title || 'Untitled'}</a
 									>
 									{#if bookmark.url}
-										<button class="muted">
+										<span class="domain-name">
 											({bookmark.url.replace(/^https?:\/\/([^\/]+).*$/, '$1')})
+										</span>
+									{/if}
+									<div class="bookmark-actions">
+										<button
+											class="action-icon edit-button"
+											on:click={() => onEditBookmarkClick(bookmark)}
+											title="Edit bookmark"
+										>
+											<svg><use href="feather-sprite.svg#edit" /></svg>
 										</button>
-									{/if}
+										<button
+											class="action-icon delete-button"
+											on:click={() => onDeleteBookmarkClick(bookmark)}
+											title="Delete bookmark"
+										>
+											<svg><use href="feather-sprite.svg#trash-2" /></svg>
+										</button>
+									</div>
 								</div>
-								<div>
-									{#if bookmark.tags && bookmark.tags.length > 0}
-										{#each bookmark.tags as tag}
-											<button class="tag">#{tag}</button>
-										{/each}
-										{#if bookmark.description}
-											<span>|</span>
+								
+								{#if bookmark.description || (bookmark.tags && bookmark.tags.length > 0)}
+									<div class="bookmark-meta">
+										{#if bookmark.tags && bookmark.tags.length > 0}
+											<div class="tags">
+												{#each bookmark.tags as tag}
+													<span class="tag">#{tag}</span>
+												{/each}
+											</div>
 										{/if}
-									{/if}
-									{#if bookmark.description}
-										<span>{bookmark.description}</span>
-									{/if}
-								</div>								<div class="muted">									{#if bookmark.clicked > 0}
-										<span>{bookmark.clicked} clicks</span>
+										{#if bookmark.description}
+											<div class="description">{bookmark.description}</div>
+										{/if}
+									</div>
+								{/if}
+								
+								<div class="bookmark-info">
+									{#if bookmark.clicked > 0}
+										<span class="info-item clicks">{bookmark.clicked} clicks</span>
 										{#if bookmark.last}
-											<span title={formatFriendlyDate(bookmark.last)}>
-												last visited {formatRelativeTime(bookmark.last)}
+											<span class="info-item last-visited" title={formatFriendlyDate(bookmark.last)}>
+												visited {formatRelativeTime(bookmark.last)}
 											</span>
 										{/if}
 									{:else}
-										<span>Never visited</span>
+										<span class="info-item">Never visited</span>
 									{/if}
 									{#if bookmark.added}
-										<span class="separator">|</span>
-										<span title={formatFriendlyDate(bookmark.added)}>
+										<span class="info-item added-date" title={formatFriendlyDate(bookmark.added)}>
 											added {formatRelativeTime(bookmark.added)}
 										</span>
 									{/if}
 									{#if bookmark.notes}
-										<span class="separator">|</span>
 										<button
-											class="notes-button"
+											class="info-item notes-button"
 											on:click={() => onViewNotesClick(bookmark)}
 											title="View notes"
 										>
@@ -467,26 +502,6 @@
 										</button>
 									{/if}
 								</div>
-							</div>
-							<div class="bookmark-actions">
-								<button
-									class="edit-button"
-									on:click={() => onEditBookmarkClick(bookmark)}
-									title="Edit bookmark"
-								>
-									<svg>
-										<use href="feather-sprite.svg#edit" />
-									</svg>
-								</button>
-								<button
-									class="delete-button"
-									on:click={() => onDeleteBookmarkClick(bookmark)}
-									title="Delete bookmark"
-								>
-									<svg>
-										<use href="feather-sprite.svg#trash-2" />
-									</svg>
-								</button>
 							</div>
 						</div>
 					</li>
@@ -881,5 +896,234 @@
 		text-align: center;
 		padding: 2rem 1rem;
 		color: var(--text-muted);
+	}
+
+	/* Bookmark list styling */
+	ol {
+		margin: 0;
+		padding: 0;
+		list-style-position: inside;
+	}
+
+	li {
+		margin-bottom: 0.5rem;
+		padding-bottom: 0.5rem;
+		border-bottom: 1px solid var(--border-light, #eee);
+	}
+
+	li:last-child {
+		margin-bottom: 0;
+		border-bottom: none;
+	}
+
+	.bookmark-row {
+		display: flex;
+		padding: 0.25rem 0;
+	}
+
+	.bookmark-content {
+		flex: 1;
+		min-width: 0; /* Ensures text ellipsis works */
+		font-size: 0.9rem;
+	}
+
+	.bookmark-title-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 0.15rem;
+	}
+
+	.bookmark-title-row a {
+		font-weight: 500;
+		text-decoration: none;
+		color: var(--primary, #0366d6);
+		margin-right: 0.5rem;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 70%;
+	}
+
+	.bookmark-title-row a:hover {
+		text-decoration: underline;
+	}
+
+	.domain-name {
+		font-size: 0.8rem;
+		color: var(--text-muted, #6a737d);
+		white-space: nowrap;
+	}
+
+	.bookmark-meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		margin-bottom: 0.15rem;
+		font-size: 0.8rem;
+	}
+
+	.tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem;
+		margin-right: 0.5rem;
+	}
+
+	.tag {
+		display: inline-block;
+		background-color: var(--background-alt, #f1f8ff);
+		color: var(--primary, #0366d6);
+		border-radius: 12px;
+		padding: 0.1rem 0.5rem;
+		font-size: 0.75rem;
+	}
+
+	.description {
+		color: var(--text, #333);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+	}
+
+	.bookmark-info {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.75rem;
+		color: var(--text-muted, #6a737d);
+	}
+
+	.info-item {
+		display: flex;
+		align-items: center;
+		white-space: nowrap;
+	}
+
+	.notes-button {
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: 0;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		color: var(--text-muted, #6a737d);
+		font-size: 0.75rem;
+	}
+
+	.notes-button:hover {
+		color: var(--primary, #0366d6);
+	}
+
+	.notes-button svg {
+		width: 0.875rem;
+		height: 0.875rem;
+	}
+
+	.bookmark-actions {
+		display: flex;
+		gap: 0.25rem;
+	}
+
+	.action-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.5rem;
+		height: 1.5rem;
+		border-radius: 3px;
+		background: none;
+		border: 1px solid transparent;
+		color: var(--text-muted, #6a737d);
+		padding: 0;
+		cursor: pointer;
+	}
+
+	.action-icon:hover {
+		background-color: var(--background-alt, #f6f8fa);
+		border-color: var(--border, #e1e4e8);
+		color: var(--primary, #0366d6);
+	}
+
+	.action-icon svg {
+		width: 1rem;
+		height: 1rem;
+	}
+
+	.separator {
+		margin: 0 0.25rem;
+	}
+
+	.view-toggle-button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 28px;
+		height: 28px;
+		border-radius: 4px;
+		background-color: var(--background-alt, #f6f8fa);
+		border: 1px solid var(--border, #e1e4e8);
+		color: var(--text-muted, #6a737d);
+		padding: 0;
+		cursor: pointer;
+	}
+	
+	.view-toggle-button.active {
+		background-color: var(--primary-light, #dcefff);
+		color: var(--primary, #0366d6);
+		border-color: var(--primary, #0366d6);
+	}
+	
+	.view-toggle-button:hover:not(.active) {
+		background-color: var(--background-hover, #e1e4e8);
+	}
+	
+	/* Compact view styles */
+	.bookmark-list.compact-view li {
+		margin-bottom: 0.25rem;
+		padding-bottom: 0.25rem;
+	}
+	
+	.bookmark-list.compact-view .bookmark-row {
+		padding: 0.1rem 0;
+	}
+	
+	.bookmark-list.compact-view .bookmark-content {
+		font-size: 0.85rem;
+	}
+	
+	.bookmark-list.compact-view .bookmark-title-row {
+		margin-bottom: 0.1rem;
+	}
+	
+	.bookmark-list.compact-view .bookmark-meta {
+		margin-bottom: 0.1rem;
+	}
+	
+	.bookmark-list.compact-view .bookmark-info {
+		font-size: 0.7rem;
+	}
+	
+	.bookmark-list.compact-view .info-item {
+		margin-right: 0.5rem;
+	}
+	
+	.bookmark-list.compact-view .tag {
+		padding: 0.05rem 0.4rem;
+		font-size: 0.7rem;
+	}
+	
+	.bookmark-list.compact-view .action-icon {
+		width: 1.25rem;
+		height: 1.25rem;
+	}
+	
+	.bookmark-list.compact-view .action-icon svg {
+		width: 0.875rem;
+		height: 0.875rem;
 	}
 </style>

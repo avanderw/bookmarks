@@ -1,31 +1,45 @@
 <!-- src/lib/component/BookmarkManager/View.svelte -->
-<script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+<script lang="ts">	import { onMount, onDestroy, createEventDispatcher } from 'svelte';
 	import { browser } from '$app/environment';
 	import type { Bookmark, BookmarkStore } from '$lib/bookmarks';
-	import { FileManager } from '$lib/component/FileManager';
 	import { SearchQueryFilter } from '$lib/component/SearchQueryFilter';
 	import { BookmarkForm } from '$lib/component/BookmarkForm';
 	import { Bookmarklet } from '$lib/component/Bookmarklet';
 	import { downloadCache } from '$lib/cache-store';
-	import { handleFileImport, updateBookmarkClickCount, sortBookmarks } from './Logic';
+	import { updateBookmarkClickCount, sortBookmarks } from './Logic';
+	import { PaginationUtils } from './PaginationUtils';
+	import { FileUtils } from './FileUtils';
+	import { formatRelativeTime, formatFriendlyDate } from '$lib/utils/DateUtils';
+
+	// Event dispatcher
+	const dispatch = createEventDispatcher<{
+		bookmarkClicked: Bookmark;
+		dataChanged: Bookmark[];
+	}>();
 
 	// Component props
 	export let initialData: BookmarkStore | null = null;
-
 	// Component state
 	let bookmarks: Bookmark[] = [];
 	let filteredBookmarks: Bookmark[] = [];
-	let sortOrder: string = 'clicks'; // Changed default sort to clicks
-	let isSearchActive = false; // Track if search is active
-	let previousSortOrder: string = sortOrder; // Store previous sort order when search becomes active
-	let selectedBookmark: Bookmark | null = null; // Track selected bookmark for editing
-	let viewingNotes: Bookmark | null = null; // Track bookmark for viewing notes
+	let sortedBookmarks: Bookmark[] = [];
+	let paginatedBookmarks: Bookmark[] = [];
+	let sortOrder: string = 'clicks'; 
+	let isSearchActive = false; 
+	let previousSortOrder: string = sortOrder; 
+	let selectedBookmark: Bookmark | null = null; 
+	let viewingNotes: Bookmark | null = null; 
 	
 	// Pagination state
 	let currentPage = 1;
 	let itemsPerPage = 10;
 	let totalPages = 0;
+	let startIndex = 0;
+	let endIndex = 0;
+	
+	// Drag and drop state
+	let isDragging = false;
+	let dragCounter = 0;
 
 	// Initialize data from props if available
 	onMount(() => {
@@ -33,12 +47,35 @@
 			bookmarks = initialData.bookmarks;
 			filteredBookmarks = [...bookmarks];
 		}
+		
+		// Set up global drag and drop handlers
+		if (browser) {
+			window.addEventListener('dragenter', handleDragEnter);
+			window.addEventListener('dragover', handleDragOver);
+			window.addEventListener('dragleave', handleDragLeave);
+			window.addEventListener('drop', handleDrop);
+		}
 	});
-
-	// Handle file import event from FileManager
+	
+	onDestroy(() => {
+		if (browser) {
+			window.removeEventListener('dragenter', handleDragEnter);
+			window.removeEventListener('dragover', handleDragOver);
+			window.removeEventListener('dragleave', handleDragLeave);
+			window.removeEventListener('drop', handleDrop);
+		}
+	});
+	
+	// File handling
+	// -------------------------------------
+	// File handling functions
+	/**
+	 * Handle file import event from FileManager
+	 * @param event CustomEvent containing the file to import
+	 */
 	async function onFileImported(event: CustomEvent<File>) {
 		try {
-			const result = await handleFileImport(event.detail);
+			const result = await FileUtils.importFile(event.detail);
 			bookmarks = result.bookmarks;
 			filteredBookmarks = [...bookmarks];
 			currentPage = 1; // Reset to first page on new import
@@ -48,13 +85,19 @@
 		}
 	}
 
-	// Handle export request from FileManager
+	/**
+	 * Handle export request from FileManager
+	 */
 	function onExportRequested() {
 		downloadCache();
-	}
-
-	// Handle filtered results from SearchQueryFilter
-	function onFiltered(event: CustomEvent<any>) {
+	}// Search handlers
+	// -------------------------------------
+	
+	/**
+	 * Handle filtered results from SearchQueryFilter
+	 * @param event CustomEvent containing filtered data and search query
+	 */
+	function onFiltered(event: CustomEvent<{data: Bookmark[], query: string}>) {
 		filteredBookmarks = event.detail.data;
 		const newSearchActive = event.detail.query && event.detail.query.trim() !== '';
 		
@@ -70,16 +113,18 @@
 		
 		isSearchActive = newSearchActive;
 		currentPage = 1; // Reset to first page when filter changes
-	}
+	}// Bookmark handlers
+	// -------------------------------------
 
-	// Handle bookmark click
+	/**
+	 * Handle bookmark click - updates click count and dispatches event
+	 */
 	function onBookmarkClick(bookmark: Bookmark) {
 		// Update the bookmark with new click count
 		const updatedBookmark = updateBookmarkClickCount(bookmark);
 
 		// Update in our lists
 		bookmarks = bookmarks.map((b) => (b.url === bookmark.url ? updatedBookmark : b));
-
 		filteredBookmarks = filteredBookmarks.map((b) =>
 			b.url === bookmark.url ? updatedBookmark : b
 		);
@@ -88,12 +133,16 @@
 		dispatch('bookmarkClicked', updatedBookmark);
 	}
 
-	// Handle edit bookmark
+	/**
+	 * Open the edit form for a bookmark
+	 */
 	function onEditBookmarkClick(bookmark: Bookmark) {
 		selectedBookmark = bookmark;
 	}
 
-	// Handle delete bookmark
+	/**
+	 * Delete a bookmark after confirmation
+	 */
 	function onDeleteBookmarkClick(bookmark: Bookmark) {
 		if (confirm(`Are you sure you want to delete "${bookmark.title || bookmark.url}"?`)) {
 			// Remove from bookmarks array
@@ -107,17 +156,22 @@
 		}
 	}
 
-	// Handle view notes
+	/**
+	 * Display notes for a bookmark
+	 */
 	function onViewNotesClick(bookmark: Bookmark) {
 		viewingNotes = bookmark;
 	}
 
-	// Handle close notes
+	/**
+	 * Close the notes modal
+	 */
 	function onNotesClose() {
 		viewingNotes = null;
-	}
-
-	// Handle bookmark save (both add and edit)
+	}	/**
+	 * Handle bookmark save (both add and edit)
+	 * @param event CustomEvent containing the saved bookmark
+	 */
 	function onBookmarkSave(event: CustomEvent<Bookmark>) {
 		const savedBookmark = event.detail;
 		
@@ -134,52 +188,45 @@
 		}
 		
 		// Update filtered bookmarks to match
-		filteredBookmarks = isSearchActive 
-			? filteredBookmarks 
-			: [...bookmarks];
+		if (!isSearchActive) {
+			filteredBookmarks = [...bookmarks];
+		}
 			
 		// Reset selected bookmark
 		selectedBookmark = null;
 		
 		// Notify parent component of data change
 		dispatch('dataChanged', bookmarks);
-	}
-
-	// Pagination functions
+	}	// Pagination functions
+	/**
+	 * Navigate to a specific page
+	 * @param page The page number to navigate to
+	 */
 	function goToPage(page: number) {
-		if (page >= 1 && page <= totalPages) {
-			currentPage = page;
-		}
+		currentPage = PaginationUtils.goToPage(page, totalPages);
 	}
 
+	/**
+	 * Navigate to the next page
+	 */
 	function nextPage() {
-		if (currentPage < totalPages) {
-			currentPage += 1;
-		}
+		currentPage = PaginationUtils.nextPage(currentPage, totalPages);
 	}
 
+	/**
+	 * Navigate to the previous page
+	 */
 	function prevPage() {
-		if (currentPage > 1) {
-			currentPage -= 1;
-		}
+		currentPage = PaginationUtils.prevPage(currentPage);
 	}
-
-	// Event dispatcher
-	import { createEventDispatcher } from 'svelte';
-	const dispatch = createEventDispatcher<{
-		bookmarkClicked: Bookmark;
-		dataChanged: Bookmark[];
-	}>();
-	
-	// Bookmarklet code generator
+		/**
+	 * Generate bookmarklet code for the drag-and-drop bookmarklet
+	 */
 	function getBookmarkletCode(): string {
 		return `javascript:${encodeURIComponent(Bookmarklet.createBookmarkletCode())}`;
 	}
-	
-	// Handle drag and drop for file import
-	let isDragging = false;
-	let dragCounter = 0;
-	
+	// Drag and drop handlers
+	// -------------------------------------
 	function handleDragEnter(e: DragEvent) {
 		e.preventDefault();
 		e.stopPropagation();
@@ -205,8 +252,7 @@
 			isDragging = false;
 		}
 	}
-	
-	async function handleDrop(e: DragEvent) {
+		async function handleDrop(e: DragEvent) {
 		e.preventDefault();
 		e.stopPropagation();
 		isDragging = false;
@@ -214,53 +260,34 @@
 		
 		if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
 			const file = e.dataTransfer.files[0];
-			await onFileImported(new CustomEvent('fileImported', { detail: file }));
+			await onFileImported(FileUtils.createFileEvent(file));
 		}
 	}
-	
-	// Set up global drag and drop handlers
-	onMount(() => {
-		if (browser) {
-			window.addEventListener('dragenter', handleDragEnter);
-			window.addEventListener('dragover', handleDragOver);
-			window.addEventListener('dragleave', handleDragLeave);
-			window.addEventListener('drop', handleDrop);
-		}
-	});
-	
-	onDestroy(() => {
-		if (browser) {
-			window.removeEventListener('dragenter', handleDragEnter);
-			window.removeEventListener('dragover', handleDragOver);
-			window.removeEventListener('dragleave', handleDragLeave);
-			window.removeEventListener('drop', handleDrop);
-		}
-	});
 
+	// Reactive declarations
+	// -------------------------------------
+	
 	// Watch for changes to bookmarks and notify parent
 	$: if (bookmarks.length > 0) {
 		dispatch('dataChanged', bookmarks);
 	}
-
-	// Sort bookmarks when sort order changes
+		// Sort bookmarks based on sort order and search state
 	$: sortedBookmarks = sortOrder === 'relevance' && isSearchActive 
 		? filteredBookmarks // Keep the relevancy order from search
 		: sortBookmarks(filteredBookmarks, sortOrder);
-	
-	// Calculate pagination values
-	$: totalPages = Math.max(1, Math.ceil(sortedBookmarks.length / itemsPerPage));
-	$: paginatedBookmarks = sortedBookmarks.slice(
-		(currentPage - 1) * itemsPerPage,
-		currentPage * itemsPerPage
-	);
-	
-	// Calculate the range of bookmarks being displayed
-	$: startIndex = sortedBookmarks.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
-	$: endIndex = Math.min(sortedBookmarks.length, currentPage * itemsPerPage);
-	
-	// Ensure current page is valid when total pages changes
-	$: if (currentPage > totalPages) {
-		currentPage = totalPages;
+		
+	// Calculate pagination values using utility
+	$: {
+		const pagination = PaginationUtils.calculatePagination(sortedBookmarks, currentPage, itemsPerPage);
+		totalPages = pagination.totalPages;
+		paginatedBookmarks = pagination.paginatedItems;
+		startIndex = pagination.startIndex;
+		endIndex = pagination.endIndex;
+		
+		// Update current page if it's out of bounds
+		if (currentPage !== pagination.validCurrentPage) {
+			currentPage = pagination.validCurrentPage;
+		}
 	}
 </script>
 
@@ -337,16 +364,18 @@
 				{/if}
 			</div>
 		</div>
-	</div>
-
-	<!-- Hidden file input for importing -->
-	<input 
-		type="file" 
-		id="fileInput" 
-		accept=".json,.html,.htm" 
-		style="display:none" 
-		on:change={e => onFileImported(new CustomEvent('fileImported', {detail: e.target.files[0]}))} 
-	/>
+	</div>	<!-- Hidden file input for importing -->				
+				<input 
+					type="file" 
+					id="fileInput" 
+					accept=".json,.html,.htm" 
+					style="display:none" 
+					on:change={e => {
+						if (e.target.files && e.target.files[0]) {
+							onFileImported(FileUtils.createFileEvent(e.target.files[0]));
+						}
+					}} 
+				/>
 
 	<div class="bookmark-list"
 		class:is-dragging={isDragging}
@@ -386,12 +415,13 @@
 									{#if bookmark.description}
 										<span>{bookmark.description}</span>
 									{/if}
-								</div>
-								<div class="muted">
+								</div>								<div class="muted">
 									{#if bookmark.clicked > 0}
 										<span>{bookmark.clicked} clicks</span>
 										{#if bookmark.last}
-											<span>last visited {new Date(bookmark.last).toLocaleDateString()}</span>
+											<span title={formatFriendlyDate(bookmark.last)}>
+												last visited {formatRelativeTime(bookmark.last)}
+											</span>
 										{/if}
 									{:else}
 										<span>Never visited</span>

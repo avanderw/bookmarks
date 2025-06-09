@@ -4,6 +4,7 @@
 	import type { Bookmark, BookmarkStore } from '$lib/bookmarks';
 	import { FileManager } from '$lib/component/FileManager';
 	import { SearchQueryFilter } from '$lib/component/SearchQueryFilter';
+	import { BookmarkForm } from '$lib/component/BookmarkForm';
 	import { downloadCache } from '$lib/cache-store';
 	import { handleFileImport, updateBookmarkClickCount, sortBookmarks } from './Logic';
 
@@ -16,6 +17,7 @@
 	let sortOrder: string = 'clicks'; // Changed default sort to clicks
 	let isSearchActive = false; // Track if search is active
 	let previousSortOrder: string = sortOrder; // Store previous sort order when search becomes active
+	let selectedBookmark: Bookmark | null = null; // Track selected bookmark for editing
 	
 	// Pagination state
 	let currentPage = 1;
@@ -83,6 +85,39 @@
 		dispatch('bookmarkClicked', updatedBookmark);
 	}
 
+	// Handle edit bookmark
+	function onEditBookmarkClick(bookmark: Bookmark) {
+		selectedBookmark = bookmark;
+	}
+
+	// Handle bookmark save (both add and edit)
+	function onBookmarkSave(event: CustomEvent<Bookmark>) {
+		const savedBookmark = event.detail;
+		
+		// Check if we're updating an existing bookmark or adding a new one
+		const existingIndex = bookmarks.findIndex(b => b.url === savedBookmark.url);
+		
+		if (existingIndex >= 0) {
+			// Update existing bookmark
+			bookmarks[existingIndex] = savedBookmark;
+			bookmarks = [...bookmarks]; // Trigger reactivity
+		} else {
+			// Add new bookmark
+			bookmarks = [...bookmarks, savedBookmark];
+		}
+		
+		// Update filtered bookmarks to match
+		filteredBookmarks = isSearchActive 
+			? filteredBookmarks 
+			: [...bookmarks];
+			
+		// Reset selected bookmark
+		selectedBookmark = null;
+		
+		// Notify parent component of data change
+		dispatch('dataChanged', bookmarks);
+	}
+
 	// Pagination functions
 	function goToPage(page: number) {
 		if (page >= 1 && page <= totalPages) {
@@ -147,6 +182,14 @@
 				placeholder="Search bookmarks..."
 			/>
 
+			<div class="add-bookmark">
+				<BookmarkForm.Button 
+					{bookmarks}
+					on:save={onBookmarkSave}
+					buttonText="Add Bookmark" 
+				/>
+			</div>
+
 			<div class="sort-controls">
 				<label>
 					Sort by:
@@ -187,41 +230,56 @@
 			<ol start={startIndex}>
 				{#each paginatedBookmarks as bookmark (bookmark.url)}
 					<li>
-						<div>
-							<a
-								href={bookmark.url}
-								target="_blank"
-								rel="noopener noreferrer"
-								on:click|preventDefault={() => onBookmarkClick(bookmark)}
-							>{bookmark.title || 'Untitled'}</a>
-							{#if bookmark.url}
-								<button class="muted">
-									({bookmark.url.replace(/^https?:\/\/([^\/]+).*$/, '$1')})
+						<div class="bookmark-row">
+							<div class="bookmark-content">
+								<div>
+									<a
+										href={bookmark.url}
+										target="_blank"
+										rel="noopener noreferrer"
+										on:click|preventDefault={() => onBookmarkClick(bookmark)}
+									>{bookmark.title || 'Untitled'}</a>
+									{#if bookmark.url}
+										<button class="muted">
+											({bookmark.url.replace(/^https?:\/\/([^\/]+).*$/, '$1')})
+										</button>
+									{/if}
+								</div>
+								<div>
+									{#if bookmark.tags && bookmark.tags.length > 0}
+										{#each bookmark.tags as tag}
+											<button class="tag">#{tag}</button>
+										{/each}
+										{#if bookmark.description}
+											<span>|</span>
+										{/if}
+									{/if}
+									{#if bookmark.description}
+										<span>{bookmark.description}</span>
+									{/if}
+								</div>
+								<div class="muted">
+									{#if bookmark.clicked > 0}
+										<span>{bookmark.clicked} clicks</span>
+										{#if bookmark.last}
+											<span>last visited {new Date(bookmark.last).toLocaleDateString()}</span>
+										{/if}
+									{:else}
+										<span>Never visited</span>
+									{/if}
+								</div>
+							</div>
+							<div class="bookmark-actions">
+								<button 
+									class="edit-button" 
+									on:click={() => onEditBookmarkClick(bookmark)}
+									title="Edit bookmark"
+								>
+									<svg>
+										<use href="feather-sprite.svg#edit" />
+									</svg>
 								</button>
-							{/if}
-						</div>
-						<div>
-							{#if bookmark.tags && bookmark.tags.length > 0}
-								{#each bookmark.tags as tag}
-									<button class="tag">#{tag}</button>
-								{/each}
-								{#if bookmark.description}
-									<span>|</span>
-								{/if}
-							{/if}
-							{#if bookmark.description}
-								<span>{bookmark.description}</span>
-							{/if}
-						</div>
-						<div class="muted">
-							{#if bookmark.clicked > 0}
-								<span>{bookmark.clicked} clicks</span>
-								{#if bookmark.last}
-									<span>last visited {new Date(bookmark.last).toLocaleDateString()}</span>
-								{/if}
-							{:else}
-								<span>Never visited</span>
-							{/if}
+							</div>
 						</div>
 					</li>
 				{/each}
@@ -269,6 +327,17 @@
 			</div>
 		{/if}
 	</div>
+	
+	<!-- Edit bookmark form (conditionally rendered) -->
+	{#if selectedBookmark}
+		<BookmarkForm.View
+			isOpen={!!selectedBookmark}
+			bookmark={selectedBookmark}
+			isEdit={true}
+			on:save={onBookmarkSave}
+			on:close={() => selectedBookmark = null}
+		/>
+	{/if}
 </div>
 
 <style>
@@ -292,8 +361,11 @@
 		padding-bottom: 0.5rem;
 	}
 
-	.sort-controls {
+	.add-bookmark {
 		margin-left: auto;
+	}
+
+	.sort-controls {
 		display: flex;
 		gap: 1rem;
 		align-items: center;
@@ -322,10 +394,48 @@
 		border-bottom: none;
 	}
 
-	li div {
+	.bookmark-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.bookmark-content {
+		flex: 1;
+	}
+
+	.bookmark-content div {
 		display: flex;
 		align-items: center;
 		gap: 0.25rem;
+	}
+
+	.bookmark-actions {
+		margin-left: 1rem;
+		display: flex;
+		gap: 0.5rem;
+	}
+
+	.edit-button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 28px;
+		height: 28px;
+		border-radius: 4px;
+		background-color: var(--background-alt, #f6f8fa);
+		border: 1px solid var(--border, #e1e4e8);
+		cursor: pointer;
+	}
+	
+	.edit-button:hover {
+		background-color: var(--background-hover, #e1e4e8);
+	}
+	
+	.edit-button svg {
+		width: 16px;
+		height: 16px;
+		color: var(--text-muted, #6a737d);
 	}
 
 	a {

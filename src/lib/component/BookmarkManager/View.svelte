@@ -255,14 +255,13 @@
 		}
 	}
 	async function handleDrop(e: DragEvent) {
-		e.preventDefault();
-		e.stopPropagation();
-		isDragging = false;
-		dragCounter = 0;
-
-		if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-			const file = e.dataTransfer.files[0];
-			await onFileImported(FileUtils.createFileEvent(file));
+	e.preventDefault();
+	e.stopPropagation();
+	isDragging = false;
+	dragCounter = 0;
+	if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+		const file = e.dataTransfer.files[0];
+		await onFileImported(FileUtils.createFileEvent(file));
 		}
 	}
 
@@ -390,8 +389,7 @@
 		id="fileInput"
 		accept=".json,.html,.htm"
 		style="display:none"
-		on:change={(e) => {
-			if (e.target.files && e.target.files[0]) {
+		on:change={(e) => {			if (e.target.files && e.target.files[0]) {
 				onFileImported(FileUtils.createFileEvent(e.target.files[0]));
 			}
 		}}
@@ -406,14 +404,13 @@
 				{#each paginatedBookmarks as bookmark, index (bookmark.url)}
 					<div class="bookmark-row">
 						<div class="bookmark-content">
-							<div class="bookmark-title-row">
-								<div class="title-section">
-									<span class="bookmark-number">{startIndex + index}.</span>
+							<div class="bookmark-title-row">								<div class="title-section">									<span class="bookmark-number">{startIndex + index}.</span>
 									<a
 										href={bookmark.url}
 										target="_blank"
 										rel="noopener noreferrer"
 										on:click|preventDefault={() => onBookmarkClick(bookmark)}
+										class="bookmark-link"
 										>{bookmark.title || 'Untitled'}</a
 									>
 									{#if bookmark.url}
@@ -424,14 +421,6 @@
 									
 									{#if bookmark.description}
 										<span class="description">{bookmark.description}</span>
-									{/if}
-									
-									{#if bookmark.tags && bookmark.tags.length > 0}
-										<div class="tags">
-											{#each bookmark.tags as tag}
-												<span class="tag">#{tag}</span>
-											{/each}
-										</div>
 									{/if}
 								</div>
 								<div class="bookmark-actions">
@@ -449,9 +438,7 @@
 									>
 										<svg><use href="feather-sprite.svg#trash-2" /></svg>
 									</button>
-								</div>
-							</div>
-							
+								</div>							</div>
 							<div class="bookmark-info">
 								{#if bookmark.clicked > 0}
 									<span class="info-item clicks">{bookmark.clicked} clicks</span>
@@ -462,8 +449,7 @@
 									{/if}
 								{:else}
 									<span class="info-item">Never visited</span>
-								{/if}
-								{#if bookmark.added}
+								{/if}								{#if bookmark.added}
 									<span class="info-item added-date" title={formatFriendlyDate(bookmark.added)}>
 										added {formatRelativeTime(bookmark.added)}
 									</span>
@@ -477,6 +463,13 @@
 										<svg><use href="feather-sprite.svg#file-text" /></svg>
 										Notes
 									</button>
+								{/if}
+								{#if bookmark.tags && bookmark.tags.length > 0}
+									<div class="tags">
+										{#each bookmark.tags as tag}
+											<span class="tag">#{tag}</span>
+										{/each}
+									</div>
 								{/if}
 							</div>
 						</div>
@@ -890,18 +883,24 @@
 	li:last-child {
 		margin-bottom: 0;
 		border-bottom: none;
-	}
-
-	.bookmark-row {
+	}	.bookmark-row {
 		display: flex;
 		padding: 0.1rem 0;
 		margin-bottom: 0.2rem;
-		border-bottom: 1px solid var(--border-light, #eee);
+		position: relative;
+	}
+	
+	.bookmark-row:not(:last-child)::after {
+		content: '';
+		position: absolute;
+		bottom: 0;
+		left: 1.7rem;
+		right: 0;
+		border-bottom: 1px dotted rgba(238, 238, 238, 0.2);
 	}
 	
 	.bookmark-row:last-child {
 		margin-bottom: 0;
-		border-bottom: none;
 	}
 	
 	.bookmark-content {
@@ -914,25 +913,25 @@
 		align-items: flex-start;
 		justify-content: space-between;
 		margin-bottom: 0.1rem;
-	}
-
-	.title-section {
+	}	.title-section {
 		display: flex;
 		flex-wrap: wrap;
-		align-items: center;
+		align-items: baseline;
 		gap: 0.25rem;
 		flex: 1;
 		min-width: 0;
+		margin-bottom: 0.1rem;
 	}
 
-	.bookmark-title-row a {
+	.title-section > * {
+		display: inline;
+		margin-right: 0.25rem;
+	}
+
+	.bookmark-link {
 		font-weight: 500;
 		text-decoration: none;
 		color: var(--primary, #0366d6);
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		max-width: fit-content;
 	}
 
 	.bookmark-title-row a:hover {
@@ -943,42 +942,21 @@
 		font-size: 0.8rem;
 		color: var(--text-muted, #6a737d);
 		white-space: nowrap;
-	}
-
-	.description {
+	}	.description {
 		color: var(--text, #333);
 		font-size: 0.8rem;
-		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+		display: inline;
+		margin-left: 0.25rem;
 		margin-right: 0.5rem;
 	}
 
-	.tags {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.25rem;
-		margin-left: auto;
+	/* When description wraps to the next line, add proper indentation */
+	.description:only-child {
+		margin-left: 1.7rem;
+		display: block;
 	}
-	.tag {
-		display: inline-block;
-		background-color: var(--background-alt, #f1f8ff);
-		color: var(--primary, #0366d6);
-		border-radius: 12px;
-		padding: 0.05rem 0.35rem;
-		font-size: 0.7rem;
-		line-height: 1;
-	}
-
-	.description {
-		color: var(--text, #333);
-		overflow: hidden;
-		text-overflow: ellipsis;
-		display: -webkit-box;
-		-webkit-line-clamp: 2;
-		-webkit-box-orient: vertical;
-	}
-
 	.bookmark-info {
 		display: flex;
 		flex-wrap: wrap;
@@ -986,6 +964,7 @@
 		gap: 0.5rem;
 		font-size: 0.7rem;
 		color: var(--text-muted, #6a737d);
+		margin-left: 1.7rem;  /* Aligns with the bookmark number */
 	}
 
 	.info-item {
@@ -1055,5 +1034,20 @@
 		margin-right: 0.2rem;
 		min-width: 1.5rem;
 		text-align: right;
+	}
+	.tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem;
+	}
+
+	.tag {
+		display: inline-block;
+		background-color: var(--background-alt, #f1f8ff);
+		color: var(--primary, #0366d6);
+		border-radius: 12px;
+		padding: 0.05rem 0.35rem;
+		font-size: 0.7rem;
+		line-height: 1;
 	}
 </style>

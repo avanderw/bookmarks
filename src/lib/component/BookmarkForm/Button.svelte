@@ -4,7 +4,6 @@
 	import { BookmarkForm } from '$lib/component/BookmarkForm';
 
 	// Props
-	export let bookmarks: Bookmark[] = [];
 	export let bookmark: Bookmark | null = null;
 	export let isEdit: boolean = false;
 	export let buttonText: string = isEdit ? 'Edit Bookmark' : 'Add Bookmark';
@@ -51,7 +50,6 @@
 	bind:isOpen={isFormOpen}
 	{bookmark}
 	{isEdit}
-	existingBookmarks={bookmarks}
 	on:save={handleSave}
 />
 

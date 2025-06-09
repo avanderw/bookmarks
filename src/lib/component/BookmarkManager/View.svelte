@@ -90,6 +90,20 @@
 		selectedBookmark = bookmark;
 	}
 
+	// Handle delete bookmark
+	function onDeleteBookmarkClick(bookmark: Bookmark) {
+		if (confirm(`Are you sure you want to delete "${bookmark.title || bookmark.url}"?`)) {
+			// Remove from bookmarks array
+			bookmarks = bookmarks.filter(b => b.url !== bookmark.url);
+			
+			// Update filtered bookmarks to match
+			filteredBookmarks = filteredBookmarks.filter(b => b.url !== bookmark.url);
+			
+			// Notify parent component of data change
+			dispatch('dataChanged', bookmarks);
+		}
+	}
+
 	// Handle bookmark save (both add and edit)
 	function onBookmarkSave(event: CustomEvent<Bookmark>) {
 		const savedBookmark = event.detail;
@@ -184,7 +198,6 @@
 
 			<div class="add-bookmark">
 				<BookmarkForm.Button 
-					{bookmarks}
 					on:save={onBookmarkSave}
 					buttonText="Add Bookmark" 
 				/>
@@ -277,6 +290,15 @@
 								>
 									<svg>
 										<use href="feather-sprite.svg#edit" />
+									</svg>
+								</button>
+								<button 
+									class="delete-button" 
+									on:click={() => onDeleteBookmarkClick(bookmark)}
+									title="Delete bookmark"
+								>
+									<svg>
+										<use href="feather-sprite.svg#trash-2" />
 									</svg>
 								</button>
 							</div>
@@ -436,6 +458,29 @@
 		width: 16px;
 		height: 16px;
 		color: var(--text-muted, #6a737d);
+	}
+
+	.delete-button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 28px;
+		height: 28px;
+		border-radius: 4px;
+		background-color: var(--danger-bg, #ffeef0);
+		border: 1px solid var(--danger-border, #f5c2c7);
+		color: var(--danger-text, #b71c1c);
+		cursor: pointer;
+	}
+	
+	.delete-button:hover {
+		background-color: var(--danger-hover, #f5c2c7);
+	}
+	
+	.delete-button svg {
+		width: 16px;
+		height: 16px;
+		color: inherit;
 	}
 
 	a {

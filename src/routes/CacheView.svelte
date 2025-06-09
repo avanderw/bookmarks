@@ -85,17 +85,7 @@
 		<div style="display:inline-flex;gap:2rem;">
 			<h1><svg><use href="feather-sprite.svg#bookmark" /></svg> Bookmarks</h1>
 
-			<button on:click={() => dispatch('add')}>Add</button>
-
 			<Bookmarklet />
-		</div>
-		<div style="display:inline-flex;gap:1rem;float:right;">
-			<label for="andFilter">AND:</label>
-			<input id="andFilter" type="text" bind:value={andFilter} />
-			<label for="notFilter">NOT:</label>
-			<input id="notFilter" type="text" bind:value={notFilter} />
-			<label for="orFilter">OR:</label>
-			<input id="orFilter" type="text" bind:value={orFilter} />
 		</div>
 	</div>
 	{#if cacheView.length === 0}
@@ -145,13 +135,6 @@
 						{:else}
 							<span>Never been used</span>
 						{/if}
-						|
-						<button on:click={() => dispatch('edit', bookmark)}
-							><svg><use href="feather-sprite.svg#edit" /></svg> Edit</button
-						>
-						<button on:click={() => deleteBookmark(bookmark)}
-							><svg><use href="feather-sprite.svg#trash" /></svg> Delete</button
-						>
 						{#if bookmark.notes}
 							| <button on:click={() => dispatch('notes', bookmark)}
 								><svg><use href="feather-sprite.svg#file-text" /></svg> Notes</button

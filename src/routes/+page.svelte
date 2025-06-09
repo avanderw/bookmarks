@@ -35,12 +35,6 @@
 	</a>
 </div>
 
-{#if state === 'add'}
-	<AddBookmarkForm on:close={() => (state = 'default')} />
-{/if}
-{#if state === 'edit'}
-	<EditBookmarkForm on:close={() => (state = 'default')} data={selected} />
-{/if}
 {#if state === 'notes'}
 	<Notes on:close={() => (state = 'default')} data={selected} />
 {/if}

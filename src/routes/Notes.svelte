@@ -7,57 +7,39 @@
 	export let data: Bookmark;
 </script>
 
-<div>
-	<h1>Notes</h1>
-	{#if data && data.notes}
-		<pre>{data.notes}</pre>
-	{:else}
-		<p>No notes for this bookmark.</p>
-	{/if}
-	<button type="submit" on:click={() => dispatch('close')}>Close</button>
-</div>
+<dialog open>
+	<article>
+		<header>
+			<button aria-label="Close" rel="prev" on:click={() => dispatch('close')}></button>
+			<h3>Notes</h3>
+		</header>
+		{#if data && data.notes}
+			<pre>{data.notes}</pre>
+		{:else}
+			<p>No notes for this bookmark.</p>
+		{/if}
+		<footer>
+			<button on:click={() => dispatch('close')}>Close</button>
+		</footer>
+	</article>
+</dialog>
 
 <style>
-    h1 {
-        margin: 0;
-        font-size: 1.5rem;
-        border-bottom: 1px solid var(--border);
-    }
-	div {
-		background-color: var(--panel);
-		border: 1px solid var(--border);
-		padding: 1rem;
-		border-radius: 1rem;
-		position: fixed;
-		top: 50%;
-		left: 50%;
-		margin: auto;
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-		width: 320px;
-		transform: translate(-50%, -50%);
+	dialog {
+		z-index: 1000;
 	}
-    pre {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-height: 400px;
-    }
-	button {
-		border: 1px solid var(--button-border);
-		border-radius: 0.25rem;
-		padding: 0.25rem;
-		font-size: 0.9rem;
-		font-weight: bold;
+	
+	h3 {
+		margin: 0;
 	}
-	button[type='submit'] {
-		background-color: var(--submit-background);
-		color: var(--submit-text);
-	}
-	button[type='submit']:hover {
-		background-color: var(--submit-hover);
-	}
-	button[type='submit']:active {
-		background-color: var(--submit-active);
+	
+	pre {
+		white-space: pre-wrap;
+		word-wrap: break-word;
+		margin: 0;
+		font-family: inherit;
+		font-size: 0.875rem;
+		max-height: 60vh;
+		overflow-y: auto;
 	}
 </style>

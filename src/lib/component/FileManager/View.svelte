@@ -78,7 +78,7 @@
 	}
 </script>
 
-<div class="file-manager {expanded ? 'expanded' : 'collapsed'} {isDragging ? 'dragging' : ''}">
+<div class="file-manager" class:expanded class:dragging={isDragging}>
 	<div
 		class="header"
 		role="button"
@@ -101,6 +101,7 @@
 		<div class="content">
 			<div
 				class="drop-zone"
+				class:active={isDragging}
 				role="button"
 				tabindex="0"
 				on:dragenter={handleDragEnter}
@@ -114,7 +115,7 @@
 				<span>{isDragging ? 'Drop file here' : 'Click or drag file to import'}</span>
 			</div>
 
-			<button class="btn export" on:click={handleExportClick}>
+			<button class="secondary" on:click={handleExportClick}>
 				<svg><use href="feather-sprite.svg#download" /></svg> Export
 			</button>
 		</div>
@@ -123,12 +124,11 @@
 
 <style>
 	.file-manager {
-		border: 1px solid var(--border);
-		border-radius: 0.5rem;
+		border: 1px solid var(--pico-muted-border-color);
+		border-radius: var(--pico-border-radius);
 		margin-bottom: 1rem;
 		overflow: hidden;
-		background-color: var(--panel);
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+		background-color: var(--pico-card-background-color);
 	}
 
 	.header {
@@ -138,10 +138,11 @@
 		cursor: pointer;
 		font-weight: 500;
 		gap: 0.5rem;
+		transition: background-color 0.2s;
 	}
 
 	.header:hover {
-		background-color: var(--bg-hover);
+		background-color: var(--pico-dropdown-background-color);
 	}
 
 	.toggle-icon {
@@ -150,12 +151,12 @@
 
 	.content {
 		padding: 1rem;
-		border-top: 1px solid var(--border);
+		border-top: 1px solid var(--pico-muted-border-color);
 	}
 
 	.drop-zone {
-		border: 2px dashed var(--border);
-		border-radius: 0.5rem;
+		border: 2px dashed var(--pico-muted-border-color);
+		border-radius: var(--pico-border-radius);
 		padding: 1.5rem;
 		text-align: center;
 		margin-bottom: 1rem;
@@ -165,37 +166,25 @@
 		flex-direction: column;
 		align-items: center;
 		gap: 0.5rem;
+		background-color: var(--pico-card-background-color);
 	}
 
-	.file-manager.dragging .drop-zone {
-		border-color: var(--primary);
-		background-color: rgba(67, 97, 238, 0.1);
+	.drop-zone.active {
+		border-color: var(--pico-primary);
+		background-color: var(--pico-primary-background);
+		color: var(--pico-primary);
 	}
 
-	.btn {
+	button {
 		display: flex;
 		align-items: center;
-		gap: 0.3rem;
-		padding: 0.5rem 1rem;
-		border-radius: 0.25rem;
-		font-weight: 500;
-		border: none;
-		cursor: pointer;
-		flex: 1;
+		gap: 0.5rem;
 		justify-content: center;
-	}
-
-	.export {
-		background-color: var(--primary);
-		color: var(--neutral-white);
+		width: 100%;
 	}
 
 	svg {
 		width: 1rem;
 		height: 1rem;
-	}
-
-	.toggle-icon {
-		margin-left: auto;
 	}
 </style>

@@ -30,7 +30,7 @@
 </script>
 
 <button
-	class={`bookmark-form-button ${buttonClass}`}
+	class={buttonClass}
 	on:click={openForm}
 	title={buttonText}
 >
@@ -54,26 +54,10 @@
 />
 
 <style>
-	.bookmark-form-button {
+	button {
 		display: inline-flex;
 		align-items: center;
 		gap: 0.5rem;
-		padding: 0.5rem 1rem;
-		background-color: var(--submit-background, #0366d6);
-		color: var(--submit-text, white);
-		border: 1px solid var(--button-border, transparent);
-		border-radius: 0.25rem;
-		font-size: 0.9rem;
-		font-weight: bold;
-		cursor: pointer;
-	}
-
-	.bookmark-form-button:hover {
-		background-color: var(--submit-hover, #0257ba);
-	}
-
-	.bookmark-form-button:active {
-		background-color: var(--submit-active, #014899);
 	}
 
 	svg {

@@ -298,7 +298,7 @@
 </script>
 
 <div class="bookmark-manager">
-	<div class="header">
+	<section class="header">
 		<div class="toolbar">
 			<div class="search-section">
 				<SearchQueryFilter
@@ -310,47 +310,47 @@
 
 			<div class="action-section">
 				<button
-					class="action-button import-button"
+					class="btn-compact secondary"
 					on:click={() => document.getElementById('fileInput').click()}
 					title="Import bookmarks"
 				>
-					<svg class="icon"><use href="feather-sprite.svg#upload" /></svg>
-					<span>Import</span>
+					<svg><use href="feather-sprite.svg#upload" /></svg>
+					Import
 				</button>
 
 				<button
-					class="action-button export-button"
+					class="btn-compact secondary"
 					on:click={onExportRequested}
 					title="Export bookmarks"
 				>
-					<svg class="icon"><use href="feather-sprite.svg#download" /></svg>
-					<span>Export</span>
+					<svg><use href="feather-sprite.svg#download" /></svg>
+					Export
 				</button>
 
 				<BookmarkForm.Button
 					on:save={onBookmarkSave}
-					buttonClass="action-button primary-button"
+					buttonClass="btn-compact"
 					buttonText="Add Bookmark"
 				/>
 
 				<a
-					href="#"
-					class="bookmarklet-button"
+					href={getBookmarkletCode()}
+					class="btn-compact secondary bookmarklet-button"
 					title="Drag to your bookmarks bar"
 					draggable="true"
 					on:dragstart={(e) => e.dataTransfer.setData('text/plain', getBookmarkletCode())}
 				>
-					<svg class="icon"><use href="feather-sprite.svg#bookmark" /></svg>
-					<span>Save to Bookmarks</span>
+					<svg><use href="feather-sprite.svg#bookmark" /></svg>
+					Save to Bookmarks
 				</a>
 			</div>
 		</div>
 
 		<div class="settings-bar">
 			<div class="display-settings">
-				<label class="setting-label">
-					<span>Sort by:</span>
-					<select bind:value={sortOrder} class="setting-select">
+				<label>
+					Sort by:
+					<select bind:value={sortOrder}>
 						{#if isSearchActive}
 							<option value="relevance">Relevance</option>
 						{/if}
@@ -360,11 +360,13 @@
 						<option value="url">URL</option>
 					</select>
 					{#if isSearchActive && sortOrder !== 'relevance'}
-						<small class="info-text">(search relevance overridden)</small>
+						<small class="text-muted">(search relevance overridden)</small>
 					{/if}
-				</label>				<label class="setting-label">
-					<span>Items per page:</span>
-					<select bind:value={itemsPerPage} class="setting-select">
+				</label>				
+
+				<label>
+					Items per page:
+					<select bind:value={itemsPerPage}>
 						<option value={5}>5</option>
 						<option value={10}>10</option>
 						<option value={25}>25</option>
@@ -382,7 +384,7 @@
 				{/if}
 			</div>
 		</div>
-	</div>
+	</section>
 	<!-- Hidden file input for importing -->
 	<input
 		type="file"
@@ -394,69 +396,76 @@
 			}
 		}}
 	/>
-	<div class="bookmark-list" class:is-dragging={isDragging}>
+	
+	<section class="bookmark-list" class:drop-zone={isDragging} class:active={isDragging}>
 		{#if sortedBookmarks.length === 0}
-			<div class="empty-state">
+			<div class="text-center">
 				<p>No bookmarks found. Import a bookmark file or add new bookmarks.</p>
 			</div>
 		{:else}
 			<div class="bookmark-items">
 				{#each paginatedBookmarks as bookmark, index (bookmark.url)}
-					<div class="bookmark-row">
+					<article class="bookmark-row">
 						<div class="bookmark-content">
-							<div class="bookmark-title-row">								<div class="title-section">									<span class="bookmark-number">{startIndex + index}.</span>
+							<div class="bookmark-title-row">								
+								<div class="title-section">									
+									<span class="bookmark-number">{startIndex + index}.</span>
 									<a
 										href={bookmark.url}
 										target="_blank"
 										rel="noopener noreferrer"
 										on:click|preventDefault={() => onBookmarkClick(bookmark)}
-										class="bookmark-link"
-										>{bookmark.title || 'Untitled'}</a
-									>
+									>{bookmark.title || 'Untitled'}</a>
 									{#if bookmark.url}
-										<span class="domain-name">
+										<span class="bookmark-domain">
 											({bookmark.url.replace(/^https?:\/\/([^\/]+).*$/, '$1')})
 										</span>
 									{/if}
 									
 									{#if bookmark.description}
-										<span class="description">{bookmark.description}</span>
+										<span class="bookmark-description">{bookmark.description}</span>
 									{/if}
 								</div>
+								
 								<div class="bookmark-actions">
 									<button
-										class="action-icon edit-button"
+										class="btn-compact secondary"
 										on:click={() => onEditBookmarkClick(bookmark)}
 										title="Edit bookmark"
 									>
 										<svg><use href="feather-sprite.svg#edit" /></svg>
 									</button>
 									<button
-										class="action-icon delete-button"
+										class="btn-compact secondary"
 										on:click={() => onDeleteBookmarkClick(bookmark)}
 										title="Delete bookmark"
 									>
 										<svg><use href="feather-sprite.svg#trash-2" /></svg>
 									</button>
-								</div>							</div>
-							<div class="bookmark-info">
+								</div>							
+							</div>
+							
+							<div class="bookmark-meta">
 								{#if bookmark.clicked > 0}
-									<span class="info-item clicks">{bookmark.clicked} clicks</span>
+									<span>{bookmark.clicked} clicks</span>
 									{#if bookmark.last}
-										<span class="info-item last-visited" title={formatFriendlyDate(bookmark.last)}>
+										<span title={formatFriendlyDate(bookmark.last)}>
 											visited {formatRelativeTime(bookmark.last)}
 										</span>
 									{/if}
 								{:else}
-									<span class="info-item">Never visited</span>
-								{/if}								{#if bookmark.added}
-									<span class="info-item added-date" title={formatFriendlyDate(bookmark.added)}>
+									<span>Never visited</span>
+								{/if}								
+								
+								{#if bookmark.added}
+									<span title={formatFriendlyDate(bookmark.added)}>
 										added {formatRelativeTime(bookmark.added)}
 									</span>
 								{/if}
+								
 								{#if bookmark.notes}
 									<button
-										class="info-item notes-button"
+										class="btn-compact secondary"
 										on:click={() => onViewNotesClick(bookmark)}
 										title="View notes"
 									>
@@ -464,20 +473,21 @@
 										Notes
 									</button>
 								{/if}
+								
 								{#if bookmark.tags && bookmark.tags.length > 0}
 									<div class="tags">
 										{#each bookmark.tags as tag}
-											<span class="tag">#{tag}</span>
+											<span class="bookmark-tag">#{tag}</span>
 										{/each}
 									</div>
 								{/if}
 							</div>
 						</div>
-					</div>
+					</article>
 				{/each}
 			</div>
 
-			<div class="pagination">
+			<nav class="pagination">
 				<div class="pagination-info">
 					{#if sortedBookmarks.length > 0}
 						Showing {startIndex}-{endIndex} of {sortedBookmarks.length} bookmarks
@@ -487,34 +497,38 @@
 				</div>
 				<div class="pagination-controls">
 					<button
-						class="pagination-button"
+						class="btn-compact secondary"
 						disabled={currentPage === 1}
 						on:click={() => goToPage(1)}
 					>
 						First
 					</button>
-					<button class="pagination-button" disabled={currentPage === 1} on:click={prevPage}>
+					<button 
+						class="btn-compact secondary" 
+						disabled={currentPage === 1} 
+						on:click={prevPage}
+					>
 						Previous
 					</button>
 					<span class="pagination-current">{currentPage} of {totalPages}</span>
 					<button
-						class="pagination-button"
+						class="btn-compact secondary"
 						disabled={currentPage === totalPages}
 						on:click={nextPage}
 					>
 						Next
 					</button>
 					<button
-						class="pagination-button"
+						class="btn-compact secondary"
 						disabled={currentPage === totalPages}
 						on:click={() => goToPage(totalPages)}
 					>
 						Last
 					</button>
 				</div>
-			</div>
+			</nav>
 		{/if}
-	</div>
+	</section>
 
 	<!-- Edit bookmark form (conditionally rendered) -->
 	{#if selectedBookmark}
@@ -529,14 +543,12 @@
 
 	<!-- Notes viewer (conditionally rendered) -->
 	{#if viewingNotes}
-		<div class="notes-modal-overlay" on:click|self={onNotesClose}>
-			<div class="notes-modal">
-				<div class="notes-header">
-					<h2>Notes for "{viewingNotes.title || 'Untitled'}"</h2>
-					<button class="close-button" on:click={onNotesClose} title="Close">
-						<svg><use href="feather-sprite.svg#x" /></svg>
-					</button>
-				</div>
+		<dialog open>
+			<article>
+				<header>
+					<button aria-label="Close" rel="prev" on:click={onNotesClose}></button>
+					<h3>Notes for "{viewingNotes.title || 'Untitled'}"</h3>
+				</header>
 				<div class="notes-content">
 					{#if viewingNotes.notes}
 						<pre>{viewingNotes.notes}</pre>
@@ -544,256 +556,172 @@
 						<p>No notes for this bookmark.</p>
 					{/if}
 				</div>
-			</div>
-		</div>
+			</article>
+		</dialog>
 	{/if}
 </div>
 
 <style>
 	.bookmark-manager {
-		display: block;
 		width: 100%;
-		margin-top: 1rem;
 	}
 
 	.header {
-		display: block;
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid var(--pico-muted-border-color);
 		margin-bottom: 1rem;
+		padding-bottom: 1rem;
 	}
 
 	.toolbar {
-		display: flex;
-		align-items: center;
+		display: grid;
+		grid-template-columns: 1fr auto;
 		gap: 1rem;
-		flex-wrap: wrap;
-		padding: 0.75rem 0;
+		align-items: center;
+		margin-bottom: 1rem;
 	}
 
 	.search-section {
-		flex: 1;
 		min-width: 300px;
-		display: flex;
-		align-items: center;
-	}
-
-	.search-section :global(input) {
-		height: 38px;
-		padding: 0.5rem 0.75rem;
-		border-radius: 4px;
-		box-sizing: border-box;
 	}
 
 	.action-section {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
+		gap: 0.5rem;
 		flex-wrap: wrap;
-	}
-
-	.action-button,
-	.bookmarklet-button {
-		display: flex;
-		align-items: center;
-		gap: 0.25rem;
-		padding: 0.5rem 0.75rem;
-		border-radius: 4px;
-		border: 1px solid var(--border, #e1e4e8);
-		background-color: var(--background-alt, #f6f8fa);
-		color: var(--text, #333);
-		font-size: 0.9rem;
-		cursor: pointer;
-		text-decoration: none;
-		transition: background-color 0.2s, transform 0.1s;
-	}
-
-	.action-button:hover,
-	.bookmarklet-button:hover {
-		background-color: var(--background-hover, #e1e4e8);
-	}
-
-	.action-button:active,
-	.bookmarklet-button:active {
-		transform: translateY(1px);
-	}
-
-	.primary-button {
-		background-color: var(--primary, #0366d6);
-		color: white;
-		border-color: var(--primary-dark, #005cc5);
-	}
-
-	.primary-button:hover {
-		background-color: var(--primary-dark, #005cc5);
-	}
-
-	.primary-button .icon {
-		color: white;
-	}
-
-	.import-button,
-	.export-button {
-		min-width: 90px;
-	}
-
-	.bookmarklet-button {
-		border-style: dashed;
-		cursor: grab;
-	}
-
-	.icon {
-		width: 16px;
-		height: 16px;
 	}
 
 	.settings-bar {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		flex-wrap: wrap;
+		display: grid;
+		grid-template-columns: 1fr auto;
 		gap: 1rem;
-		padding: 0.75rem 0;
-		border-top: 1px solid var(--border-light, #eee);
+		align-items: center;
+		padding: 0.5rem 0;
+		border-top: 1px solid var(--pico-muted-border-color);
+		font-size: 0.875rem;
 	}
 
 	.display-settings {
 		display: flex;
 		gap: 1.5rem;
 		align-items: center;
+		flex-wrap: wrap;
 	}
 
-	.setting-label {
+	.display-settings label {
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
-		font-size: 0.9rem;
+		margin: 0;
 	}
 
-	.setting-select {
-		padding: 0.25rem 0.5rem;
-		border-radius: 4px;
-		border: 1px solid var(--border, #e1e4e8);
-		background-color: var(--background-alt, #f6f8fa);
-		color: var(--text, #333);
-		font-size: 0.9rem;
-		cursor: pointer;
+	.display-settings select {
+		width: auto;
+		margin: 0;
+		font-size: 0.875rem;
 	}
 
-	.pagination-info {
-		font-size: 0.9rem;
-		color: var(--text-muted, #6a737d);
+	.bookmarklet-button {
+		border-style: dashed !important;
+		cursor: grab;
+		text-decoration: none;
 	}
 
-	.pagination {
+	.bookmarklet-button:hover {
+		text-decoration: none;
+	}
+
+	.bookmark-list {
+		min-height: 200px;
+	}
+
+	.bookmark-list.drop-zone.active::after {
+		content: 'Drop bookmark file here';
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		background-color: var(--pico-card-background-color);
+		color: var(--pico-primary);
+		font-size: 1.25rem;
+		font-weight: bold;
+		padding: 1rem 2rem;
+		border-radius: var(--pico-border-radius);
+		box-shadow: var(--pico-box-shadow);
+		z-index: 2;
+		pointer-events: none;
+	}
+
+	.bookmark-row {
+		border-bottom: 1px solid var(--bookmark-border);
+		padding: 0.75rem 0;
+	}
+
+	.bookmark-row:last-child {
+		border-bottom: none;
+	}
+
+	.bookmark-title-row {
 		display: flex;
-		flex-direction: column;
-		align-items: center;
-		margin-top: 1rem;
-		padding: 0.5rem;
-		border-top: 1px solid var(--border-light, #eee);
+		justify-content: space-between;
+		align-items: flex-start;
+		margin-bottom: 0.5rem;
+	}
+
+	.title-section {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.5rem;
+	}
+
+	.title-section a {
+		font-weight: 500;
+		text-decoration: none;
+	}
+
+	.title-section a:hover {
+		text-decoration: underline;
+	}
+
+	.bookmark-actions {
+		display: flex;
+		gap: 0.25rem;
+		flex-shrink: 0;
+	}
+
+	.bookmark-actions button {
+		padding: 0.25rem;
+		margin: 0;
+		min-width: auto;
+		width: auto;
+		height: auto;
 	}
 
 	.pagination-controls {
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
+		justify-content: center;
 	}
 
-	.pagination-button {
-		background-color: var(--background-alt, #f6f8fa);
-		border: 1px solid var(--border, #e1e4e8);
-		border-radius: 4px;
+	.pagination-controls button {
+		margin: 0;
 		padding: 0.25rem 0.5rem;
-		font-size: 0.8rem;
-		cursor: pointer;
-	}
-
-	.pagination-button:hover:not(:disabled) {
-		background-color: var(--background-hover, #e1e4e8);
-	}
-
-	.pagination-button:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
+		font-size: 0.875rem;
 	}
 
 	.pagination-current {
 		padding: 0.25rem 0.5rem;
-		font-size: 0.8rem;
-	}
-
-	.info-text {
-		font-style: italic;
-		color: var(--text-muted, #6a737d);
-		margin-left: 0.5rem;
-	}
-
-	/* Separator styling */
-	.separator {
-		margin: 0 0.5rem;
-		color: var(--text-muted, #6a737d);
-	}
-
-	/* Notes button and modal styles */
-	.notes-button {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.25rem;
-		color: var(--text-muted, #6a737d);
-	}
-
-	.notes-button:hover {
-		color: var(--primary, #0366d6);
-	}
-
-	.notes-button svg {
-		width: 12px;
-		height: 12px;
-	}
-
-	.notes-modal-overlay {
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background-color: rgba(0, 0, 0, 0.5);
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		z-index: 1000;
-	}
-
-	.notes-modal {
-		background-color: var(--panel, white);
-		border-radius: 8px;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-		width: 90%;
-		max-width: 600px;
-		max-height: 80vh;
-		display: flex;
-		flex-direction: column;
-		overflow: hidden;
-	}
-
-	.notes-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 1rem;
-		border-bottom: 1px solid var(--border-light, #eee);
-	}
-
-	.notes-header h2 {
-		font-size: 1.25rem;
-		margin: 0;
+		font-size: 0.875rem;
+		color: var(--pico-muted-color);
 	}
 
 	.notes-content {
-		padding: 1rem;
-		overflow-y: auto;
-		flex: 1;
 		max-height: 60vh;
+		overflow-y: auto;
 	}
 
 	.notes-content pre {
@@ -801,253 +729,43 @@
 		word-wrap: break-word;
 		margin: 0;
 		font-family: inherit;
-		font-size: 0.9rem;
+		font-size: 0.875rem;
 	}
 
-	.close-button {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 28px;
-		height: 28px;
-		border-radius: 4px;
-		background-color: var(--background-alt, #f6f8fa);
-		border: 1px solid var(--border, #e1e4e8);
-	}
-
-	.close-button svg {
-		width: 16px;
-		height: 16px;
-	}
-
-	.bookmark-list {
-		width: 100%;
-		min-height: 200px;
-		position: relative;
-		border-radius: 4px;
-	}
-
-	.bookmark-list.is-dragging {
-		border: 3px dashed var(--primary, #0366d6);
-		background-color: rgba(3, 102, 214, 0.05);
-	}
-
-	.bookmark-list.is-dragging::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background-color: rgba(3, 102, 214, 0.1);
-		z-index: 1;
-		pointer-events: none;
-	}
-
-	.bookmark-list.is-dragging::after {
-		content: 'Drop bookmark file here';
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		background-color: var(--panel, white);
-		color: var(--primary, #0366d6);
-		font-size: 1.5rem;
-		font-weight: bold;
-		padding: 1rem 2rem;
-		border-radius: 8px;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-		z-index: 2;
-		pointer-events: none;
-	}
-
-	.empty-state {
-		text-align: center;
-		padding: 2rem 1rem;
-		color: var(--text-muted);
-	}
-
-	/* Bookmark list styling */
-	ol {
-		margin: 0;
-		padding: 0;
-		list-style-position: inside;
-	}
-
-	li {
-		margin-bottom: 0.5rem;
-		padding-bottom: 0.5rem;
-		border-bottom: 1px solid var(--border-light, #eee);
-	}
-
-	li:last-child {
-		margin-bottom: 0;
-		border-bottom: none;
-	}	.bookmark-row {
-		display: flex;
-		padding: 0.1rem 0;
-		margin-bottom: 0.2rem;
-		position: relative;
-	}
-	
-	.bookmark-row:not(:last-child)::after {
-		content: '';
-		position: absolute;
-		bottom: 0;
-		left: 1.7rem;
-		right: 0;
-		border-bottom: 1px dotted rgba(238, 238, 238, 0.2);
-	}
-	
-	.bookmark-row:last-child {
-		margin-bottom: 0;
-	}
-	
-	.bookmark-content {
-		flex: 1;
-		min-width: 0; /* Ensures text ellipsis works */
-		font-size: 0.85rem;
-	}
-	.bookmark-title-row {
-		display: flex;
-		align-items: flex-start;
-		justify-content: space-between;
-		margin-bottom: 0.1rem;
-	}	.title-section {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: baseline;
-		gap: 0.25rem;
-		flex: 1;
-		min-width: 0;
-		margin-bottom: 0.1rem;
-	}
-
-	.title-section > * {
-		display: inline;
-		margin-right: 0.25rem;
-	}
-
-	.bookmark-link {
-		font-weight: 500;
-		text-decoration: none;
-		color: var(--primary, #0366d6);
-	}
-
-	.bookmark-title-row a:hover {
-		text-decoration: underline;
-	}
-
-	.domain-name {
-		font-size: 0.8rem;
-		color: var(--text-muted, #6a737d);
-		white-space: nowrap;
-	}	.description {
-		color: var(--text, #333);
-		font-size: 0.8rem;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		display: inline;
-		margin-left: 0.25rem;
-		margin-right: 0.5rem;
-	}
-
-	/* When description wraps to the next line, add proper indentation */
-	.description:only-child {
-		margin-left: 1.7rem;
-		display: block;
-	}
-	.bookmark-info {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.5rem;
-		font-size: 0.7rem;
-		color: var(--text-muted, #6a737d);
-		margin-left: 1.7rem;  /* Aligns with the bookmark number */
-	}
-
-	.info-item {
-		display: flex;
-		align-items: center;
-		white-space: nowrap;
-		margin-right: 0.5rem;
-	}
-
-	.notes-button {
-		background: none;
-		border: none;
-		cursor: pointer;
-		padding: 0;
-		display: inline-flex;
-		align-items: center;
-		gap: 0.25rem;
-		color: var(--text-muted, #6a737d);
-		font-size: 0.75rem;
-	}
-
-	.notes-button:hover {
-		color: var(--primary, #0366d6);
-	}
-
-	.notes-button svg {
-		width: 0.875rem;
-		height: 0.875rem;
-	}
-
-	.bookmark-actions {
-		display: flex;
-		gap: 0.25rem;
-	}
-
-	.action-icon {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 1.25rem;
-		height: 1.25rem;
-		border-radius: 3px;
-		background: none;
-		border: 1px solid transparent;
-		color: var(--text-muted, #6a737d);
-		padding: 0;
-		cursor: pointer;
-	}
-
-	.action-icon:hover {
-		background-color: var(--background-alt, #f6f8fa);
-		border-color: var(--border, #e1e4e8);
-		color: var(--primary, #0366d6);
-	}
-
-	.action-icon svg {
-		width: 0.875rem;
-		height: 0.875rem;
-	}
-	.separator {
-		margin: 0 0.25rem;
-	}
-	.bookmark-number {
-		display: inline-block;
-		font-size: 0.8rem;
-		color: var(--text-muted, #6a737d);
-		margin-right: 0.2rem;
-		min-width: 1.5rem;
-		text-align: right;
-	}
 	.tags {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.25rem;
+		margin-top: 0.25rem;
 	}
 
-	.tag {
-		display: inline-block;
-		background-color: var(--background-alt, #f1f8ff);
-		color: var(--primary, #0366d6);
-		border-radius: 12px;
-		padding: 0.05rem 0.35rem;
-		font-size: 0.7rem;
-		line-height: 1;
+	/* Mobile responsive adjustments */
+	@media (max-width: 768px) {
+		.toolbar {
+			grid-template-columns: 1fr;
+		}
+		
+		.settings-bar {
+			grid-template-columns: 1fr;
+		}
+		
+		.display-settings {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 0.5rem;
+		}
+		
+		.action-section {
+			justify-content: center;
+		}
+		
+		.bookmark-title-row {
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+		
+		.bookmark-actions {
+			align-self: flex-end;
+		}
 	}
 </style>

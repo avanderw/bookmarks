@@ -50,189 +50,90 @@
 </script>
 
 {#if isOpen}
-	<div class="modal-overlay" on:click|self={handleClose}>
-		<form on:submit|preventDefault={handleSubmit} on:reset|preventDefault={handleClose} class="bookmark-form">
-			<h1>
-				<svg><use href="feather-sprite.svg#bookmark" /></svg>
-				{isEdit ? 'Edit' : 'New'} bookmark
-			</h1>
+	<dialog open>
+		<article>
+			<header>
+				<button aria-label="Close" rel="prev" on:click={handleClose}></button>
+				<h3>
+					<svg><use href="feather-sprite.svg#bookmark" /></svg>
+					{isEdit ? 'Edit' : 'New'} bookmark
+				</h3>
+			</header>
 			
-			<label for="url">URL</label>
-			<input 
-				id="url" 
-				type="url" 
-				bind:value={formData.url} 
-				class:error={urlError} 
-				disabled={isEdit}
-				autofocus
-			/>
-			{#if urlError}
-				<p class="error-message">{urlErrorMessage}</p>
-			{/if}
+			<form on:submit|preventDefault={handleSubmit}>
+				<fieldset>
+					<label>
+						URL
+						<input 
+							type="url" 
+							bind:value={formData.url} 
+							aria-invalid={urlError}
+							disabled={isEdit}
+							autofocus
+							required
+						/>
+						{#if urlError}
+							<small>{urlErrorMessage}</small>
+						{/if}
+					</label>
 
-			<label for="title">Title (optional)</label>
-			<input id="title" type="text" bind:value={formData.title} />
+					<label>
+						Title (optional)
+						<input type="text" bind:value={formData.title} />
+					</label>
 
-			<label for="description">Description (optional)</label>
-			<textarea id="description" bind:value={formData.description} />
+					<label>
+						Description (optional)
+						<textarea bind:value={formData.description}></textarea>
+					</label>
 
-			<label for="tags">Tags (optional)</label>
-			<input id="tags" type="text" bind:value={tagsString} />
-			<p class="help-text">
-				Enter any number of tags separated by space and without the hash (#).
-			</p>
+					<label>
+						Tags (optional)
+						<input type="text" bind:value={tagsString} />
+						<small>Enter any number of tags separated by space and without the hash (#).</small>
+					</label>
 
-			<label for="notes">Notes (optional)</label>
-			<textarea id="notes" bind:value={formData.notes} />
-			<p class="help-text">Additional notes, supports Markdown.</p>
+					<label>
+						Notes (optional)
+						<textarea bind:value={formData.notes}></textarea>
+						<small>Additional notes, supports Markdown.</small>
+					</label>
+				</fieldset>
+			</form>
 
-			<div class="button-group">
-				<button type="submit">Save</button>
-				<button type="reset">Cancel</button>
-			</div>
-		</form>
-	</div>
+			<footer>
+				<button class="secondary" on:click={handleClose}>Cancel</button>
+				<button on:click={handleSubmit}>Save</button>
+			</footer>
+		</article>
+	</dialog>
 {/if}
 
 <style>
-	.modal-overlay {
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background-color: rgba(0, 0, 0, 0.5);
-		display: flex;
-		justify-content: center;
-		align-items: center;
+	dialog {
 		z-index: 1000;
 	}
-
-	.bookmark-form {
-		background-color: var(--panel, white);
-		border: 1px solid var(--border, #ccc);
-		padding: 1rem;
-		border-radius: 1rem;
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-		width: 320px;
-		max-height: 80vh;
-		overflow-y: auto;
-	}
-
-	h1 {
-		font-size: 1.5rem;
-		margin: 0;
+	
+	h3 {
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
-	}
-	
-	label {
-		font-size: 0.9rem;
-		font-weight: bold;
-		margin-top: 0.5rem;
-	}
-	
-	input,
-	textarea {
-		border: 2px solid var(--border, #ccc);
-		border-radius: 0.25rem;
-		padding: 0.25rem;
-		width: 95%;
-		margin: 0 auto;
-	}
-	
-	input:focus,
-	textarea:focus {
-		outline: none;
-		border: 2px solid var(--input-focus, #0366d6);
+		margin: 0;
 	}
 	
 	textarea {
-		height: 5rem;
+		min-height: 5rem;
 		resize: vertical;
 	}
 	
-	.help-text {
-		font-weight: 300;
-		font-size: 0.75rem;
-		margin: 0;
-		color: var(--text-muted, #6a737d);
-	}
-	
-	.error-message {
-		color: var(--error, red);
-		font-size: 0.75rem;
-		margin: 0;
-	}
-	
-	.button-group {
-		margin-top: 1rem;
+	footer {
 		display: flex;
 		justify-content: space-between;
+		gap: 1rem;
 	}
 	
-	.button-group > button {
-		width: 48%;
-	}
-	
-	button {
-		border: 1px solid var(--button-border, #ccc);
-		border-radius: 0.25rem;
-		padding: 0.5rem;
-		font-size: 0.9rem;
-		font-weight: bold;
-		cursor: pointer;
-	}
-	
-	button[type='submit'] {
-		background-color: var(--submit-background, #0366d6);
-		color: var(--submit-text, white);
-	}
-	
-	button[type='submit']:hover {
-		background-color: var(--submit-hover, #0257ba);
-	}
-	
-	button[type='submit']:active {
-		background-color: var(--submit-active, #014899);
-	}
-	
-	button[type='reset'] {
-		background-color: var(--reset-background, #f6f8fa);
-		color: var(--reset-text, #24292e);
-	}
-	
-	button[type='reset']:hover {
-		background-color: var(--reset-hover, #e1e4e8);
-	}
-	
-	button[type='reset']:active {
-		background-color: var(--reset-active, #d1d5da);
-	}
-
-	@keyframes shake {
-		0% {
-			transform: translateX(0);
-		}
-		25% {
-			transform: translateX(-0.25rem);
-		}
-		50% {
-			transform: translateX(0);
-		}
-		75% {
-			transform: translateX(0.25rem);
-		}
-		100% {
-			transform: translateX(0);
-		}
-	}
-	
-	.error {
-		border-color: var(--error, red);
-		animation: shake 0.2s ease-in-out 0s 2;
+	footer button {
+		flex: 1;
+		margin: 0;
 	}
 </style>

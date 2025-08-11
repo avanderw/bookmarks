@@ -1,112 +1,158 @@
+/* Import Pico CSS */
+@import "@picocss/pico";
+
+/* Custom CSS Variables and Overrides */
 :root {
-    --primary-1: #f8f9fa;
-    --primary-2: #e9ecef;
-    --primary-3: #dee2e6;
-    --primary-4: #ced4da;
-    --primary-5: #adb5bd;
-    --primary-6: #6c757d;
-    --primary-7: #495057;
-    --primary-8: #343a40;
-    --primary-9: #212529;
-    --secondary-1: #caf0f8;
-    --secondary-2: #ade8f4;
-    --secondary-3: #90e0ef;
-    --secondary-4: #48cae4;
-    --secondary-5: #00b4d8;
-    --secondary-6: #0096c7;
-    --secondary-7: #0077b6;
-    --secondary-8: #023e8a;
-    --secondary-9: #03045e;
-    --accent-1: #ffccd5;
-    --accent-2: #ffb3c1;
-    --accent-3: #ff8fa3;
-    --accent-4: #ff758f;
-    --accent-5: #ff4d6d;
-    --accent-6: #c9184a;
-    --accent-7: #a4133c;
-    --accent-8: #800f2f;
-    --accent-9: #590d22;
+    /* Bookmark-specific custom properties */
+    --bookmark-tag-background: var(--pico-primary-background);
+    --bookmark-tag-color: var(--pico-primary);
+    --bookmark-number-color: var(--pico-muted-color);
+    --bookmark-domain-color: var(--pico-muted-color);
+    --bookmark-border: var(--pico-muted-border-color);
+    --bookmark-hover-background: var(--pico-dropdown-background-color);
 }
 
-@media (prefers-color-scheme: light) {
-    :root {
-        --background: var(--primary-2);
-        --panel: var(--primary-1);
-        --border: var(--primary-7);
-        --text: var(--primary-9);
-        --text-muted: var(--primary-5);
-        --error: var(--accent-6);
-        --link: var(--secondary-6);
-        --link-visited: var(--secondary-4);
-        --link-hover: var(--secondary-8);
-        --tag: var(--accent-2);
-        --tag-text: var(--accent-9);
-        --feedback-background: var(--accent-2);
-        --feedback-text: var(--primary-9);
-        --input-focus: var(--secondary-6);
-        --submit-background: var(--secondary-3);
-        --submit-hover: var(--secondary-4);
-        --submit-active: var(--secondary-2);
-        --submit-text: var(--primary-9);
-        --reset-background: var(--primary-7);
-        --reset-hover: var(--primary-8);
-        --reset-active: var(--primary-6);
-        --reset-text: var(--primary-1);
+/* Custom styles for bookmark-specific elements */
+.bookmark-number {
+    color: var(--bookmark-number-color);
+    font-size: 0.875rem;
+    margin-right: 0.5rem;
+    min-width: 2rem;
+    display: inline-block;
+    text-align: right;
+}
+
+.bookmark-tag {
+    background-color: var(--bookmark-tag-background);
+    color: var(--bookmark-tag-color);
+    padding: 0.125rem 0.375rem;
+    border-radius: var(--pico-border-radius);
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: inline-block;
+    margin: 0.125rem 0.25rem 0.125rem 0;
+}
+
+.bookmark-domain {
+    color: var(--bookmark-domain-color);
+    font-size: 0.875rem;
+    font-style: italic;
+}
+
+.bookmark-description {
+    color: var(--pico-muted-color);
+    font-size: 0.875rem;
+    margin-left: 0.5rem;
+}
+
+.bookmark-meta {
+    font-size: 0.75rem;
+    color: var(--pico-muted-color);
+    margin-top: 0.25rem;
+}
+
+.bookmark-meta > * {
+    margin-right: 1rem;
+}
+
+.bookmark-row {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--bookmark-border);
+}
+
+.bookmark-row:last-child {
+    border-bottom: none;
+}
+
+/* Compact button styles */
+.btn-compact {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    margin: 0.125rem;
+}
+
+/* Utility classes */
+.text-muted {
+    color: var(--pico-muted-color);
+}
+
+.fs-small {
+    font-size: 0.875rem;
+}
+
+.fs-xs {
+    font-size: 0.75rem;
+}
+
+.gap-sm {
+    gap: 0.5rem;
+}
+
+.gap-xs {
+    gap: 0.25rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .bookmark-number {
+        min-width: 1.5rem;
+    }
+    
+    .bookmark-meta > * {
+        margin-right: 0.5rem;
+        margin-bottom: 0.25rem;
     }
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --background: var(--primary-8);
-        --panel: var(--primary-9);
-        --border: var(--primary-3);
-        --text: var(--primary-1);
-        --text-muted: var(--primary-5);
-        --error: var(--accent-6);
-        --link: var(--secondary-5);
-        --link-visited: var(--secondary-7);
-        --link-hover: var(--secondary-3);
-        --feedback-background: var(--accent-8);
-        --feedback-text: var(--primary-1);
-        --tag: var(--accent-8);
-        --tag-text: var(--primary-1);
-        --input-focus: var(--secondary-4);
-        --submit-background: var(--secondary-7);
-        --submit-hover: var(--secondary-8);
-        --submit-active: var(--secondary-6);
-        --submit-text: var(--primary-1);
-        --reset-background: var(--primary-3);
-        --reset-hover: var(--primary-4);
-        --reset-active: var(--primary-2);
-        --reset-text: var(--primary-9);
-    }
-}
-
-body {
-    color: var(--text);
-    background-color: var(--background);
-    font-family: et-book,Palatino,Palatino Linotype,Palatino LT STD,Book Antiqua,Georgia,serif;
-    padding: 0;
-    margin: 1rem auto;
-    max-width: 90%;
-    overflow-x: hidden;
-}
-
-a {
-    color: var(--link);
-    text-decoration: none;
-}
-a:hover {
-    color: var(--link-hover);
-    text-decoration: underline;
-}
-
+/* Icon adjustments for feather icons */
 svg {
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1rem;
+    height: 1rem;
     stroke: currentColor;
     stroke-width: 2;
     stroke-linecap: round;
     stroke-linejoin: round;
     fill: none;
+    vertical-align: middle;
+}
+
+/* Drag and drop styling */
+.drop-zone {
+    border: 2px dashed var(--pico-primary);
+    background-color: var(--pico-primary-background);
+    border-radius: var(--pico-border-radius);
+    padding: 2rem;
+    text-align: center;
+    color: var(--pico-primary);
+    transition: all 0.2s ease;
+}
+
+.drop-zone.active {
+    border-color: var(--pico-primary-hover);
+    background-color: var(--pico-primary-focus);
+}
+
+/* Modal adjustments for Pico CSS */
+dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Pagination improvements */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.pagination button {
+    margin: 0;
+}
+
+.pagination-info {
+    font-size: 0.875rem;
+    color: var(--pico-muted-color);
+    text-align: center;
+    margin: 0.5rem 0;
 }

@@ -30,23 +30,22 @@
   
   <div class="filter-container">
     <input
-      type="text"
+      type="search"
       bind:value={query}
       on:input={handleInput}
       {placeholder}
-      class="filter-input"
     />
     
     {#if query}
       <div class="filter-help">
         <small>
-          AND terms: <span class="tag">{filterOptions.and.join(', ') || 'none'}</span>
+          AND terms: <span class="bookmark-tag">{filterOptions.and.join(', ') || 'none'}</span>
         </small>
         <small>
-          OR terms: <span class="tag">{filterOptions.or.join(', ') || 'none'}</span>
+          OR terms: <span class="bookmark-tag">{filterOptions.or.join(', ') || 'none'}</span>
         </small>
         <small>
-          NOT terms: <span class="tag">{filterOptions.not.join(', ') || 'none'}</span>
+          NOT terms: <span class="bookmark-tag">{filterOptions.not.join(', ') || 'none'}</span>
         </small>
       </div>
     {/if}
@@ -55,14 +54,7 @@
   <style>
     .filter-container {
       margin-bottom: 1rem;
-    }
-    
-    .filter-input {
       width: 100%;
-      padding: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 1rem;
     }
     
     .filter-help {
@@ -70,12 +62,19 @@
       flex-wrap: wrap;
       gap: 1rem;
       margin-top: 0.5rem;
-      font-size: 0.8rem;
-      color: #666;
+      font-size: 0.75rem;
+      color: var(--pico-muted-color);
     }
     
-    .tag {
-      color: #333;
+    .filter-help .bookmark-tag {
+      color: var(--pico-color);
       font-weight: 500;
+    }
+    
+    @media (max-width: 768px) {
+      .filter-help {
+        flex-direction: column;
+        gap: 0.25rem;
+      }
     }
   </style>

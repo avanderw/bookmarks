@@ -8,7 +8,7 @@ export interface FilterOptions {
 }
 
 export interface SpecialFilter {
-  type: 'never-clicked' | 'unvisited' | 'old-unvisited' | 'stale' | 'device' | 'os' | 'browser' | 'added' | 'clicked' | 'tag';
+  type: 'device' | 'os' | 'browser' | 'added' | 'clicked' | 'tag';
   value?: string;
   operator?: '>' | '<' | '=' | '>=' | '<=';
   duration?: number; // in days
@@ -66,24 +66,6 @@ function applySpecialFilter<T>(item: T, filter: SpecialFilter): boolean {
   const bookmark = item as any;
   
   switch (filter.type) {
-    case 'never-clicked':
-    case 'unvisited':
-      return bookmark.clicked === 0;
-      
-    case 'old-unvisited':
-      if (bookmark.clicked > 0) return false;
-      if (!filter.duration || !bookmark.added) return true;
-      const addedDate = new Date(bookmark.added);
-      const daysAgo = (Date.now() - addedDate.getTime()) / (1000 * 60 * 60 * 24);
-      return daysAgo > filter.duration;
-      
-    case 'stale':
-      if (!filter.duration) return true;
-      if (bookmark.clicked === 0) return false; // Never clicked items aren't "stale"
-      const lastDate = bookmark.last ? new Date(bookmark.last) : new Date(bookmark.added);
-      const daysSinceLastClick = (Date.now() - lastDate.getTime()) / (1000 * 60 * 60 * 24);
-      return daysSinceLastClick > filter.duration;
-      
     case 'device':
       if (!bookmark.device || !filter.value) return false;
       return bookmark.device.toLowerCase().includes(filter.value.toLowerCase());
@@ -109,8 +91,14 @@ function applySpecialFilter<T>(item: T, filter: SpecialFilter): boolean {
       return compareDate(daysFromAdded, filter.operator, filter.duration);
       
     case 'clicked':
+      if (filter.operator === '=' && filter.duration === 0) {
+        return bookmark.clicked === 0; // clicked:=0 for never-clicked
+      }
       if (!filter.duration || !filter.operator) return true;
-      if (bookmark.clicked === 0) return false; // Never clicked
+      if (bookmark.clicked === 0) {
+        // For never-clicked bookmarks, only match if we're explicitly looking for 0
+        return filter.operator === '=' && filter.duration === 0;
+      }
       const clickedTime = bookmark.last ? new Date(bookmark.last) : new Date(bookmark.added);
       const daysFromClicked = (Date.now() - clickedTime.getTime()) / (1000 * 60 * 60 * 24);
       return compareDate(daysFromClicked, filter.operator, filter.duration);
@@ -144,32 +132,6 @@ function compareDate(actualDays: number, operator: string, targetDays: number): 
 function parseSpecialFilter(term: string, options: FilterOptions): boolean {
   const lower = term.toLowerCase();
   
-  // Usage-based filters
-  if (lower === 'never-clicked' || lower === 'unvisited') {
-    options.special.push({ type: 'never-clicked' });
-    return true;
-  }
-  
-  // Old unvisited filter: old-unvisited:30d
-  const oldUnvisitedMatch = lower.match(/^old-unvisited:(\d+)d$/);
-  if (oldUnvisitedMatch) {
-    options.special.push({ 
-      type: 'old-unvisited', 
-      duration: parseInt(oldUnvisitedMatch[1]) 
-    });
-    return true;
-  }
-  
-  // Stale filter: stale:90d
-  const staleMatch = lower.match(/^stale:(\d+)d$/);
-  if (staleMatch) {
-    options.special.push({ 
-      type: 'stale', 
-      duration: parseInt(staleMatch[1]) 
-    });
-    return true;
-  }
-  
   // Device filter: device:mobile, device:desktop, device:tablet
   const deviceMatch = lower.match(/^device:(.+)$/);
   if (deviceMatch) {
@@ -198,8 +160,8 @@ function parseSpecialFilter(term: string, options: FilterOptions): boolean {
     return true;
   }
   
-  // Date filters: added:>30d, added:<7d, clicked:>90d
-  const dateMatch = lower.match(/^(added|clicked):([<>=]+)(\d+)d$/);
+  // Date filters: added:>30d, added:<7d, clicked:>90d, clicked:=0
+  const dateMatch = lower.match(/^(added|clicked):([<>=]+)(\d+)d?$/);
   if (dateMatch) {
     const [, type, operator, days] = dateMatch;
     options.special.push({ 
@@ -259,14 +221,30 @@ function parseFilterQuery(query: string): FilterOptions {
     // Remove quotes for processing but preserve the term
     const cleanTerm = term.replace(/^["']|["']$/g, '');
     
-    // Check for special filter keywords
+    // Handle NOT prefix for special filters
+    if (term.startsWith('-')) {
+      const negatedTerm = cleanTerm.substring(1);
+      
+      // Create a temporary FilterOptions to see if this is a special filter
+      const tempOptions: FilterOptions = { and: [], or: [], not: [], special: [] };
+      if (parseSpecialFilter(negatedTerm, tempOptions)) {
+        // It's a special filter, we need to negate it by creating a NOT version
+        // Since we can't easily negate special filters, we'll add it to NOT as text
+        options.not.push(negatedTerm);
+        return;
+      } else {
+        // Regular text filter
+        options.not.push(negatedTerm);
+        return;
+      }
+    }
+    
+    // Check for special filter keywords first
     if (parseSpecialFilter(cleanTerm, options)) {
       return; // Special filter was parsed, continue to next term
     }
     
-    if (term.startsWith('-')) {
-      options.not.push(cleanTerm.substring(1));
-    } else if (term.startsWith('+')) {
+    if (term.startsWith('+')) {
       options.and.push(cleanTerm.substring(1));
     } else if (term.startsWith('|')) {
       options.or.push(cleanTerm.substring(1));
@@ -289,32 +267,45 @@ function parseFilterQuery(query: string): FilterOptions {
  * - Words prefixed with '-' are NOT terms/exclusions (e.g., '-term')
  * - Quoted phrases like "exact match" are treated as a single term
  * 
- * Special Filters:
- * Usage-based filters:
- * - 'never-clicked' or 'unvisited' → bookmarks with 0 clicks
- * - 'old-unvisited:30d' → bookmarks added 30+ days ago with 0 clicks
- * - 'stale:90d' → bookmarks not clicked in 90+ days
+ * Special Filters (Raw Data):
+ * Click data:
+ * - 'clicked:=0' → bookmarks never clicked
+ * - 'clicked:>90' → bookmarks not clicked in 90+ days
+ * - 'clicked:<7' → bookmarks clicked in last 7 days
  * 
- * Device/System filters:
+ * Device/System context:
  * - 'device:mobile', 'device:desktop', 'device:tablet'
  * - 'os:windows', 'os:macos', 'os:android', 'os:ios'
  * - 'browser:chrome', 'browser:firefox', 'browser:safari'
  * 
- * Tag filters:
+ * Tag filtering:
  * - 'tag:javascript', 'tag:react', 'tag:tutorial'
+ * - '-tag:deprecated' → exclude deprecated tags
  * 
- * Date-based filters:
- * - 'added:>30d' → added more than 30 days ago
- * - 'added:<7d' → added in last 7 days
- * - 'clicked:>90d' → last clicked more than 90 days ago
+ * Date-based cleanup:
+ * - 'added:>365' → bookmarks older than 1 year
+ * - 'added:<7' → bookmarks added in last week
  * 
- * Examples:
- * - 'apple banana' → finds items containing 'apple' OR 'banana' (ranked by matches)
- * - '+apple banana' → finds items containing 'apple' AND possibly 'banana'
- * - 'apple -banana' → finds items containing 'apple' but NOT 'banana'
- * - 'never-clicked device:mobile' → unvisited bookmarks from mobile devices
- * - 'old-unvisited:30d browser:chrome' → old unvisited Chrome bookmarks
- * - 'stale:90d +important' → bookmarks not clicked in 90+ days containing "important"
+ * Relevance Sorting:
+ * When text-based filtering is used, results are automatically sorted by relevance:
+ * - AND terms (+) get higher weight (score: 2 per match)
+ * - OR terms get base weight (score: 1 per match)
+ * - Higher scores appear first in results
+ * - Items with no text matches maintain original order
+ * 
+ * Actionable Search Examples:
+ * Cleanup candidates:
+ * - 'clicked:=0 added:>90' → old bookmarks never used
+ * - 'clicked:=0 device:mobile' → mobile bookmarks to review
+ * - '-tag:important clicked:>365' → old unimportant bookmarks
+ * 
+ * Current device relevance:
+ * - 'device:mobile +tutorial' → mobile-saved tutorials
+ * - 'browser:chrome os:windows' → bookmarks from current setup
+ * 
+ * Tag management:
+ * - 'tag:javascript +tutorial' → JS learning resources
+ * - '-tag:archived' → exclude archived bookmarks
  * 
  * @param data The array of objects to filter
  * @param query The search query string

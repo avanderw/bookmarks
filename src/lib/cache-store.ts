@@ -1,6 +1,8 @@
 import { browser } from "$app/environment";
 import { writable, readonly } from "svelte/store";
 import type { CacheStore } from "$lib/index";
+import { isValidUrl } from "$lib/url";
+import type { Bookmark } from "$lib/bookmarks";
 
 const CACHE_NAME = "bookmarks/cache-store"
 
@@ -125,6 +127,26 @@ export async function unsyncFile() {
 
 export async function readFile(file: File) {
     const data = JSON.parse(await file.text());
+    
+    // Filter out bookmarks with invalid URLs
+    if (data && data.bookmarks && Array.isArray(data.bookmarks)) {
+        const originalCount = data.bookmarks.length;
+        data.bookmarks = data.bookmarks.filter((bookmark: Bookmark) => {
+            return bookmark && bookmark.url && isValidUrl(bookmark.url);
+        });
+        
+        const filteredCount = data.bookmarks.length;
+        const removedCount = originalCount - filteredCount;
+        
+        if (removedCount > 0) {
+            console.log(`Filtered out ${removedCount} bookmark(s) with invalid URLs during import`);
+            // Show a notification to the user about filtered bookmarks
+            if (browser && window.alert) {
+                window.alert(`Import complete. ${removedCount} bookmark(s) with invalid URLs were removed.`);
+            }
+        }
+    }
+    
     cacheStore.set(data);
     return data;
 }

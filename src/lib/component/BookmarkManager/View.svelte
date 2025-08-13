@@ -11,6 +11,8 @@
 	import { PaginationUtils } from './PaginationUtils';
 	import { FileUtils } from './FileUtils';
 	import { formatRelativeTime, formatFriendlyDate } from '$lib/utils/DateUtils';
+	import { getShortUserAgentSummary } from '$lib/utils/UserAgentUtils';
+	import { DuplicateDetector } from '$lib/component/DuplicateDetector';
 
 	// Event dispatcher
 	const dispatch = createEventDispatcher<{
@@ -28,9 +30,10 @@
 	let previousSortOrder: string = sortOrder;
 	let selectedBookmark: Bookmark | null = null;
 	let viewingNotes: Bookmark | null = null;
+	let showDuplicateDetector: boolean = false;
 	// Pagination state
 	let currentPage = 1;
-	let itemsPerPage = 20;
+	let itemsPerPage = 10;
 	let totalPages = 0;
 	let startIndex = 0;
 	let endIndex = 0;
@@ -169,6 +172,20 @@
 	}
 
 	/**
+	 * Open the duplicate detector
+	 */
+	function onOpenDuplicateDetector() {
+		showDuplicateDetector = true;
+	}
+
+	/**
+	 * Close the duplicate detector
+	 */
+	function onCloseDuplicateDetector() {
+		showDuplicateDetector = false;
+	}
+
+	/**
 	 * Handle bookmark save (both add and edit)
 	 * @param event CustomEvent containing the saved bookmark
 	 */
@@ -295,6 +312,16 @@
 			currentPage = pagination.validCurrentPage;
 		}
 	}
+
+	/**
+	 * Handle file input change event
+	 */
+	function handleFileInputChange(e: Event) {
+		const target = e.target as HTMLInputElement;
+		if (target?.files && target.files[0]) {
+			onFileImported(FileUtils.createFileEvent(target.files[0]));
+		}
+	}
 </script>
 
 <div class="bookmark-manager">
@@ -311,7 +338,7 @@
 			<div class="action-section">
 				<button
 					class="btn-compact secondary"
-					on:click={() => document.getElementById('fileInput').click()}
+					on:click={() => document.getElementById('fileInput')?.click()}
 					title="Import bookmarks"
 				>
 					<svg><use href="feather-sprite.svg#upload" /></svg>
@@ -327,6 +354,16 @@
 					Export
 				</button>
 
+				<button
+					class="btn-compact secondary"
+					on:click={onOpenDuplicateDetector}
+					title="Find duplicate or similar bookmarks"
+					disabled={bookmarks.length === 0}
+				>
+					<svg><use href="feather-sprite.svg#copy" /></svg>
+					Find Duplicates
+				</button>
+
 				<BookmarkForm.Button
 					on:save={onBookmarkSave}
 					buttonClass="btn-compact"
@@ -338,7 +375,7 @@
 					class="btn-compact secondary bookmarklet-button"
 					title="Drag to your bookmarks bar"
 					draggable="true"
-					on:dragstart={(e) => e.dataTransfer.setData('text/plain', getBookmarkletCode())}
+					on:dragstart={(e) => e.dataTransfer?.setData('text/plain', getBookmarkletCode())}
 				>
 					<svg><use href="feather-sprite.svg#bookmark" /></svg>
 					Save to Bookmarks
@@ -369,6 +406,7 @@
 					<select bind:value={itemsPerPage}>
 						<option value={5}>5</option>
 						<option value={10}>10</option>
+						<option value={20}>20</option>
 						<option value={25}>25</option>
 						<option value={50}>50</option>
 						<option value={100}>100</option>
@@ -391,10 +429,7 @@
 		id="fileInput"
 		accept=".json,.html,.htm"
 		style="display:none"
-		on:change={(e) => {			if (e.target.files && e.target.files[0]) {
-				onFileImported(FileUtils.createFileEvent(e.target.files[0]));
-			}
-		}}
+		on:change={handleFileInputChange}
 	/>
 	
 	<section class="bookmark-list" class:drop-zone={isDragging} class:active={isDragging}>
@@ -460,6 +495,17 @@
 								{#if bookmark.added}
 									<span title={formatFriendlyDate(bookmark.added)}>
 										added {formatRelativeTime(bookmark.added)}
+									</span>
+								{/if}
+								
+								{#if bookmark.browser && bookmark.device}
+									<span title="Added from {bookmark.browser} on {bookmark.os} ({bookmark.device})">
+										<svg><use href="feather-sprite.svg#monitor" /></svg> {getShortUserAgentSummary({
+											userAgent: bookmark.userAgent || '',
+											browser: bookmark.browser,
+											os: bookmark.os || 'Unknown',
+											device: bookmark.device
+										})}
 									</span>
 								{/if}
 								
@@ -559,6 +605,16 @@
 			</article>
 		</dialog>
 	{/if}
+
+	<!-- Duplicate Detector (conditionally rendered) -->
+	<DuplicateDetector
+		{bookmarks}
+		isOpen={showDuplicateDetector}
+		on:close={onCloseDuplicateDetector}
+		on:deleteBookmark={(e) => onDeleteBookmarkClick(e.detail)}
+		on:editBookmark={(e) => onEditBookmarkClick(e.detail)}
+		on:bookmarkClicked={(e) => onBookmarkClick(e.detail)}
+	/>
 </div>
 
 <style>
@@ -654,7 +710,7 @@
 
 	.bookmark-row {
 		border-bottom: 1px solid var(--bookmark-border);
-		padding: 0.75rem 0;
+		padding: 0.5rem 0;
 	}
 
 	.bookmark-row:last-child {
@@ -665,7 +721,7 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: flex-start;
-		margin-bottom: 0.5rem;
+		margin-bottom: 0.25rem;
 	}
 
 	.title-section {
@@ -674,7 +730,7 @@
 		display: flex;
 		flex-wrap: wrap;
 		align-items: baseline;
-		gap: 0.5rem;
+		gap: 0.25rem;
 	}
 
 	.title-section a {
@@ -733,10 +789,10 @@
 	}
 
 	.tags {
-		display: flex;
+		display: inline-flex;
 		flex-wrap: wrap;
 		gap: 0.25rem;
-		margin-top: 0.25rem;
+		align-items: center;
 	}
 
 	/* Mobile responsive adjustments */

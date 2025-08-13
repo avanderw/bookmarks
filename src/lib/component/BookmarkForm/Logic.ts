@@ -1,10 +1,13 @@
 import type { Bookmark } from '$lib/bookmarks';
-import { getUrlParameter } from '$lib/url';
+import { getUrlParameter, isValidUrl } from '$lib/url';
+import { getCurrentUserAgent } from '$lib/utils/UserAgentUtils';
 
 /**
  * Creates a new empty bookmark object with default values
  */
 export function createEmptyBookmark(): Bookmark {
+    const userAgentInfo = getCurrentUserAgent();
+    
     return {
         url: getUrlParameter('h') || '',
         title: getUrlParameter('t') || '',
@@ -13,7 +16,11 @@ export function createEmptyBookmark(): Bookmark {
         notes: '',
         added: new Date(),
         clicked: 0,
-        last: null
+        last: null,
+        userAgent: userAgentInfo?.userAgent,
+        browser: userAgentInfo?.browser,
+        os: userAgentInfo?.os,
+        device: userAgentInfo?.device
     };
 }
 
@@ -39,6 +46,13 @@ export function validateBookmark(bookmark: Bookmark, existingBookmarks?: Bookmar
         return errors;
     }
 
+    // Check if URL is valid
+    if (!isValidUrl(bookmark.url)) {
+        errors.urlError = true;
+        errors.urlErrorMessage = 'Please enter a valid URL (must start with http:// or https://)';
+        return errors;
+    }
+
     // Check for duplicate URLs in edit mode
     if (existingBookmarks) {
         const duplicate = existingBookmarks.find(
@@ -58,9 +72,10 @@ export function validateBookmark(bookmark: Bookmark, existingBookmarks?: Bookmar
  * Prepares a bookmark for saving
  * @param bookmark The bookmark to prepare
  * @param tagsString Space-separated tags string
+ * @param isEdit Whether this is an edit operation (preserves original user agent info)
  * @returns The prepared bookmark
  */
-export function prepareBookmarkForSave(bookmark: Bookmark, tagsString: string): Bookmark {
+export function prepareBookmarkForSave(bookmark: Bookmark, tagsString: string, isEdit: boolean = false): Bookmark {
     // Create a copy of the bookmark to avoid modifying the original
     const prepared = { ...bookmark };
     
@@ -78,6 +93,17 @@ export function prepareBookmarkForSave(bookmark: Bookmark, tagsString: string): 
     // Ensure added date is set
     if (!prepared.added) {
         prepared.added = new Date();
+    }
+    
+    // For new bookmarks, capture user agent info if not already present
+    if (!isEdit && !prepared.userAgent) {
+        const userAgentInfo = getCurrentUserAgent();
+        if (userAgentInfo) {
+            prepared.userAgent = userAgentInfo.userAgent;
+            prepared.browser = userAgentInfo.browser;
+            prepared.os = userAgentInfo.os;
+            prepared.device = userAgentInfo.device;
+        }
     }
     
     return prepared;

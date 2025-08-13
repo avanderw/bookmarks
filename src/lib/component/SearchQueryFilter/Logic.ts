@@ -2,6 +2,14 @@ export interface FilterOptions {
   and: string[];
   or: string[];
   not: string[];
+  special: SpecialFilter[];
+}
+
+export interface SpecialFilter {
+  type: 'never-clicked' | 'unvisited' | 'old-unvisited' | 'stale' | 'device' | 'os' | 'browser' | 'added' | 'clicked';
+  value?: string;
+  operator?: '>' | '<' | '=' | '>=' | '<=';
+  duration?: number; // in days
 }
 
 export interface FilterResult<T = any> {
@@ -12,19 +20,164 @@ export interface FilterResult<T = any> {
 }
 
 /**
+ * Applies a special filter to an item
+ * 
+ * @private Internal helper function
+ */
+function applySpecialFilter<T>(item: T, filter: SpecialFilter): boolean {
+  // Type assertion to access bookmark properties
+  const bookmark = item as any;
+  
+  switch (filter.type) {
+    case 'never-clicked':
+    case 'unvisited':
+      return bookmark.clicked === 0;
+      
+    case 'old-unvisited':
+      if (bookmark.clicked > 0) return false;
+      if (!filter.duration || !bookmark.added) return true;
+      const addedDate = new Date(bookmark.added);
+      const daysAgo = (Date.now() - addedDate.getTime()) / (1000 * 60 * 60 * 24);
+      return daysAgo > filter.duration;
+      
+    case 'stale':
+      if (!filter.duration) return true;
+      if (bookmark.clicked === 0) return false; // Never clicked items aren't "stale"
+      const lastDate = bookmark.last ? new Date(bookmark.last) : new Date(bookmark.added);
+      const daysSinceLastClick = (Date.now() - lastDate.getTime()) / (1000 * 60 * 60 * 24);
+      return daysSinceLastClick > filter.duration;
+      
+    case 'device':
+      if (!bookmark.device || !filter.value) return false;
+      return bookmark.device.toLowerCase().includes(filter.value.toLowerCase());
+      
+    case 'os':
+      if (!bookmark.os || !filter.value) return false;
+      return bookmark.os.toLowerCase().includes(filter.value.toLowerCase());
+      
+    case 'browser':
+      if (!bookmark.browser || !filter.value) return false;
+      return bookmark.browser.toLowerCase().includes(filter.value.toLowerCase());
+      
+    case 'added':
+      if (!filter.duration || !filter.operator || !bookmark.added) return true;
+      const addedTime = new Date(bookmark.added);
+      const daysFromAdded = (Date.now() - addedTime.getTime()) / (1000 * 60 * 60 * 24);
+      return compareDate(daysFromAdded, filter.operator, filter.duration);
+      
+    case 'clicked':
+      if (!filter.duration || !filter.operator) return true;
+      if (bookmark.clicked === 0) return false; // Never clicked
+      const clickedTime = bookmark.last ? new Date(bookmark.last) : new Date(bookmark.added);
+      const daysFromClicked = (Date.now() - clickedTime.getTime()) / (1000 * 60 * 60 * 24);
+      return compareDate(daysFromClicked, filter.operator, filter.duration);
+      
+    default:
+      return true;
+  }
+}
+
+/**
+ * Compares dates based on operator
+ * 
+ * @private Internal helper function
+ */
+function compareDate(actualDays: number, operator: string, targetDays: number): boolean {
+  switch (operator) {
+    case '>': return actualDays > targetDays;
+    case '<': return actualDays < targetDays;
+    case '>=': return actualDays >= targetDays;
+    case '<=': return actualDays <= targetDays;
+    case '=': return Math.abs(actualDays - targetDays) < 1; // Within a day
+    default: return true;
+  }
+}
+
+/**
+ * Parses special filter keywords and adds them to filter options
+ * 
+ * @private Internal helper function
+ */
+function parseSpecialFilter(term: string, options: FilterOptions): boolean {
+  const lower = term.toLowerCase();
+  
+  // Usage-based filters
+  if (lower === 'never-clicked' || lower === 'unvisited') {
+    options.special.push({ type: 'never-clicked' });
+    return true;
+  }
+  
+  // Old unvisited filter: old-unvisited:30d
+  const oldUnvisitedMatch = lower.match(/^old-unvisited:(\d+)d$/);
+  if (oldUnvisitedMatch) {
+    options.special.push({ 
+      type: 'old-unvisited', 
+      duration: parseInt(oldUnvisitedMatch[1]) 
+    });
+    return true;
+  }
+  
+  // Stale filter: stale:90d
+  const staleMatch = lower.match(/^stale:(\d+)d$/);
+  if (staleMatch) {
+    options.special.push({ 
+      type: 'stale', 
+      duration: parseInt(staleMatch[1]) 
+    });
+    return true;
+  }
+  
+  // Device filter: device:mobile, device:desktop, device:tablet
+  const deviceMatch = lower.match(/^device:(.+)$/);
+  if (deviceMatch) {
+    options.special.push({ type: 'device', value: deviceMatch[1] });
+    return true;
+  }
+  
+  // OS filter: os:windows, os:macos, etc.
+  const osMatch = lower.match(/^os:(.+)$/);
+  if (osMatch) {
+    options.special.push({ type: 'os', value: osMatch[1] });
+    return true;
+  }
+  
+  // Browser filter: browser:chrome, browser:firefox, etc.
+  const browserMatch = lower.match(/^browser:(.+)$/);
+  if (browserMatch) {
+    options.special.push({ type: 'browser', value: browserMatch[1] });
+    return true;
+  }
+  
+  // Date filters: added:>30d, added:<7d, clicked:>90d
+  const dateMatch = lower.match(/^(added|clicked):([<>=]+)(\d+)d$/);
+  if (dateMatch) {
+    const [, type, operator, days] = dateMatch;
+    options.special.push({ 
+      type: type as 'added' | 'clicked',
+      operator: operator as '>' | '<' | '=' | '>=' | '<=',
+      duration: parseInt(days) 
+    });
+    return true;
+  }
+  
+  return false;
+}
+
+/**
  * Parses a search query string into filter options
  * 
  * @private Internal helper function
  */
 function parseFilterQuery(query: string): FilterOptions {
   if (!query || query.trim() === '') {
-    return { and: [], or: [], not: [] };
+    return { and: [], or: [], not: [], special: [] };
   }
 
   const options: FilterOptions = {
     and: [],
     or: [],
-    not: []
+    not: [],
+    special: []
   };
   
   // Split by spaces, but preserve quoted phrases
@@ -56,6 +209,11 @@ function parseFilterQuery(query: string): FilterOptions {
     // Remove quotes for processing but preserve the term
     const cleanTerm = term.replace(/^["']|["']$/g, '');
     
+    // Check for special filter keywords
+    if (parseSpecialFilter(cleanTerm, options)) {
+      return; // Special filter was parsed, continue to next term
+    }
+    
     if (term.startsWith('-')) {
       options.not.push(cleanTerm.substring(1));
     } else if (term.startsWith('+')) {
@@ -81,10 +239,29 @@ function parseFilterQuery(query: string): FilterOptions {
  * - Words prefixed with '-' are NOT terms/exclusions (e.g., '-term')
  * - Quoted phrases like "exact match" are treated as a single term
  * 
+ * Special Filters:
+ * Usage-based filters:
+ * - 'never-clicked' or 'unvisited' → bookmarks with 0 clicks
+ * - 'old-unvisited:30d' → bookmarks added 30+ days ago with 0 clicks
+ * - 'stale:90d' → bookmarks not clicked in 90+ days
+ * 
+ * Device/System filters:
+ * - 'device:mobile', 'device:desktop', 'device:tablet'
+ * - 'os:windows', 'os:macos', 'os:android', 'os:ios'
+ * - 'browser:chrome', 'browser:firefox', 'browser:safari'
+ * 
+ * Date-based filters:
+ * - 'added:>30d' → added more than 30 days ago
+ * - 'added:<7d' → added in last 7 days
+ * - 'clicked:>90d' → last clicked more than 90 days ago
+ * 
  * Examples:
  * - 'apple banana' → finds items containing 'apple' OR 'banana' (ranked by matches)
  * - '+apple banana' → finds items containing 'apple' AND possibly 'banana'
  * - 'apple -banana' → finds items containing 'apple' but NOT 'banana'
+ * - 'never-clicked device:mobile' → unvisited bookmarks from mobile devices
+ * - 'old-unvisited:30d browser:chrome' → old unvisited Chrome bookmarks
+ * - 'stale:90d +important' → bookmarks not clicked in 90+ days containing "important"
  * 
  * @param data The array of objects to filter
  * @param query The search query string
@@ -104,7 +281,7 @@ export function applyFilter<T>(data: T[], query: string): FilterResult<T> {
   }
   
   // If query is empty, return all data
-  if (!options.and.length && !options.or.length && !options.not.length) {
+  if (!options.and.length && !options.or.length && !options.not.length && !options.special.length) {
     return { 
       data, 
       options, 
@@ -118,6 +295,13 @@ export function applyFilter<T>(data: T[], query: string): FilterResult<T> {
   
   // Filter the data
   const filteredData = data.filter(item => {
+    // Apply special filters first
+    for (const specialFilter of options.special) {
+      if (!applySpecialFilter(item, specialFilter)) {
+        return false;
+      }
+    }
+    
     // Convert item to a searchable string
     const searchText = JSON.stringify(item).toLowerCase();
     let score = 0;

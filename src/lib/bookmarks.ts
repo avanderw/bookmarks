@@ -10,6 +10,10 @@ export interface Bookmark {
     added: Date;
     clicked: number;
     last: Date | null;
+    userAgent?: string;
+    browser?: string;
+    os?: string;
+    device?: string;
 }
 
 export interface BookmarkStore {
@@ -38,7 +42,7 @@ appData.subscribe((value) => { console.debug("Saving bookmark store\n", value); 
 // update filehandle
 
 export function loadFromLocalStorage(): BookmarkStore {
-    const version = "2023-10-16";
+    const version = "2025-08-12"; // Updated to trigger migration for user agent fields
     let data: BookmarkStore | Array<OldBookmark> = { version: version, bookmarks: [] };
     if (browser) {
         console.log("Loading bookmark store from local storage");
@@ -60,7 +64,11 @@ export function loadFromLocalStorage(): BookmarkStore {
                         notes: "",
                         added: bookmark.added,
                         clicked: bookmark.clicked,
-                        last: bookmark.last
+                        last: bookmark.last,
+                        userAgent: undefined,
+                        browser: undefined,
+                        os: undefined,
+                        device: undefined
                     });
                 }
             }

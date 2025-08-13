@@ -2,6 +2,7 @@
 	import type { Bookmark } from '$lib/bookmarks';
 	import { createEventDispatcher } from 'svelte';
 	import { createEmptyBookmark, validateBookmark, prepareBookmarkForSave } from './Logic';
+	import { formatUserAgentInfo } from '$lib/utils/UserAgentUtils';
 
 	const dispatch = createEventDispatcher<{
 		save: Bookmark;
@@ -34,7 +35,7 @@
 		}
 
 		// Prepare bookmark for saving
-		const preparedBookmark = prepareBookmarkForSave(formData, tagsString);
+		const preparedBookmark = prepareBookmarkForSave(formData, tagsString, isEdit);
 		
 		// Dispatch save event with prepared bookmark
 		dispatch('save', preparedBookmark);
@@ -98,6 +99,24 @@
 						<textarea bind:value={formData.notes}></textarea>
 						<small>Additional notes, supports Markdown.</small>
 					</label>
+
+					{#if formData.browser || formData.os || formData.device}
+						<label>
+							Source Information (automatically captured)
+							<input 
+								type="text" 
+								value={formatUserAgentInfo({
+									userAgent: formData.userAgent || '',
+									browser: formData.browser || 'Unknown',
+									os: formData.os || 'Unknown',
+									device: formData.device || 'Unknown'
+								})}
+								readonly
+								disabled
+							/>
+							<small>Browser and system information from when this bookmark was added.</small>
+						</label>
+					{/if}
 				</fieldset>
 			</form>
 

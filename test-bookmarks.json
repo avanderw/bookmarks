@@ -1,0 +1,55 @@
+{
+  "version": "2025-08-12",
+  "bookmarks": [
+    {
+      "url": "https://valid-example.com",
+      "title": "Valid Example",
+      "description": "This is a valid bookmark",
+      "tags": ["example", "valid"],
+      "notes": "Valid URL bookmark",
+      "added": "2025-08-12T10:00:00.000Z",
+      "clicked": 0,
+      "last": null
+    },
+    {
+      "url": "invalid-url",
+      "title": "Invalid Example",
+      "description": "This should be filtered out",
+      "tags": ["example", "invalid"],
+      "notes": "Invalid URL bookmark",
+      "added": "2025-08-12T10:00:00.000Z",
+      "clicked": 0,
+      "last": null
+    },
+    {
+      "url": "http://another-valid.com",
+      "title": "Another Valid Example",
+      "description": "This is another valid bookmark",
+      "tags": ["example", "valid"],
+      "notes": "Another valid URL bookmark",
+      "added": "2025-08-12T10:00:00.000Z",
+      "clicked": 0,
+      "last": null
+    },
+    {
+      "url": "ftp://invalid-protocol.com",
+      "title": "FTP Example",
+      "description": "This should be filtered out due to FTP protocol",
+      "tags": ["example", "invalid"],
+      "notes": "FTP URL bookmark",
+      "added": "2025-08-12T10:00:00.000Z",
+      "clicked": 0,
+      "last": null
+    },
+    {
+      "url": "",
+      "title": "Empty URL",
+      "description": "This should be filtered out",
+      "tags": ["example", "invalid"],
+      "notes": "Empty URL bookmark",
+      "added": "2025-08-12T10:00:00.000Z",
+      "clicked": 0,
+      "last": null
+    }
+  ]
+}

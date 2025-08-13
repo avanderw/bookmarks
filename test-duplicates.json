@@ -1,0 +1,105 @@
+{
+  "version": "2025-08-12",
+  "bookmarks": [
+    {
+      "url": "https://github.com/avanderw/bookmarks",
+      "title": "Bookmarks Repository",
+      "description": "A SvelteKit bookmark manager",
+      "tags": ["development", "svelte"],
+      "notes": "Main repo",
+      "added": "2024-01-01T10:00:00.000Z",
+      "clicked": 5,
+      "last": "2024-12-01T10:00:00.000Z"
+    },
+    {
+      "url": "http://github.com/avanderw/bookmarks",
+      "title": "Bookmarks Repository",
+      "description": "A SvelteKit bookmark manager (HTTP version)",
+      "tags": ["development", "svelte"],
+      "notes": "Same repo, different protocol",
+      "added": "2024-01-02T10:00:00.000Z",
+      "clicked": 2,
+      "last": "2024-11-01T10:00:00.000Z"
+    },
+    {
+      "url": "https://www.github.com/avanderw/bookmarks",
+      "title": "Bookmarks Repo",
+      "description": "A SvelteKit bookmark manager",
+      "tags": ["development"],
+      "notes": "Same repo with www",
+      "added": "2024-01-03T10:00:00.000Z",
+      "clicked": 1,
+      "last": null
+    },
+    {
+      "url": "https://news.ycombinator.com/",
+      "title": "Hacker News",
+      "description": "Tech news and discussion",
+      "tags": ["news", "tech"],
+      "notes": "Daily reading",
+      "added": "2024-01-04T10:00:00.000Z",
+      "clicked": 50,
+      "last": "2024-12-01T10:00:00.000Z"
+    },
+    {
+      "url": "https://news.ycombinator.com/newest",
+      "title": "Hacker News - Newest",
+      "description": "Latest submissions on HN",
+      "tags": ["news", "tech"],
+      "notes": "For latest posts",
+      "added": "2024-01-05T10:00:00.000Z",
+      "clicked": 25,
+      "last": "2024-11-15T10:00:00.000Z"
+    },
+    {
+      "url": "https://hackernews.com/",
+      "title": "Hacker News",
+      "description": "Tech news aggregator",
+      "tags": ["news"],
+      "notes": "Alternative link",
+      "added": "2024-01-06T10:00:00.000Z",
+      "clicked": 3,
+      "last": "2024-10-01T10:00:00.000Z"
+    },
+    {
+      "url": "https://reddit.com/r/programming",
+      "title": "Programming Subreddit",
+      "description": "Programming discussions",
+      "tags": ["programming", "reddit"],
+      "notes": "Good for programming news",
+      "added": "2024-01-07T10:00:00.000Z",
+      "clicked": 15,
+      "last": "2024-11-20T10:00:00.000Z"
+    },
+    {
+      "url": "https://www.reddit.com/r/programming/",
+      "title": "r/programming",
+      "description": "Programming discussions on Reddit",
+      "tags": ["programming", "reddit"],
+      "notes": "Same subreddit",
+      "added": "2024-01-08T10:00:00.000Z",
+      "clicked": 8,
+      "last": "2024-11-10T10:00:00.000Z"
+    },
+    {
+      "url": "https://stackoverflow.com/",
+      "title": "Stack Overflow",
+      "description": "Q&A for programmers",
+      "tags": ["programming", "help"],
+      "notes": "Essential for debugging",
+      "added": "2024-01-09T10:00:00.000Z",
+      "clicked": 100,
+      "last": "2024-12-01T10:00:00.000Z"
+    },
+    {
+      "url": "https://stackoverflow.com/questions",
+      "title": "Stack Overflow Questions",
+      "description": "Browse questions on Stack Overflow",
+      "tags": ["programming", "help"],
+      "notes": "For browsing questions",
+      "added": "2024-01-10T10:00:00.000Z",
+      "clicked": 30,
+      "last": "2024-11-25T10:00:00.000Z"
+    }
+  ]
+}

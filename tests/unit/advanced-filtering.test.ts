@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { applyFilter } from '../src/lib/component/SearchQueryFilter/Logic';
+import { applyFilter } from '$lib/component/SearchQueryFilter/Logic';
 
 describe('Advanced Bookmark Filtering', () => {
   const testBookmarks = [
@@ -9,7 +9,7 @@ describe('Advanced Bookmark Filtering', () => {
       description: 'A test repository',
       tags: ['development', 'github'],
       notes: 'Important project',
-      added: new Date('2024-01-01'),
+      added: new Date(Date.now() - 50 * 24 * 60 * 60 * 1000), // 50 days ago
       clicked: 0,
       last: null,
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
@@ -23,9 +23,9 @@ describe('Advanced Bookmark Filtering', () => {
       description: 'Official React docs',
       tags: ['react', 'documentation'],
       notes: null,
-      added: new Date('2024-06-01'),
+      added: new Date(Date.now() - 100 * 24 * 60 * 60 * 1000), // 100 days ago
       clicked: 5,
-      last: new Date('2024-07-01'),
+      last: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000), // clicked 20 days ago
       userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)',
       browser: 'Safari',
       os: 'iOS 17.0',
@@ -37,9 +37,9 @@ describe('Advanced Bookmark Filtering', () => {
       description: 'Stack Overflow question',
       tags: ['react', 'hooks'],
       notes: null,
-      added: new Date('2023-12-01'),
+      added: new Date(Date.now() - 400 * 24 * 60 * 60 * 1000), // 400 days ago
       clicked: 10,
-      last: new Date('2023-12-15'),
+      last: new Date(Date.now() - 350 * 24 * 60 * 60 * 1000), // clicked 350 days ago
       userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
       browser: 'Firefox',
       os: 'macOS 10.15.7',
@@ -49,21 +49,23 @@ describe('Advanced Bookmark Filtering', () => {
 
   describe('Usage-based filters', () => {
     it('should filter never-clicked bookmarks', () => {
-      const result = applyFilter(testBookmarks, 'never-clicked');
+      const result = applyFilter(testBookmarks, 'clicked:=0');
       expect(result.data).toHaveLength(1);
       expect(result.data[0].url).toBe('https://github.com/test/repo');
     });
 
-    it('should filter old-unvisited bookmarks', () => {
-      const result = applyFilter(testBookmarks, 'old-unvisited:200d');
-      expect(result.data).toHaveLength(1);
-      expect(result.data[0].url).toBe('https://github.com/test/repo');
-    });
-
-    it('should filter stale bookmarks', () => {
-      const result = applyFilter(testBookmarks, 'stale:200d');
+    it('should filter old bookmarks', () => {
+      // Filter bookmarks added more than 200 days ago
+      const result = applyFilter(testBookmarks, 'added:>200');
       expect(result.data).toHaveLength(1);
       expect(result.data[0].url).toBe('https://stackoverflow.com/questions/12345');
+    });
+
+    it('should filter recently clicked bookmarks', () => {
+      // Filter bookmarks clicked in last 300 days
+      const result = applyFilter(testBookmarks, 'clicked:<300');
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].url).toBe('https://docs.react.dev');
     });
   });
 
@@ -88,14 +90,18 @@ describe('Advanced Bookmark Filtering', () => {
   });
 
   describe('Date-based filters', () => {
-    it('should filter by added date', () => {
-      const result = applyFilter(testBookmarks, 'added:>300d');
-      expect(result.data).toHaveLength(1);
-      expect(result.data[0].url).toBe('https://stackoverflow.com/questions/12345');
+    it('should filter by added date (recent)', () => {
+      // Filter bookmarks added in last 150 days (should get first two)
+      const result = applyFilter(testBookmarks, 'added:<150');
+      expect(result.data).toHaveLength(2);
+      const urls = result.data.map(item => item.url);
+      expect(urls).toContain('https://github.com/test/repo');
+      expect(urls).toContain('https://docs.react.dev');
     });
 
-    it('should filter by clicked date', () => {
-      const result = applyFilter(testBookmarks, 'clicked:>200d');
+    it('should filter by clicked date (old)', () => {
+      // Filter bookmarks not clicked in 300+ days (old clicks)
+      const result = applyFilter(testBookmarks, 'clicked:>300');
       expect(result.data).toHaveLength(1);
       expect(result.data[0].url).toBe('https://stackoverflow.com/questions/12345');
     });

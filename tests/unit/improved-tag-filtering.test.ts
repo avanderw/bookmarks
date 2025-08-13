@@ -1,12 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { applyFilter } from '../src/lib/component/SearchQueryFilter/Logic.js';
+import { applyFilter } from '$lib/component/SearchQueryFilter/Logic';
 
 describe('Improved Tag Filtering', () => {
   const testBookmarks = [
     {
       url: 'https://capitec1.com',
       title: 'Capitec Bank',
+      description: null,
       tags: ['capitec', 'bank', 'finance'],
+      notes: null,
       added: new Date('2024-01-01'),
       clicked: 0,
       last: null
@@ -14,7 +16,9 @@ describe('Improved Tag Filtering', () => {
     {
       url: 'https://capitec2.com', 
       title: 'Capitec with NPR content',
+      description: null,
       tags: ['capitec', 'npr', 'finance'], // Has BOTH capitec AND npr
+      notes: null,
       added: new Date('2024-01-01'),
       clicked: 0,
       last: null
@@ -22,7 +26,9 @@ describe('Improved Tag Filtering', () => {
     {
       url: 'https://npr1.com',
       title: 'NPR News',
+      description: null,
       tags: ['npr', 'news'],
+      notes: null,
       added: new Date('2024-01-01'),
       clicked: 0,
       last: null
@@ -30,7 +36,9 @@ describe('Improved Tag Filtering', () => {
     {
       url: 'https://capitec3.com',
       title: 'Pure Capitec',
+      description: null,
       tags: ['capitec'], // Only capitec, no npr
+      notes: null,
       added: new Date('2024-01-01'),
       clicked: 0,
       last: null

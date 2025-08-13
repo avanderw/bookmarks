@@ -4,6 +4,7 @@
 import { browser } from '$app/environment';
 import type { BookmarkStore, Bookmark } from './bookmarks';
 import { isValidUrl } from './url';
+import { getCurrentUserAgent } from './utils/UserAgentUtils';
 
 // Storage configuration
 const STORAGE_KEY = 'bookmarks';
@@ -219,6 +220,19 @@ export function exportBookmarks(data?: BookmarkStore): void {
     // Get data from localStorage if not provided
     const exportData = data || loadFromLocalStorage();
     
+    // Get current user agent info for filename
+    const userAgentInfo = getCurrentUserAgent();
+    const dateStr = new Date().toISOString().split('T')[0];
+    
+    // Create filename with device, OS, and browser info
+    let filename = `bookmarks-${dateStr}`;
+    if (userAgentInfo) {
+        const deviceStr = userAgentInfo.device.toLowerCase().replace(/\s+/g, '-');
+        const osStr = userAgentInfo.os.toLowerCase().replace(/\s+/g, '-').replace(/[\/\\]/g, '-');
+        const browserStr = userAgentInfo.browser.toLowerCase().replace(/\s+/g, '-');
+        filename = `bookmarks-${dateStr}-${deviceStr}-${osStr}-${browserStr}`;
+    }
+    
     // Create download link
     const jsonString = JSON.stringify(exportData, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });
@@ -226,7 +240,7 @@ export function exportBookmarks(data?: BookmarkStore): void {
     
     const a = document.createElement('a');
     a.href = url;
-    a.download = `bookmarks-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `${filename}.json`;
     a.style.display = 'none';
     
     document.body.appendChild(a);
@@ -238,7 +252,8 @@ export function exportBookmarks(data?: BookmarkStore): void {
     
     console.log('📤 Exported bookmarks:', {
         bookmarkCount: exportData.bookmarks.length,
-        fileSize: `${(blob.size / 1024).toFixed(1)}KB`
+        fileSize: `${(blob.size / 1024).toFixed(1)}KB`,
+        filename: `${filename}.json`
     });
 }
 

@@ -1,0 +1,65 @@
+{
+  "version": "2025-08-13",
+  "bookmarks": [
+    {
+      "url": "https://github.com",
+      "title": "GitHub - Valid",
+      "description": "Valid URL",
+      "tags": ["valid"],
+      "notes": "This should be imported",
+      "added": "2025-08-13T12:00:00.000Z",
+      "clicked": 5,
+      "last": "2025-08-12T15:30:00.000Z"
+    },
+    {
+      "url": "invalid url with spaces",
+      "title": "Invalid URL with spaces",
+      "description": "This should be filtered out",
+      "tags": ["invalid"],
+      "notes": "This should NOT be imported",
+      "added": "2025-08-13T12:01:00.000Z",
+      "clicked": 0,
+      "last": null
+    },
+    {
+      "url": "",
+      "title": "Empty URL",
+      "description": "Empty URL should be filtered",
+      "tags": ["invalid"],
+      "notes": "This should NOT be imported",
+      "added": "2025-08-13T12:02:00.000Z",
+      "clicked": 0,
+      "last": null
+    },
+    {
+      "url": "ftp://example.com",
+      "title": "FTP URL",
+      "description": "Non-HTTP protocol should be filtered",
+      "tags": ["invalid"],
+      "notes": "This should NOT be imported",
+      "added": "2025-08-13T12:03:00.000Z",
+      "clicked": 0,
+      "last": null
+    },
+    {
+      "url": "https://stackoverflow.com",
+      "title": "Stack Overflow - Valid",
+      "description": "Another valid URL",
+      "tags": ["valid"],
+      "notes": "This should be imported",
+      "added": "2025-08-13T12:04:00.000Z",
+      "clicked": 3,
+      "last": "2025-08-13T09:15:00.000Z"
+    },
+    {
+      "url": "just some text",
+      "title": "Not a URL at all",
+      "description": "This is just text",
+      "tags": ["invalid"],
+      "notes": "This should NOT be imported",
+      "added": "2025-08-13T12:05:00.000Z",
+      "clicked": 0,
+      "last": null
+    }
+  ]
+}

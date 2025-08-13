@@ -6,7 +6,7 @@
 	import { SearchQueryFilter } from '$lib/component/SearchQueryFilter';
 	import { BookmarkForm } from '$lib/component/BookmarkForm';
 	import { Bookmarklet } from '$lib/component/Bookmarklet';
-	import { downloadCache } from '$lib/cache-store';
+	import { exportBookmarks } from '$lib/storage';
 	import { updateBookmarkClickCount, sortBookmarks } from './Logic';
 	import { PaginationUtils } from './PaginationUtils';
 	import { FileUtils } from './FileUtils';
@@ -14,6 +14,7 @@
 	import { getShortUserAgentSummary } from '$lib/utils/UserAgentUtils';
 	import { DuplicateDetector } from '$lib/component/DuplicateDetector';
 	import { TagSummary } from '$lib/component/TagSummary';
+	import { StorageMonitor } from '$lib/component/StorageMonitor';
 
 	// Event dispatcher
 	const dispatch = createEventDispatcher<{
@@ -33,6 +34,7 @@
 	let viewingNotes: Bookmark | null = null;
 	let showDuplicateDetector: boolean = false;
 	let showTagSummary: boolean = false;
+	let showStorageMonitor: boolean = false;
 	// Reference to search component to allow setting search from tag clicks
 	let searchFilterComponent: any;
 	// Pagination state
@@ -64,8 +66,26 @@
 			window.addEventListener('dragover', handleDragOver);
 			window.addEventListener('dragleave', handleDragLeave);
 			window.addEventListener('drop', handleDrop);
+			
+			// Handle storage full export event
+			window.addEventListener('trigger-export', onExportRequested);
 		}
 	});
+
+	// Watch for changes to initialData prop to sync with store updates
+	$: if (initialData && initialData.bookmarks) {
+		// Check if we need to update (length different OR first bookmark URL different)
+		const needsUpdate = 
+			initialData.bookmarks.length !== bookmarks.length ||
+			(initialData.bookmarks.length > 0 && bookmarks.length > 0 && 
+			 initialData.bookmarks[0].url !== bookmarks[0].url);
+			 
+		if (needsUpdate) {
+			console.log('🔄 Syncing from store: initialData has', initialData.bookmarks.length, 'bookmarks, local has', bookmarks.length);
+			bookmarks = [...initialData.bookmarks];
+			filteredBookmarks = [...bookmarks];
+		}
+	}
 
 	onDestroy(() => {
 		if (browser) {
@@ -73,6 +93,7 @@
 			window.removeEventListener('dragover', handleDragOver);
 			window.removeEventListener('dragleave', handleDragLeave);
 			window.removeEventListener('drop', handleDrop);
+			window.removeEventListener('trigger-export', onExportRequested);
 		}
 	});
 
@@ -85,12 +106,20 @@
 	 */
 	async function onFileImported(event: CustomEvent<File>) {
 		try {
+			console.log('� Importing file:', event.detail.name);
 			const result = await FileUtils.importFile(event.detail);
+			
+			// Update local component state
 			bookmarks = result.bookmarks;
 			filteredBookmarks = [...bookmarks];
 			currentPage = 1; // Reset to first page on new import
+			
+			console.log('✅ Import successful:', bookmarks.length, 'bookmarks loaded');
+			
+			// Notify parent component to update the store
+			dispatch('dataChanged', bookmarks);
 		} catch (error) {
-			console.error('Error importing file:', error);
+			console.error('❌ Error importing file:', error);
 			alert('Failed to import file. Please check the file format.');
 		}
 	}
@@ -99,7 +128,12 @@
 	 * Handle export request from FileManager
 	 */
 	function onExportRequested() {
-		downloadCache();
+		// Create a BookmarkStore from current data and export
+		const bookmarkStore = {
+			version: initialData?.version || "2025-08-13",
+			bookmarks: bookmarks
+		};
+		exportBookmarks(bookmarkStore);
 	} // Search handlers
 	// -------------------------------------
 
@@ -206,6 +240,33 @@
 	 */
 	function onCloseTagSummary() {
 		showTagSummary = false;
+	}
+
+	/**
+	 * Open the storage monitor
+	 */
+	function onOpenStorageMonitor() {
+		showStorageMonitor = true;
+	}
+
+	/**
+	 * Close the storage monitor
+	 */
+	function onCloseStorageMonitor() {
+		showStorageMonitor = false;
+	}
+
+	/**
+	 * Handle storage monitor events
+	 */
+	function onStorageExport() {
+		showStorageMonitor = false;
+		onExportRequested();
+	}
+
+	function onStorageCleanup() {
+		showStorageMonitor = false;
+		onOpenDuplicateDetector();
 	}
 
 	/**
@@ -377,6 +438,7 @@
 	function handleFileInputChange(e: Event) {
 		const target = e.target as HTMLInputElement;
 		if (target?.files && target.files[0]) {
+			console.log('� File selected:', target.files[0].name);
 			onFileImported(FileUtils.createFileEvent(target.files[0]));
 		}
 	}
@@ -431,6 +493,15 @@
 				>
 					<svg><use href="feather-sprite.svg#copy" /></svg>
 					Find Duplicates
+				</button>
+
+				<button
+					class="btn-compact secondary"
+					on:click={onOpenStorageMonitor}
+					title="Monitor localStorage usage and get cleanup suggestions"
+				>
+					<svg><use href="feather-sprite.svg#database" /></svg>
+					Storage
 				</button>
 
 				<BookmarkForm.Button
@@ -661,7 +732,7 @@
 		<dialog open>
 			<article>
 				<header>
-					<button aria-label="Close" rel="prev" on:click={onNotesClose}></button>
+					<button aria-label="Close" data-rel="prev" on:click={onNotesClose}></button>
 					<h3>Notes for "{viewingNotes.title || 'Untitled'}"</h3>
 				</header>
 				<div class="notes-content">
@@ -692,6 +763,14 @@
 		on:close={onCloseTagSummary}
 		on:tagClick={onTagClick}
 		on:tagsSelected={onTagsSelected}
+	/>
+
+	<!-- Storage Monitor (conditionally rendered) -->
+	<StorageMonitor
+		isOpen={showStorageMonitor}
+		on:close={onCloseStorageMonitor}
+		on:export={onStorageExport}
+		on:cleanup={onStorageCleanup}
 	/>
 </div>
 

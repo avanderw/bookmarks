@@ -45,7 +45,7 @@ export function isValidUrl(url: string): boolean {
         const isValidProtocol = urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
         
         // Additional validation: check if hostname exists and is not empty
-        const hasValidHostname = urlObj.hostname && urlObj.hostname.length > 0;
+        const hasValidHostname = Boolean(urlObj.hostname && urlObj.hostname.length > 0);
         
         return isValidProtocol && hasValidHostname;
     } catch {

@@ -54,7 +54,7 @@
 	<dialog open>
 		<article>
 			<header>
-				<button aria-label="Close" rel="prev" on:click={handleClose}></button>
+				<button aria-label="Close" data-rel="prev" on:click={handleClose}></button>
 				<h3>
 					<svg><use href="feather-sprite.svg#bookmark" /></svg>
 					{isEdit ? 'Edit' : 'New'} bookmark

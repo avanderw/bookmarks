@@ -1,5 +1,5 @@
 import type { Bookmark, BookmarkStore } from '$lib/bookmarks';
-import { readFile as importFile } from '$lib/cache-store';
+import { importBookmarks } from '$lib/storage';
 
 export interface BookmarkDisplayProps {
   bookmarks: Bookmark[];
@@ -8,7 +8,7 @@ export interface BookmarkDisplayProps {
 
 export async function handleFileImport(file: File): Promise<BookmarkStore> {
   try {
-    const result = await importFile(file);
+    const result = await importBookmarks(file);
     return result;
   } catch (error) {
     console.error('Error importing file:', error);

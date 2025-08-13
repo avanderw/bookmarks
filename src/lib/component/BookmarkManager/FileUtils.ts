@@ -2,7 +2,7 @@
  * Utilities for file handling operations in BookmarkManager
  */
 import type { Bookmark } from '$lib/bookmarks';
-import { handleFileImport as importBookmarks } from './Logic';
+import { importBookmarks } from '$lib/storage';
 
 export const FileUtils = {
   /**
@@ -12,7 +12,8 @@ export const FileUtils = {
    */
   async importFile(file: File): Promise<{ bookmarks: Bookmark[] }> {
     try {
-      return await importBookmarks(file);
+      const bookmarkStore = await importBookmarks(file);
+      return { bookmarks: bookmarkStore.bookmarks };
     } catch (error) {
       console.error('Error importing file:', error);
       throw new Error('Failed to import file. Please check the file format.');

@@ -5,6 +5,7 @@ export interface FilterOptions {
   or: string[];
   not: string[];
   special: SpecialFilter[];
+  notSpecial: SpecialFilter[]; // New: for negated special filters
 }
 
 export interface SpecialFilter {
@@ -126,6 +127,7 @@ function compareDate(actualDays: number, operator: string, targetDays: number): 
 
 /**
  * Parses special filter keywords and adds them to filter options
+ * Supports both tag: and # syntax for tags
  * 
  * @private Internal helper function
  */
@@ -153,10 +155,11 @@ function parseSpecialFilter(term: string, options: FilterOptions): boolean {
     return true;
   }
   
-  // Tag filter: tag:javascript, tag:react, etc.
-  const tagMatch = lower.match(/^tag:(.+)$/);
+  // Tag filter: tag:javascript, tag:react, #javascript, #react, etc.
+  const tagMatch = lower.match(/^(?:tag:(.+)|#(.+))$/);
   if (tagMatch) {
-    options.special.push({ type: 'tag', value: tagMatch[1] });
+    const tagValue = tagMatch[1] || tagMatch[2];
+    options.special.push({ type: 'tag', value: tagValue });
     return true;
   }
   
@@ -182,14 +185,15 @@ function parseSpecialFilter(term: string, options: FilterOptions): boolean {
  */
 function parseFilterQuery(query: string): FilterOptions {
   if (!query || query.trim() === '') {
-    return { and: [], or: [], not: [], special: [] };
+    return { and: [], or: [], not: [], special: [], notSpecial: [] };
   }
 
   const options: FilterOptions = {
     and: [],
     or: [],
     not: [],
-    special: []
+    special: [],
+    notSpecial: []
   };
   
   // Split by spaces, but preserve quoted phrases
@@ -226,11 +230,10 @@ function parseFilterQuery(query: string): FilterOptions {
       const negatedTerm = cleanTerm.substring(1);
       
       // Create a temporary FilterOptions to see if this is a special filter
-      const tempOptions: FilterOptions = { and: [], or: [], not: [], special: [] };
+      const tempOptions: FilterOptions = { and: [], or: [], not: [], special: [], notSpecial: [] };
       if (parseSpecialFilter(negatedTerm, tempOptions)) {
-        // It's a special filter, we need to negate it by creating a NOT version
-        // Since we can't easily negate special filters, we'll add it to NOT as text
-        options.not.push(negatedTerm);
+        // It's a special filter, add it to notSpecial instead
+        options.notSpecial.push(...tempOptions.special);
         return;
       } else {
         // Regular text filter
@@ -278,9 +281,11 @@ function parseFilterQuery(query: string): FilterOptions {
  * - 'os:windows', 'os:macos', 'os:android', 'os:ios'
  * - 'browser:chrome', 'browser:firefox', 'browser:safari'
  * 
- * Tag filtering:
+ * Tag filtering (supports both syntaxes):
  * - 'tag:javascript', 'tag:react', 'tag:tutorial'
- * - '-tag:deprecated' → exclude deprecated tags
+ * - '#javascript', '#react', '#tutorial' (new hash syntax)
+ * - '-tag:deprecated', '-#deprecated' → exclude tags
+ * - 'tag:react -tag:archived' → items with react tag but not archived tag
  * 
  * Date-based cleanup:
  * - 'added:>365' → bookmarks older than 1 year
@@ -304,7 +309,8 @@ function parseFilterQuery(query: string): FilterOptions {
  * - 'browser:chrome os:windows' → bookmarks from current setup
  * 
  * Tag management:
- * - 'tag:javascript +tutorial' → JS learning resources
+ * - 'tag:javascript +tutorial' → JS learning resources  
+ * - '#react -#archived' → React resources excluding archived
  * - '-tag:archived' → exclude archived bookmarks
  * 
  * @param data The array of objects to filter
@@ -319,7 +325,7 @@ export function applyFilter<T>(data: T[], query: string): FilterResult<T> {
     PerformanceMonitor.end('applyFilter');
     return { 
       data, 
-      options: { and: [], or: [], not: [], special: [] }, 
+      options: { and: [], or: [], not: [], special: [], notSpecial: [] }, 
       query, 
       scores: new Map<T, number>() 
     };
@@ -330,7 +336,7 @@ export function applyFilter<T>(data: T[], query: string): FilterResult<T> {
     PerformanceMonitor.end('applyFilter');
     return { 
       data: [], 
-      options: { and: [], or: [], not: [], special: [] }, 
+      options: { and: [], or: [], not: [], special: [], notSpecial: [] }, 
       query, 
       scores: new Map<T, number>() 
     };
@@ -342,7 +348,7 @@ export function applyFilter<T>(data: T[], query: string): FilterResult<T> {
   PerformanceMonitor.end('parseQuery');
   
   // Early exit if no valid filters were parsed
-  if (!options.and.length && !options.or.length && !options.not.length && !options.special.length) {
+  if (!options.and.length && !options.or.length && !options.not.length && !options.special.length && !options.notSpecial.length) {
     PerformanceMonitor.end('applyFilter');
     return { 
       data, 
@@ -358,10 +364,17 @@ export function applyFilter<T>(data: T[], query: string): FilterResult<T> {
   
   // Filter the data
   const filteredData = data.filter(item => {
-    // Apply special filters first (these are usually faster)
+    // Apply positive special filters first (these are usually faster)
     for (const specialFilter of options.special) {
       if (!applySpecialFilter(item, specialFilter)) {
         return false;
+      }
+    }
+    
+    // Apply negative special filters
+    for (const specialFilter of options.notSpecial) {
+      if (applySpecialFilter(item, specialFilter)) {
+        return false; // If the negated filter matches, exclude this item
       }
     }
     

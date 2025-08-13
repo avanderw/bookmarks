@@ -1,19 +1,6 @@
 <script lang="ts">
-	import type { Bookmark } from '$lib/bookmarks';
-	import { getUrlParameter } from '$lib/url';
-	import AddBookmarkForm from './AddBookmarkForm.svelte';
-	import EditBookmarkForm from './EditBookmarkForm.svelte';
-	import Notes from './Notes.svelte';
-	import CacheView from './CacheView.svelte';
 	import { BookmarkManager } from '$lib/component/BookmarkManager';
 	import { browser } from '$app/environment';
-
-	let state = 'default';
-	let selected: Bookmark;
-
-	if (getUrlParameter('h') !== null) {
-		state = 'add';
-	}
 
 	// Theme switcher
 	function toggleTheme() {
@@ -62,26 +49,6 @@
 	</ul>
 </nav>
 
-{#if state === 'notes'}
-	<Notes on:close={() => (state = 'default')} data={selected} />
-{/if}
-
-<CacheView
-	on:add={(e) => {
-		state = 'add';
-	}}
-	on:edit={(e) => {
-		state = 'edit';
-		selected = e.detail;
-	}}
-	on:notes={(e) => {
-		state = 'notes';
-		selected = e.detail;
-	}}
-	on:click={(e) => {
-		state = 'default';
-	}}
-/>
 
 <style>
 	nav ul {

@@ -2,7 +2,7 @@
  * Optimized localStorage wrapper with size monitoring and warnings
  */
 import { browser } from '$app/environment';
-import type { BookmarkStore } from './bookmarks';
+import type { BookmarkStore, Bookmark } from './bookmarks';
 import { isValidUrl } from './url';
 
 // Storage configuration
@@ -243,6 +243,54 @@ export function exportBookmarks(data?: BookmarkStore): void {
 }
 
 /**
+ * Clean invalid URLs from existing bookmarks
+ * @param bookmarks Array of bookmarks to clean
+ * @param showAlerts Whether to show alert dialogs (default: false for silent operation)
+ */
+export function cleanInvalidUrls(bookmarks: Bookmark[], showAlerts: boolean = false): { cleanedBookmarks: Bookmark[]; removedCount: number; removedBookmarks: Bookmark[] } {
+    if (!browser) return { cleanedBookmarks: bookmarks, removedCount: 0, removedBookmarks: [] };
+    
+    const originalCount = bookmarks.length;
+    const removedBookmarks: Bookmark[] = [];
+    
+    const cleanedBookmarks = bookmarks.filter(bookmark => {
+        if (!bookmark.url) {
+            console.log('⚠️ Found bookmark with no URL:', bookmark.title);
+            removedBookmarks.push(bookmark);
+            return false;
+        }
+        const isValid = isValidUrl(bookmark.url);
+        if (!isValid) {
+            console.log('⚠️ Found bookmark with invalid URL:', bookmark.url, 'Title:', bookmark.title);
+            removedBookmarks.push(bookmark);
+        }
+        return isValid;
+    });
+    
+    const filteredCount = cleanedBookmarks.length;
+    const removedCount = originalCount - filteredCount;
+    
+    if (removedCount > 0) {
+        console.warn(`⚠️ Found ${removedCount} bookmark(s) with invalid URLs`);
+        if (showAlerts) {
+            const message = `Found ${removedCount} bookmark(s) with invalid URLs that were removed.\n\n${filteredCount} valid bookmarks remaining.`;
+            alert(message);
+        }
+    } else {
+        console.log(`✅ All ${filteredCount} bookmarks have valid URLs`);
+        if (showAlerts) {
+            alert(`All ${filteredCount} bookmarks have valid URLs. No cleanup needed.`);
+        }
+    }
+    
+    return {
+        cleanedBookmarks,
+        removedCount,
+        removedBookmarks
+    };
+}
+
+/**
  * Import bookmarks from a JSON file
  */
 export async function importBookmarks(file: File): Promise<BookmarkStore> {
@@ -301,35 +349,22 @@ export async function importBookmarks(file: File): Promise<BookmarkStore> {
             throw new Error('Invalid file format: Expected array of bookmarks or BookmarkStore object');
         }
         
-        // Filter out invalid URLs
-        const originalCount = bookmarkStore.bookmarks.length;
-        bookmarkStore.bookmarks = bookmarkStore.bookmarks.filter(bookmark => {
-            if (!bookmark.url) {
-                console.log('⚠️ Filtering out bookmark with no URL:', bookmark.title);
-                return false;
-            }
-            const isValid = isValidUrl(bookmark.url);
-            if (!isValid) {
-                console.log('⚠️ Filtering out bookmark with invalid URL:', bookmark.url, 'Title:', bookmark.title);
-            }
-            return isValid;
-        });
+        // Filter out invalid URLs using the same logic as cleanInvalidUrls (silent mode)
+        const cleanupResult = cleanInvalidUrls(bookmarkStore.bookmarks, false);
+        bookmarkStore.bookmarks = cleanupResult.cleanedBookmarks;
         
-        const filteredCount = bookmarkStore.bookmarks.length;
-        const removedCount = originalCount - filteredCount;
-        
-        if (removedCount > 0) {
-            console.warn(`⚠️ Filtered out ${removedCount} bookmark(s) with invalid URLs during import`);
-            // Always show alert for invalid URLs, don't depend on window.alert check
-            const message = `Import complete!\n\n${filteredCount} bookmarks imported successfully.\n${removedCount} bookmark(s) with invalid URLs were removed.`;
+        if (cleanupResult.removedCount > 0) {
+            console.warn(`⚠️ Filtered out ${cleanupResult.removedCount} bookmark(s) with invalid URLs during import`);
+            // Show import-specific alert for invalid URLs
+            const message = `Import complete!\n\n${cleanupResult.cleanedBookmarks.length} bookmarks imported successfully.\n${cleanupResult.removedCount} bookmark(s) with invalid URLs were removed.`;
             alert(message);
         } else {
-            console.log(`✅ All ${filteredCount} bookmarks imported successfully - no invalid URLs found`);
+            console.log(`✅ All ${cleanupResult.cleanedBookmarks.length} bookmarks imported successfully - no invalid URLs found`);
         }
         
         console.log('📥 Imported bookmarks:', {
-            bookmarkCount: filteredCount,
-            removedCount,
+            bookmarkCount: cleanupResult.cleanedBookmarks.length,
+            removedCount: cleanupResult.removedCount,
             fileSize: `${(file.size / 1024).toFixed(1)}KB`
         });
         

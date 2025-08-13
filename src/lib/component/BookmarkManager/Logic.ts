@@ -1,5 +1,5 @@
 import type { Bookmark, BookmarkStore } from '$lib/bookmarks';
-import { importBookmarks } from '$lib/storage';
+import { importBookmarks, cleanInvalidUrls } from '$lib/storage';
 
 export interface BookmarkDisplayProps {
   bookmarks: Bookmark[];
@@ -39,4 +39,8 @@ export function sortBookmarks(bookmarks: Bookmark[], sortBy: string): Bookmark[]
         return 0;
     }
   });
+}
+
+export function cleanExistingBookmarks(bookmarks: Bookmark[], showAlerts: boolean = true): { cleanedBookmarks: Bookmark[]; removedCount: number; removedBookmarks: Bookmark[] } {
+  return cleanInvalidUrls(bookmarks, showAlerts);
 }

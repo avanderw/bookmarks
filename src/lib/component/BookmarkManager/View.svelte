@@ -7,7 +7,7 @@
 	import { BookmarkForm } from '$lib/component/BookmarkForm';
 	import { Bookmarklet } from '$lib/component/Bookmarklet';
 	import { exportBookmarks } from '$lib/storage';
-	import { updateBookmarkClickCount, sortBookmarks } from './Logic';
+	import { updateBookmarkClickCount, sortBookmarks, cleanExistingBookmarks } from './Logic';
 	import { PaginationUtils } from './PaginationUtils';
 	import { FileUtils } from './FileUtils';
 	import { formatRelativeTime, formatFriendlyDate } from '$lib/utils/DateUtils';
@@ -35,6 +35,7 @@
 	let showDuplicateDetector: boolean = false;
 	let showTagSummary: boolean = false;
 	let showStorageMonitor: boolean = false;
+	let isLocallyModified = false; // Flag to prevent store sync when we've intentionally modified data
 	// Reference to search component to allow setting search from tag clicks
 	let searchFilterComponent: any;
 	// Pagination state
@@ -73,7 +74,7 @@
 	});
 
 	// Watch for changes to initialData prop to sync with store updates
-	$: if (initialData && initialData.bookmarks) {
+	$: if (initialData && initialData.bookmarks && !isLocallyModified) {
 		// Check if we need to update (length different OR first bookmark URL different)
 		const needsUpdate = 
 			initialData.bookmarks.length !== bookmarks.length ||
@@ -189,6 +190,9 @@
 	 */
 	function onDeleteBookmarkClick(bookmark: Bookmark) {
 		if (confirm(`Are you sure you want to delete "${bookmark.title || bookmark.url}"?`)) {
+			// Mark as locally modified to prevent store sync issues
+			isLocallyModified = true;
+			
 			// Remove from bookmarks array
 			bookmarks = bookmarks.filter((b) => b.url !== bookmark.url);
 
@@ -197,6 +201,11 @@
 
 			// Notify parent component of data change
 			dispatch('dataChanged', bookmarks);
+			
+			// Clear the flag after a brief delay
+			setTimeout(() => {
+				isLocallyModified = false;
+			}, 100);
 		}
 	}
 
@@ -433,6 +442,54 @@
 	}
 
 	/**
+	 * Clean invalid URLs from existing bookmarks
+	 */
+	function onCleanUrls() {
+		if (bookmarks.length === 0) {
+			alert('No bookmarks to clean.');
+			return;
+		}
+
+		// Use silent mode to avoid double alerts, we'll handle the UI feedback ourselves
+		const cleanupResult = cleanExistingBookmarks(bookmarks, false);
+		
+		if (cleanupResult.removedCount === 0) {
+			alert(`All ${bookmarks.length} bookmarks have valid URLs. No cleanup needed.`);
+			return;
+		}
+
+		// Show confirmation dialog with details about what will be removed
+		const removedList = cleanupResult.removedBookmarks
+			.slice(0, 5) // Show up to 5 examples
+			.map(b => `• ${b.title || 'Untitled'} (${b.url})`)
+			.join('\n');
+		
+		const moreText = cleanupResult.removedCount > 5 ? `\n...and ${cleanupResult.removedCount - 5} more` : '';
+		
+		const confirmMessage = `Found ${cleanupResult.removedCount} bookmark(s) with invalid URLs:\n\n${removedList}${moreText}\n\nDo you want to remove these invalid bookmarks?`;
+		
+		if (confirm(confirmMessage)) {
+			// Mark as locally modified to prevent store sync from overriding our changes
+			isLocallyModified = true;
+			
+			// Update bookmarks - this is destructive/reductive
+			bookmarks = cleanupResult.cleanedBookmarks;
+			filteredBookmarks = [...bookmarks];
+			currentPage = 1; // Reset to first page
+			
+			// Notify parent component of data change
+			dispatch('dataChanged', bookmarks);
+			
+			// Clear the flag after a brief delay to allow store update to complete
+			setTimeout(() => {
+				isLocallyModified = false;
+			}, 100);
+			
+			alert(`Successfully removed ${cleanupResult.removedCount} bookmark(s) with invalid URLs.\n\n${cleanupResult.cleanedBookmarks.length} valid bookmarks remaining.`);
+		}
+	}
+
+	/**
 	 * Handle file input change event
 	 */
 	function handleFileInputChange(e: Event) {
@@ -493,6 +550,16 @@
 				>
 					<svg><use href="feather-sprite.svg#copy" /></svg>
 					Find Duplicates
+				</button>
+
+				<button
+					class="btn-compact secondary"
+					on:click={onCleanUrls}
+					title="Remove bookmarks with invalid URLs"
+					disabled={bookmarks.length === 0}
+				>
+					<svg><use href="feather-sprite.svg#trash" /></svg>
+					Clean URLs
 				</button>
 
 				<button

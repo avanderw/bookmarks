@@ -36,6 +36,14 @@
       ]
     },
     {
+      category: "Tag Filters",
+      items: [
+        { query: "tag:javascript", description: "Bookmarks tagged with 'javascript'" },
+        { query: "tag:react", description: "Bookmarks tagged with 'react'" },
+        { query: "tag:tutorial", description: "Bookmarks tagged with 'tutorial'" },
+      ]
+    },
+    {
       category: "Date-based Filters",
       items: [
         { query: "added:>30d", description: "Bookmarks added more than 30 days ago" },
@@ -50,6 +58,8 @@
         { query: "old-unvisited:60d browser:chrome", description: "Old Chrome bookmarks never used" },
         { query: "stale:90d +important", description: "Old bookmarks tagged 'important'" },
         { query: "github device:desktop -readme", description: "GitHub bookmarks from desktop (no readme)" },
+        { query: "tag:javascript +tutorial", description: "JavaScript tutorial bookmarks" },
+        { query: "tag:react tag:vue", description: "Bookmarks tagged with React OR Vue" },
       ]
     }
   ];
@@ -101,6 +111,8 @@
             <li>Use time suffixes: <code>30d</code> (30 days), <code>7d</code> (7 days)</li>
             <li>Mix with regular search: <code>github never-clicked</code></li>
             <li>Exclude with minus: <code>device:mobile -android</code></li>
+            <li>Search tags: <code>tag:javascript</code> or just type <code>javascript</code></li>
+            <li>Multiple tags: <code>tag:react tag:hooks</code> for OR, <code>+tag:react +tag:hooks</code> for AND</li>
           </ul>
         </div>
       </div>

@@ -13,6 +13,7 @@
 	import { formatRelativeTime, formatFriendlyDate } from '$lib/utils/DateUtils';
 	import { getShortUserAgentSummary } from '$lib/utils/UserAgentUtils';
 	import { DuplicateDetector } from '$lib/component/DuplicateDetector';
+	import { TagSummary } from '$lib/component/TagSummary';
 
 	// Event dispatcher
 	const dispatch = createEventDispatcher<{
@@ -31,12 +32,20 @@
 	let selectedBookmark: Bookmark | null = null;
 	let viewingNotes: Bookmark | null = null;
 	let showDuplicateDetector: boolean = false;
+	let showTagSummary: boolean = false;
+	// Reference to search component to allow setting search from tag clicks
+	let searchFilterComponent: any;
 	// Pagination state
 	let currentPage = 1;
 	let itemsPerPage = 10;
 	let totalPages = 0;
 	let startIndex = 0;
 	let endIndex = 0;
+	
+	// Performance optimization: cache for expensive calculations
+	let lastSortedBookmarksLength = 0;
+	let lastCurrentPage = 0;
+	let lastItemsPerPage = 0;
 
 	// Drag and drop state
 	let isDragging = false;
@@ -100,7 +109,7 @@
 	 */
 	function onFiltered(event: CustomEvent<{ data: Bookmark[]; query: string }>) {
 		filteredBookmarks = event.detail.data;
-		const newSearchActive = event.detail.query && event.detail.query.trim() !== '';
+		const newSearchActive = Boolean(event.detail.query && event.detail.query.trim() !== '');
 
 		// If search is becoming active, store current sort and switch to relevance
 		if (!isSearchActive && newSearchActive) {
@@ -183,6 +192,43 @@
 	 */
 	function onCloseDuplicateDetector() {
 		showDuplicateDetector = false;
+	}
+
+	/**
+	 * Open the tag summary
+	 */
+	function onOpenTagSummary() {
+		showTagSummary = true;
+	}
+
+	/**
+	 * Close the tag summary
+	 */
+	function onCloseTagSummary() {
+		showTagSummary = false;
+	}
+
+	/**
+	 * Handle tag click from tag summary - sets search to filter by that tag
+	 */
+	function onTagClick(event: CustomEvent<{ tag: string }>) {
+		const tag = event.detail.tag;
+		if (searchFilterComponent && searchFilterComponent.setQuery) {
+			searchFilterComponent.setQuery(`tag:${tag}`);
+		}
+		showTagSummary = false;
+	}
+
+	/**
+	 * Handle multiple tags selected from tag summary - sets search to filter by all tags
+	 */
+	function onTagsSelected(event: CustomEvent<{ tags: string[] }>) {
+		const tags = event.detail.tags;
+		if (searchFilterComponent && searchFilterComponent.setQuery && tags.length > 0) {
+			const tagQuery = tags.map(tag => `tag:${tag}`).join(' +');
+			searchFilterComponent.setQuery(tagQuery);
+		}
+		showTagSummary = false;
 	}
 
 	/**
@@ -295,21 +341,33 @@
 			? filteredBookmarks // Keep the relevancy order from search
 			: sortBookmarks(filteredBookmarks, sortOrder);
 
-	// Calculate pagination values using utility
+	// Calculate pagination values using utility (optimized to reduce recalculations)
 	$: {
-		const pagination = PaginationUtils.calculatePagination(
-			sortedBookmarks,
-			currentPage,
-			itemsPerPage
-		);
-		totalPages = pagination.totalPages;
-		paginatedBookmarks = pagination.paginatedItems;
-		startIndex = pagination.startIndex;
-		endIndex = pagination.endIndex;
+		const needsRecalculation = 
+			sortedBookmarks.length !== lastSortedBookmarksLength ||
+			currentPage !== lastCurrentPage ||
+			itemsPerPage !== lastItemsPerPage;
+			
+		if (needsRecalculation) {
+			const pagination = PaginationUtils.calculatePagination(
+				sortedBookmarks,
+				currentPage,
+				itemsPerPage
+			);
+			totalPages = pagination.totalPages;
+			paginatedBookmarks = pagination.paginatedItems;
+			startIndex = pagination.startIndex;
+			endIndex = pagination.endIndex;
 
-		// Update current page if it's out of bounds
-		if (currentPage !== pagination.validCurrentPage) {
-			currentPage = pagination.validCurrentPage;
+			// Update current page if it's out of bounds
+			if (currentPage !== pagination.validCurrentPage) {
+				currentPage = pagination.validCurrentPage;
+			}
+			
+			// Update cache
+			lastSortedBookmarksLength = sortedBookmarks.length;
+			lastCurrentPage = currentPage;
+			lastItemsPerPage = itemsPerPage;
 		}
 	}
 
@@ -329,6 +387,7 @@
 		<div class="toolbar">
 			<div class="search-section">
 				<SearchQueryFilter
+					bind:this={searchFilterComponent}
 					data={bookmarks}
 					on:filtered={onFiltered}
 					placeholder="Search bookmarks..."
@@ -352,6 +411,16 @@
 				>
 					<svg><use href="feather-sprite.svg#download" /></svg>
 					Export
+				</button>
+
+				<button
+					class="btn-compact secondary"
+					on:click={onOpenTagSummary}
+					title="Browse and filter by tags"
+					disabled={bookmarks.length === 0}
+				>
+					<svg><use href="feather-sprite.svg#tag" /></svg>
+					Tags
 				</button>
 
 				<button
@@ -615,6 +684,15 @@
 		on:editBookmark={(e) => onEditBookmarkClick(e.detail)}
 		on:bookmarkClicked={(e) => onBookmarkClick(e.detail)}
 	/>
+
+	<!-- Tag Summary (conditionally rendered) -->
+	<TagSummary
+		{bookmarks}
+		isOpen={showTagSummary}
+		on:close={onCloseTagSummary}
+		on:tagClick={onTagClick}
+		on:tagsSelected={onTagsSelected}
+	/>
 </div>
 
 <style>
@@ -793,6 +871,30 @@
 		flex-wrap: wrap;
 		gap: 0.25rem;
 		align-items: center;
+	}
+
+	.bookmark-tag {
+		background: var(--pico-primary-background);
+		color: var(--pico-primary);
+		border: 1px solid var(--pico-primary-border);
+		border-radius: 0.25rem;
+		padding: 0.125rem 0.375rem;
+		font-size: 0.75rem;
+		font-weight: 500;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		text-decoration: none;
+		margin: 0;
+		min-width: auto;
+		height: auto;
+		line-height: 1.2;
+	}
+
+	.bookmark-tag:hover {
+		background: var(--pico-primary);
+		color: var(--pico-primary-inverse);
+		transform: translateY(-1px);
+		box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 	}
 
 	/* Mobile responsive adjustments */

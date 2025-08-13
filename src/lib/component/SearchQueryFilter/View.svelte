@@ -6,12 +6,13 @@
     
     export let data: any[] = [];
     export let placeholder: string = "Search (use filters like never-clicked, device:mobile, etc.)";
-    export let debounceTime: number = 300;
+    export let debounceTime: number = 500; // Increased from 300ms to 500ms for better performance
     
     let query: string = '';
     let filterOptions: FilterOptions = { and: [], or: [], not: [], special: [] };
     let timer: ReturnType<typeof setTimeout>;
     let showHelp = false;
+    let lastDataHash = '';
     
     const dispatch = createEventDispatcher<{ filtered: FilterResult }>();
     
@@ -22,6 +23,11 @@
         filterOptions = filterResult.options;
         dispatch('filtered', filterResult);
       }, debounceTime);
+    }
+    
+    // Create a simple hash of the data to detect actual changes
+    function getDataHash(data: any[]): string {
+      return `${data.length}-${data.map(item => item.url || item.id || '').join(',')}`;
     }
     
     function toggleHelp() {
@@ -38,9 +44,25 @@
       showHelp = false;
     }
     
-    // Initial filter on mount
-    $: if (data) {
+    // Public method to set query externally
+    export function setQuery(newQuery: string) {
+      query = newQuery;
       handleInput();
+    }
+    
+    // Only trigger search when data actually changes (not on every reactive update)
+    $: {
+      const currentDataHash = getDataHash(data);
+      if (currentDataHash !== lastDataHash) {
+        lastDataHash = currentDataHash;
+        // Clear any cached search text when data changes
+        data.forEach(item => {
+          if (item._searchText) {
+            delete item._searchText;
+          }
+        });
+        handleInput();
+      }
     }
   </script>
   

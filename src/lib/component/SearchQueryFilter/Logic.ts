@@ -1,3 +1,5 @@
+import { PerformanceMonitor } from '$lib/utils/PerformanceMonitor';
+
 export interface FilterOptions {
   and: string[];
   or: string[];
@@ -6,7 +8,7 @@ export interface FilterOptions {
 }
 
 export interface SpecialFilter {
-  type: 'never-clicked' | 'unvisited' | 'old-unvisited' | 'stale' | 'device' | 'os' | 'browser' | 'added' | 'clicked';
+  type: 'never-clicked' | 'unvisited' | 'old-unvisited' | 'stale' | 'device' | 'os' | 'browser' | 'added' | 'clicked' | 'tag';
   value?: string;
   operator?: '>' | '<' | '=' | '>=' | '<=';
   duration?: number; // in days
@@ -17,6 +19,41 @@ export interface FilterResult<T = any> {
   options: FilterOptions;
   query: string;
   scores: Map<T, number>;
+}
+
+/**
+ * Creates a searchable text string for a bookmark item (cached for performance)
+ * @private Internal helper function
+ */
+function createSearchableText(item: any): string {
+  // Check if we already have cached searchable text
+  if (item._searchText) {
+    return item._searchText;
+  }
+  
+  // For bookmark objects, create optimized searchable text
+  if (item.url !== undefined) {
+    const bookmark = item;
+    const parts = [
+      bookmark.url || '',
+      bookmark.title || '',
+      bookmark.description || '',
+      bookmark.notes || ''
+    ];
+    
+    // Add tags in a searchable format
+    if (bookmark.tags && Array.isArray(bookmark.tags)) {
+      parts.push(bookmark.tags.join(' '));
+      parts.push('#' + bookmark.tags.join(' #'));
+    }
+    
+    // Cache the result for future searches
+    item._searchText = parts.join(' ').toLowerCase();
+    return item._searchText;
+  }
+  
+  // Fallback for non-bookmark items
+  return JSON.stringify(item).toLowerCase();
 }
 
 /**
@@ -58,6 +95,12 @@ function applySpecialFilter<T>(item: T, filter: SpecialFilter): boolean {
     case 'browser':
       if (!bookmark.browser || !filter.value) return false;
       return bookmark.browser.toLowerCase().includes(filter.value.toLowerCase());
+      
+    case 'tag':
+      if (!bookmark.tags || bookmark.tags.length === 0 || !filter.value) return false;
+      return bookmark.tags.some((tag: string) => 
+        tag.toLowerCase().includes(filter.value!.toLowerCase())
+      );
       
     case 'added':
       if (!filter.duration || !filter.operator || !bookmark.added) return true;
@@ -145,6 +188,13 @@ function parseSpecialFilter(term: string, options: FilterOptions): boolean {
   const browserMatch = lower.match(/^browser:(.+)$/);
   if (browserMatch) {
     options.special.push({ type: 'browser', value: browserMatch[1] });
+    return true;
+  }
+  
+  // Tag filter: tag:javascript, tag:react, etc.
+  const tagMatch = lower.match(/^tag:(.+)$/);
+  if (tagMatch) {
+    options.special.push({ type: 'tag', value: tagMatch[1] });
     return true;
   }
   
@@ -250,6 +300,9 @@ function parseFilterQuery(query: string): FilterOptions {
  * - 'os:windows', 'os:macos', 'os:android', 'os:ios'
  * - 'browser:chrome', 'browser:firefox', 'browser:safari'
  * 
+ * Tag filters:
+ * - 'tag:javascript', 'tag:react', 'tag:tutorial'
+ * 
  * Date-based filters:
  * - 'added:>30d' → added more than 30 days ago
  * - 'added:<7d' → added in last 7 days
@@ -268,20 +321,38 @@ function parseFilterQuery(query: string): FilterOptions {
  * @returns FilterResult containing filtered data, options, and relevance scores
  */
 export function applyFilter<T>(data: T[], query: string): FilterResult<T> {
-  // Parse the query into filter options
-  const options = parseFilterQuery(query);
+  PerformanceMonitor.start('applyFilter');
   
-  if (!data || !data.length) {
+  // Early exit for empty query
+  if (!query || query.trim() === '') {
+    PerformanceMonitor.end('applyFilter');
     return { 
-      data: [], 
-      options, 
+      data, 
+      options: { and: [], or: [], not: [], special: [] }, 
       query, 
       scores: new Map<T, number>() 
     };
   }
   
-  // If query is empty, return all data
+  // Early exit for empty data
+  if (!data || !data.length) {
+    PerformanceMonitor.end('applyFilter');
+    return { 
+      data: [], 
+      options: { and: [], or: [], not: [], special: [] }, 
+      query, 
+      scores: new Map<T, number>() 
+    };
+  }
+  
+  PerformanceMonitor.start('parseQuery');
+  // Parse the query into filter options
+  const options = parseFilterQuery(query);
+  PerformanceMonitor.end('parseQuery');
+  
+  // Early exit if no valid filters were parsed
   if (!options.and.length && !options.or.length && !options.not.length && !options.special.length) {
+    PerformanceMonitor.end('applyFilter');
     return { 
       data, 
       options, 
@@ -290,49 +361,54 @@ export function applyFilter<T>(data: T[], query: string): FilterResult<T> {
     };
   }
   
+  PerformanceMonitor.start('filterData');
   // Store scores for ranking
   const scores = new Map<T, number>();
   
   // Filter the data
   const filteredData = data.filter(item => {
-    // Apply special filters first
+    // Apply special filters first (these are usually faster)
     for (const specialFilter of options.special) {
       if (!applySpecialFilter(item, specialFilter)) {
         return false;
       }
     }
     
-    // Convert item to a searchable string
-    const searchText = JSON.stringify(item).toLowerCase();
+    // Only create searchable text if we have text-based filters
+    let searchText = '';
     let score = 0;
     
-    // Handle NOT conditions first (exclusions)
-    for (const term of options.not) {
-      if (searchText.includes(term.toLowerCase())) {
-        return false; // Exclude this item
+    if (options.and.length > 0 || options.or.length > 0 || options.not.length > 0) {
+      searchText = createSearchableText(item);
+      
+      // Handle NOT conditions first (exclusions) - fastest to eliminate items
+      for (const term of options.not) {
+        if (searchText.includes(term.toLowerCase())) {
+          return false; // Exclude this item
+        }
       }
-    }
-    
-    // Check AND terms - all must match
-    for (const term of options.and) {
-      if (!searchText.includes(term.toLowerCase())) {
-        return false; // Require all AND terms
+      
+      // Check AND terms - all must match
+      for (const term of options.and) {
+        if (!searchText.includes(term.toLowerCase())) {
+          return false; // Require all AND terms
+        }
+        score += 2; // AND terms get higher weight
       }
-      score += 2; // AND terms get higher weight
-    }
-    
-    // Check OR terms - at least one must match if we have no AND terms
-    let orMatches = 0;
-    for (const term of options.or) {
-      if (searchText.includes(term.toLowerCase())) {
-        orMatches++;
-        score += 1; // OR terms get base weight
+      
+      // Check OR terms - at least one must match if we have no AND terms
+      let orMatches = 0;
+      for (const term of options.or) {
+        if (searchText.includes(term.toLowerCase())) {
+          orMatches++;
+          score += 1; // OR terms get base weight
+        }
       }
-    }
-    
-    // If we have OR terms but no AND terms, require at least one OR match
-    if (options.or.length > 0 && options.and.length === 0 && orMatches === 0) {
-      return false;
+      
+      // If we have OR terms but no AND terms, require at least one OR match
+      if (options.or.length > 0 && options.and.length === 0 && orMatches === 0) {
+        return false;
+      }
     }
     
     // Store the score for this item
@@ -340,14 +416,21 @@ export function applyFilter<T>(data: T[], query: string): FilterResult<T> {
     
     return true;
   });
+  PerformanceMonitor.end('filterData');
   
-  // Sort results by score (highest first)
-  filteredData.sort((a, b) => {
-    const scoreA = scores.get(a) || 0;
-    const scoreB = scores.get(b) || 0;
-    return scoreB - scoreA;
-  });
+  // Only sort if we have scores (i.e., text-based filtering occurred)
+  if (scores.size > 0) {
+    PerformanceMonitor.start('sortResults');
+    // Sort results by score (highest first)
+    filteredData.sort((a, b) => {
+      const scoreA = scores.get(a) || 0;
+      const scoreB = scores.get(b) || 0;
+      return scoreB - scoreA;
+    });
+    PerformanceMonitor.end('sortResults');
+  }
   
+  PerformanceMonitor.end('applyFilter');
   return { 
     data: filteredData, 
     options, 

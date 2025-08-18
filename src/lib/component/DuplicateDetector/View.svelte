@@ -109,8 +109,8 @@
 </script>
 
 {#if isOpen}
-	<dialog open>
-		<article class="duplicate-detector">
+	<dialog open on:click|self={handleClose}>
+		<article class="duplicate-detector" on:click|stopPropagation>
 			<header>
 				<button aria-label="Close" on:click={handleClose} />
 				<h2>
@@ -481,10 +481,11 @@
 	.group-type {
 		font-weight: 600;
 		font-size: 0.875rem;
+		/* Color will be set inline based on confidence */
 	}
 
 	.group-reason {
-		color: var(--pico-muted-color);
+		color: var(--pico-color);
 		font-size: 0.875rem;
 	}
 
@@ -574,10 +575,12 @@
 		font-weight: 500;
 		text-decoration: none;
 		word-break: break-all;
+		color: var(--pico-color);
 	}
 
 	.bookmark-title a:hover {
 		text-decoration: underline;
+		color: var(--pico-primary);
 	}
 
 	.bookmark-url {

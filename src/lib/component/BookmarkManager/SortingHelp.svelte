@@ -23,8 +23,8 @@
 </script>
 
 {#if isOpen}
-	<dialog open>
-		<article>
+	<dialog open on:click|self={close}>
+		<article class="sorting-help-article" on:click|stopPropagation>
 			<header>
 				<button aria-label="Close" on:click={close} />
 				<h3>Smart Usage Sorting Explained</h3>

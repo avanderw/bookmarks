@@ -82,8 +82,8 @@
 <svelte:window on:keydown={handleKeydown} />
 
 {#if isOpen}
-	<dialog open>
-		<article>
+	<dialog open on:click|self={close}>
+		<article on:click|stopPropagation>
 			<header>
 				<button aria-label="Close" on:click={close} />
 				<h3>Tag Summary</h3>

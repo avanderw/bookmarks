@@ -48,7 +48,7 @@
 	let searchFilterComponent: any;
 	// Pagination state
 	let currentPage = 1;
-	let itemsPerPage = 50; // Default to 50 for condensed view
+	let itemsPerPage = 25; // Default to 25 for better user experience
 	let totalPages = 0;
 	let startIndex = 0;
 	let endIndex = 0;
@@ -585,15 +585,6 @@
 
 				<button
 					class="btn-icon-only secondary"
-					on:click={onCleanUrls}
-					title="Remove bookmarks with invalid URLs"
-					disabled={bookmarks.length === 0}
-				>
-					<svg><use href="feather-sprite.svg#trash" /></svg>
-				</button>
-
-				<button
-					class="btn-icon-only secondary"
 					on:click={onOpenStorageMonitor}
 					title="Monitor storage usage and get cleanup suggestions"
 				>
@@ -622,6 +613,14 @@
 							>
 								<svg><use href="feather-sprite.svg#copy" /></svg>
 								Find Duplicates
+							</button>
+							<button
+								class="dropdown-item"
+								on:click={() => {onCleanUrls(); showToolsMenu = false;}}
+								disabled={bookmarks.length === 0}
+							>
+								<svg><use href="feather-sprite.svg#trash" /></svg>
+								Clean Bookmarks
 							</button>
 						</div>
 					{/if}
@@ -840,8 +839,8 @@
 
 	<!-- Notes viewer (conditionally rendered) -->
 	{#if viewingNotes}
-		<dialog open>
-			<article>
+		<dialog open on:click|self={onNotesClose}>
+			<article on:click|stopPropagation>
 				<header>
 					<button aria-label="Close" data-rel="prev" on:click={onNotesClose} />
 					<h3>Notes for "{viewingNotes.title || 'Untitled'}"</h3>
@@ -961,6 +960,8 @@
 	.sort-help-button:hover {
 		background: var(--pico-secondary-hover-background);
 		border-color: var(--pico-secondary-hover-border);
+		color: var(--pico-secondary-hover);
+		transform: translateY(-1px);
 	}
 
 	.sort-help-button svg {

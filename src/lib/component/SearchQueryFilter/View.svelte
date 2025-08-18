@@ -170,11 +170,16 @@
 		border-radius: var(--pico-border-radius);
 		cursor: pointer;
 		transition: all 0.2s ease;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 
 	.help-button:hover {
 		background: var(--pico-secondary-hover-background);
 		border-color: var(--pico-secondary-hover-border);
+		color: var(--pico-secondary-hover);
+		transform: translateY(-1px);
 	}
 
 	.help-button svg {

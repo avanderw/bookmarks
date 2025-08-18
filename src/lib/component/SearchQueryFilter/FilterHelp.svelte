@@ -70,8 +70,8 @@
 </script>
 
 {#if isOpen}
-	<dialog open>
-		<article>
+	<dialog open on:click|self={close}>
+		<article on:click|stopPropagation>
 			<header>
 				<button aria-label="Close" on:click={close} />
 				<h3>Search Filter Help</h3>

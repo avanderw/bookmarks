@@ -51,8 +51,8 @@
 </script>
 
 {#if isOpen}
-	<dialog open>
-		<article>
+	<dialog open on:click|self={handleClose}>
+		<article on:click|stopPropagation>
 			<header>
 				<button aria-label="Close" data-rel="prev" on:click={handleClose} />
 				<h3>

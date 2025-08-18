@@ -12,10 +12,14 @@
 	// Props
 	export let bookmark: Bookmark | null = null;
 	export let isEdit: boolean = false;
+	export let existingBookmarks: Bookmark[] = [];
 
 	// Initialize bookmark data
 	let formData = bookmark ? { ...bookmark } : createEmptyBookmark();
 	let tagsString = formData.tags.join(' ');
+	
+	// Store original URL for edit validation
+	const originalUrl = bookmark?.url;
 
 	// Error state
 	let urlError = false;
@@ -25,8 +29,8 @@
 	export let isOpen = false;
 
 	function handleSubmit() {
-		// Validate bookmark (simple validation without duplicate check)
-		const validation = validateBookmark(formData);
+		// Validate bookmark with existing bookmarks for duplicate checking
+		const validation = validateBookmark(formData, existingBookmarks, isEdit, originalUrl);
 
 		if (validation.urlError) {
 			urlError = true;

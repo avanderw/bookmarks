@@ -63,7 +63,21 @@
 	function handleBookmarkletSave(event: CustomEvent<Bookmark>) {
 		// Add the bookmark to the store like normal bookmark saves
 		if (bookmarkData) {
-			const newBookmarks = [...bookmarkData.bookmarks, event.detail];
+			const savedBookmark = event.detail;
+			
+			// Check if we're updating an existing bookmark or adding a new one
+			const existingIndex = bookmarkData.bookmarks.findIndex((b) => b.url === savedBookmark.url);
+
+			let newBookmarks;
+			if (existingIndex >= 0) {
+				// Update existing bookmark
+				newBookmarks = [...bookmarkData.bookmarks];
+				newBookmarks[existingIndex] = savedBookmark;
+			} else {
+				// Add new bookmark
+				newBookmarks = [...bookmarkData.bookmarks, savedBookmark];
+			}
+
 			appData.set({
 				...bookmarkData,
 				bookmarks: newBookmarks
@@ -158,6 +172,7 @@
 		bind:isOpen={bookmarkFormOpen}
 		bookmark={null}
 		isEdit={false}
+		existingBookmarks={bookmarkData?.bookmarks || []}
 		on:save={handleBookmarkletSave}
 		on:close={handleBookmarkletClose}
 	/>

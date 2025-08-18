@@ -9,6 +9,7 @@
 	export let buttonText: string = isEdit ? 'Edit Bookmark' : 'Add Bookmark';
 	export let buttonClass: string = '';
 	export let iconOnly: boolean = false;
+	export let existingBookmarks: Bookmark[] = [];
 
 	// State
 	let isFormOpen = false;
@@ -42,7 +43,7 @@
 	{/if}
 </button>
 
-<BookmarkForm.View bind:isOpen={isFormOpen} {bookmark} {isEdit} on:save={handleSave} />
+<BookmarkForm.View bind:isOpen={isFormOpen} {bookmark} {isEdit} {existingBookmarks} on:save={handleSave} />
 
 <style>
 	button {

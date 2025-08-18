@@ -665,6 +665,7 @@
 					on:save={onBookmarkSave}
 					buttonClass="btn-compact"
 					buttonText="Add Bookmark"
+					existingBookmarks={bookmarks}
 				/>
 
 				<a
@@ -871,6 +872,7 @@
 			isOpen={!!selectedBookmark}
 			bookmark={selectedBookmark}
 			isEdit={true}
+			existingBookmarks={bookmarks}
 			on:save={onBookmarkSave}
 			on:close={() => (selectedBookmark = null)}
 		/>

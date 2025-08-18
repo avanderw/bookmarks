@@ -28,11 +28,15 @@ export function createEmptyBookmark(): Bookmark {
  * Validates a bookmark before saving
  * @param bookmark The bookmark to validate
  * @param existingBookmarks Optional array of existing bookmarks to check for duplicates
+ * @param isEdit Whether this is an edit operation (excludes the current bookmark from duplicate check)
+ * @param originalUrl The original URL when editing (to identify which bookmark is being edited)
  * @returns An object containing validation errors
  */
 export function validateBookmark(
 	bookmark: Bookmark,
-	existingBookmarks?: Bookmark[]
+	existingBookmarks?: Bookmark[],
+	isEdit: boolean = false,
+	originalUrl?: string
 ): {
 	urlError: boolean;
 	urlErrorMessage: string;
@@ -56,9 +60,15 @@ export function validateBookmark(
 		return errors;
 	}
 
-	// Check for duplicate URLs in edit mode
+	// Check for duplicate URLs 
 	if (existingBookmarks) {
-		const duplicate = existingBookmarks.find((b) => b.url === bookmark.url && b !== bookmark);
+		const duplicate = existingBookmarks.find((b) => {
+			// If editing and this is the original bookmark, don't consider it a duplicate
+			if (isEdit && originalUrl && b.url === originalUrl) {
+				return false;
+			}
+			return b.url === bookmark.url;
+		});
 
 		if (duplicate) {
 			errors.urlError = true;

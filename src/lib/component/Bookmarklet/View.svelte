@@ -1,15 +1,16 @@
 <!-- src/lib/component/Bookmarklet/View.svelte -->
 <script lang="ts">
 	import { createBookmarkletCode } from './Logic';
-	
+
 	// Optional props for customization
 	export let linkText = 'Bookmark This Site';
-	export let instructionText = 'Drag this link to your bookmarks bar to quickly save websites to your bookmark collection.';
+	export let instructionText =
+		'Drag this link to your bookmarks bar to quickly save websites to your bookmark collection.';
 </script>
 
 <div class="bookmarklet-container">
-	<a 
-		href={`javascript:${createBookmarkletCode()}`} 
+	<a
+		href={`javascript:${createBookmarkletCode()}`}
 		title="Drag this link to your bookmark bar"
 		class="bookmarklet-link"
 	>
@@ -29,7 +30,7 @@
 		background-color: var(--bg-card, #f8f9fa);
 		text-align: center;
 	}
-	
+
 	.bookmarklet-link {
 		display: inline-block;
 		padding: 0.5rem 1rem;
@@ -40,11 +41,11 @@
 		text-decoration: none;
 		cursor: move; /* Indicates it's draggable */
 	}
-	
+
 	.bookmarklet-link:hover {
 		background-color: var(--primary-dark, #0257ba);
 	}
-	
+
 	.bookmarklet-instruction {
 		margin-top: 0.5rem;
 		font-size: 0.8rem;

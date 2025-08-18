@@ -6,9 +6,9 @@ Object.defineProperty(window, 'localStorage', {
 		getItem: vi.fn(),
 		setItem: vi.fn(),
 		removeItem: vi.fn(),
-		clear: vi.fn(),
+		clear: vi.fn()
 	},
-	writable: true,
+	writable: true
 });
 
 // Mock File System Access API
@@ -27,7 +27,7 @@ Object.defineProperty(window, 'localStorage', {
 Object.defineProperty(globalThis, 'crypto', {
 	value: {
 		subtle: {
-			digest: vi.fn(),
-		},
-	},
+			digest: vi.fn()
+		}
+	}
 });

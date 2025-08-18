@@ -7,7 +7,12 @@
 	import { BookmarkForm } from '$lib/component/BookmarkForm';
 	import { Bookmarklet } from '$lib/component/Bookmarklet';
 	import { exportBookmarks } from '$lib/storage';
-	import { updateBookmarkClickCount, sortBookmarks, sortBookmarksByUsageRelevance, cleanExistingBookmarks } from './Logic';
+	import {
+		updateBookmarkClickCount,
+		sortBookmarks,
+		sortBookmarksByUsageRelevance,
+		cleanExistingBookmarks
+	} from './Logic';
 	import { PaginationUtils } from './PaginationUtils';
 	import { FileUtils } from './FileUtils';
 	import { formatRelativeTime, formatFriendlyDate } from '$lib/utils/DateUtils';
@@ -23,7 +28,7 @@
 		dataChanged: Bookmark[];
 	}>();
 	// Component props
-	export let initialData: BookmarkStore | null = null;	// Component state
+	export let initialData: BookmarkStore | null = null; // Component state
 	let bookmarks: Bookmark[] = [];
 	let filteredBookmarks: Bookmark[] = [];
 	let sortedBookmarks: Bookmark[] = [];
@@ -46,7 +51,7 @@
 	let totalPages = 0;
 	let startIndex = 0;
 	let endIndex = 0;
-	
+
 	// Performance optimization: cache for expensive calculations
 	let lastSortedBookmarksLength = 0;
 	let lastCurrentPage = 0;
@@ -69,7 +74,7 @@
 			window.addEventListener('dragover', handleDragOver);
 			window.addEventListener('dragleave', handleDragLeave);
 			window.addEventListener('drop', handleDrop);
-			
+
 			// Handle storage full export event
 			window.addEventListener('trigger-export', onExportRequested);
 		}
@@ -78,13 +83,19 @@
 	// Watch for changes to initialData prop to sync with store updates
 	$: if (initialData && initialData.bookmarks && !isLocallyModified) {
 		// Check if we need to update (length different OR first bookmark URL different)
-		const needsUpdate = 
+		const needsUpdate =
 			initialData.bookmarks.length !== bookmarks.length ||
-			(initialData.bookmarks.length > 0 && bookmarks.length > 0 && 
-			 initialData.bookmarks[0].url !== bookmarks[0].url);
-			 
+			(initialData.bookmarks.length > 0 &&
+				bookmarks.length > 0 &&
+				initialData.bookmarks[0].url !== bookmarks[0].url);
+
 		if (needsUpdate) {
-			console.log('🔄 Syncing from store: initialData has', initialData.bookmarks.length, 'bookmarks, local has', bookmarks.length);
+			console.log(
+				'🔄 Syncing from store: initialData has',
+				initialData.bookmarks.length,
+				'bookmarks, local has',
+				bookmarks.length
+			);
 			bookmarks = [...initialData.bookmarks];
 			filteredBookmarks = [...bookmarks];
 		}
@@ -111,14 +122,14 @@
 		try {
 			console.log('� Importing file:', event.detail.name);
 			const result = await FileUtils.importFile(event.detail);
-			
+
 			// Update local component state
 			bookmarks = result.bookmarks;
 			filteredBookmarks = [...bookmarks];
 			currentPage = 1; // Reset to first page on new import
-			
+
 			console.log('✅ Import successful:', bookmarks.length, 'bookmarks loaded');
-			
+
 			// Notify parent component to update the store
 			dispatch('dataChanged', bookmarks);
 		} catch (error) {
@@ -133,7 +144,7 @@
 	function onExportRequested() {
 		// Create a BookmarkStore from current data and export
 		const bookmarkStore = {
-			version: initialData?.version || "2025-08-13",
+			version: initialData?.version || '2025-08-13',
 			bookmarks: bookmarks
 		};
 		exportBookmarks(bookmarkStore);
@@ -194,7 +205,7 @@
 		if (confirm(`Are you sure you want to delete "${bookmark.title || bookmark.url}"?`)) {
 			// Mark as locally modified to prevent store sync issues
 			isLocallyModified = true;
-			
+
 			// Remove from bookmarks array
 			bookmarks = bookmarks.filter((b) => b.url !== bookmark.url);
 
@@ -203,7 +214,7 @@
 
 			// Notify parent component of data change
 			dispatch('dataChanged', bookmarks);
-			
+
 			// Clear the flag after a brief delay
 			setTimeout(() => {
 				isLocallyModified = false;
@@ -311,7 +322,7 @@
 	function onTagsSelected(event: CustomEvent<{ tags: string[] }>) {
 		const tags = event.detail.tags;
 		if (searchFilterComponent && searchFilterComponent.setQuery && tags.length > 0) {
-			const tagQuery = tags.map(tag => `tag:${tag}`).join(' +');
+			const tagQuery = tags.map((tag) => `tag:${tag}`).join(' +');
 			searchFilterComponent.setQuery(tagQuery);
 		}
 		showTagSummary = false;
@@ -404,13 +415,13 @@
 		}
 	}
 	async function handleDrop(e: DragEvent) {
-	e.preventDefault();
-	e.stopPropagation();
-	isDragging = false;
-	dragCounter = 0;
-	if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-		const file = e.dataTransfer.files[0];
-		await onFileImported(FileUtils.createFileEvent(file));
+		e.preventDefault();
+		e.stopPropagation();
+		isDragging = false;
+		dragCounter = 0;
+		if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+			const file = e.dataTransfer.files[0];
+			await onFileImported(FileUtils.createFileEvent(file));
 		}
 	}
 
@@ -431,11 +442,11 @@
 
 	// Calculate pagination values using utility (optimized to reduce recalculations)
 	$: {
-		const needsRecalculation = 
+		const needsRecalculation =
 			sortedBookmarks.length !== lastSortedBookmarksLength ||
 			currentPage !== lastCurrentPage ||
 			itemsPerPage !== lastItemsPerPage;
-			
+
 		if (needsRecalculation) {
 			const pagination = PaginationUtils.calculatePagination(
 				sortedBookmarks,
@@ -451,7 +462,7 @@
 			if (currentPage !== pagination.validCurrentPage) {
 				currentPage = pagination.validCurrentPage;
 			}
-			
+
 			// Update cache
 			lastSortedBookmarksLength = sortedBookmarks.length;
 			lastCurrentPage = currentPage;
@@ -470,7 +481,7 @@
 
 		// Use silent mode to avoid double alerts, we'll handle the UI feedback ourselves
 		const cleanupResult = cleanExistingBookmarks(bookmarks, false);
-		
+
 		if (cleanupResult.removedCount === 0) {
 			alert(`All ${bookmarks.length} bookmarks have valid URLs. No cleanup needed.`);
 			return;
@@ -479,31 +490,34 @@
 		// Show confirmation dialog with details about what will be removed
 		const removedList = cleanupResult.removedBookmarks
 			.slice(0, 5) // Show up to 5 examples
-			.map(b => `• ${b.title || 'Untitled'} (${b.url})`)
+			.map((b) => `• ${b.title || 'Untitled'} (${b.url})`)
 			.join('\n');
-		
-		const moreText = cleanupResult.removedCount > 5 ? `\n...and ${cleanupResult.removedCount - 5} more` : '';
-		
+
+		const moreText =
+			cleanupResult.removedCount > 5 ? `\n...and ${cleanupResult.removedCount - 5} more` : '';
+
 		const confirmMessage = `Found ${cleanupResult.removedCount} bookmark(s) with invalid URLs:\n\n${removedList}${moreText}\n\nDo you want to remove these invalid bookmarks?`;
-		
+
 		if (confirm(confirmMessage)) {
 			// Mark as locally modified to prevent store sync from overriding our changes
 			isLocallyModified = true;
-			
+
 			// Update bookmarks - this is destructive/reductive
 			bookmarks = cleanupResult.cleanedBookmarks;
 			filteredBookmarks = [...bookmarks];
 			currentPage = 1; // Reset to first page
-			
+
 			// Notify parent component of data change
 			dispatch('dataChanged', bookmarks);
-			
+
 			// Clear the flag after a brief delay to allow store update to complete
 			setTimeout(() => {
 				isLocallyModified = false;
 			}, 100);
-			
-			alert(`Successfully removed ${cleanupResult.removedCount} bookmark(s) with invalid URLs.\n\n${cleanupResult.cleanedBookmarks.length} valid bookmarks remaining.`);
+
+			alert(
+				`Successfully removed ${cleanupResult.removedCount} bookmark(s) with invalid URLs.\n\n${cleanupResult.cleanedBookmarks.length} valid bookmarks remaining.`
+			);
 		}
 	}
 
@@ -541,11 +555,7 @@
 					Import
 				</button>
 
-				<button
-					class="btn-compact secondary"
-					on:click={onExportRequested}
-					title="Export bookmarks"
-				>
+				<button class="btn-compact secondary" on:click={onExportRequested} title="Export bookmarks">
 					<svg><use href="feather-sprite.svg#download" /></svg>
 					Export
 				</button>
@@ -637,7 +647,7 @@
 							<svg><use href="feather-sprite.svg#help-circle" /></svg>
 						</button>
 					{/if}
-				</div>				
+				</div>
 
 				<label>
 					Items per page:
@@ -669,7 +679,7 @@
 		style="display:none"
 		on:change={handleFileInputChange}
 	/>
-	
+
 	<section class="bookmark-list" class:drop-zone={isDragging} class:active={isDragging}>
 		{#if sortedBookmarks.length === 0}
 			<div class="text-center">
@@ -680,26 +690,27 @@
 				{#each paginatedBookmarks as bookmark, index (bookmark.url)}
 					<article class="bookmark-row">
 						<div class="bookmark-content">
-							<div class="bookmark-title-row">								
-								<div class="title-section">									
+							<div class="bookmark-title-row">
+								<div class="title-section">
 									<span class="bookmark-number">{startIndex + index}.</span>
 									<a
 										href={bookmark.url}
 										target="_blank"
 										rel="noopener noreferrer"
 										on:click|preventDefault={() => onBookmarkClick(bookmark)}
-									>{bookmark.title || 'Untitled'}</a>
+										>{bookmark.title || 'Untitled'}</a
+									>
 									{#if bookmark.url}
 										<span class="bookmark-domain">
 											({bookmark.url.replace(/^https?:\/\/([^\/]+).*$/, '$1')})
 										</span>
 									{/if}
-									
+
 									{#if bookmark.description}
 										<span class="bookmark-description">{bookmark.description}</span>
 									{/if}
 								</div>
-								
+
 								<div class="bookmark-actions">
 									<button
 										class="btn-compact secondary"
@@ -715,9 +726,9 @@
 									>
 										<svg><use href="feather-sprite.svg#trash-2" /></svg>
 									</button>
-								</div>							
+								</div>
 							</div>
-							
+
 							<div class="bookmark-meta">
 								{#if bookmark.clicked > 0}
 									<span>{bookmark.clicked} clicks</span>
@@ -728,17 +739,18 @@
 									{/if}
 								{:else}
 									<span>Never visited</span>
-								{/if}								
-								
+								{/if}
+
 								{#if bookmark.added}
 									<span title={formatFriendlyDate(bookmark.added)}>
 										added {formatRelativeTime(bookmark.added)}
 									</span>
 								{/if}
-								
+
 								{#if bookmark.browser && bookmark.device}
 									<span title="Added from {bookmark.browser} on {bookmark.os} ({bookmark.device})">
-										<svg><use href="feather-sprite.svg#monitor" /></svg> {getShortUserAgentSummary({
+										<svg><use href="feather-sprite.svg#monitor" /></svg>
+										{getShortUserAgentSummary({
 											userAgent: bookmark.userAgent || '',
 											browser: bookmark.browser,
 											os: bookmark.os || 'Unknown',
@@ -746,7 +758,7 @@
 										})}
 									</span>
 								{/if}
-								
+
 								{#if bookmark.notes}
 									<button
 										class="btn-compact secondary"
@@ -757,7 +769,7 @@
 										Notes
 									</button>
 								{/if}
-								
+
 								{#if bookmark.tags && bookmark.tags.length > 0}
 									<div class="tags">
 										{#each bookmark.tags as tag}
@@ -787,11 +799,7 @@
 					>
 						First
 					</button>
-					<button 
-						class="btn-compact secondary" 
-						disabled={currentPage === 1} 
-						on:click={prevPage}
-					>
+					<button class="btn-compact secondary" disabled={currentPage === 1} on:click={prevPage}>
 						Previous
 					</button>
 					<span class="pagination-current">{currentPage} of {totalPages}</span>
@@ -830,7 +838,7 @@
 		<dialog open>
 			<article>
 				<header>
-					<button aria-label="Close" data-rel="prev" on:click={onNotesClose}></button>
+					<button aria-label="Close" data-rel="prev" on:click={onNotesClose} />
 					<h3>Notes for "{viewingNotes.title || 'Untitled'}"</h3>
 				</header>
 				<div class="notes-content">
@@ -872,11 +880,7 @@
 	/>
 
 	<!-- Sorting Help (conditionally rendered) -->
-	<SortingHelp
-		{bookmarks}
-		isOpen={showSortingHelp}
-		on:close={onCloseSortingHelp}
-	/>
+	<SortingHelp {bookmarks} isOpen={showSortingHelp} on:close={onCloseSortingHelp} />
 </div>
 
 <style>
@@ -1111,7 +1115,7 @@
 		background: var(--pico-primary);
 		color: var(--pico-primary-inverse);
 		transform: translateY(-1px);
-		box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 	}
 
 	/* Mobile responsive adjustments */
@@ -1119,26 +1123,26 @@
 		.toolbar {
 			grid-template-columns: 1fr;
 		}
-		
+
 		.settings-bar {
 			grid-template-columns: 1fr;
 		}
-		
+
 		.display-settings {
 			flex-direction: column;
 			align-items: flex-start;
 			gap: 0.5rem;
 		}
-		
+
 		.action-section {
 			justify-content: center;
 		}
-		
+
 		.bookmark-title-row {
 			flex-direction: column;
 			gap: 0.5rem;
 		}
-		
+
 		.bookmark-actions {
 			align-self: flex-end;
 		}

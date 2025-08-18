@@ -22,14 +22,17 @@ tests/
 ## Test Files
 
 ### Unit Tests
+
 - `advanced-filtering.test.ts` - Tests for bookmark filtering functionality
 - `clean-urls.test.ts` - Tests for URL validation and cleanup
 - `improved-tag-filtering.test.ts` - Tests for enhanced tag filtering
+- `relevance-utils.test.ts` - Tests for bookmark relevance scoring algorithm
 - `tag-filtering.test.ts` - Tests for tag exclusion logic
 - `url-validation.test.ts` - Tests for URL validation functions
 - `user-agent.test.ts` - Tests for user agent parsing
 
 ### Fixtures
+
 - `test-bookmarks.json` - Sample bookmark data
 - `test-bookmarks-with-tags.json` - Bookmark data with tags
 - `test-duplicates.json` - Test data for duplicate detection
@@ -38,6 +41,7 @@ tests/
 ## Configuration
 
 The project uses:
+
 - **Vitest** as the test runner
 - **jsdom** for DOM simulation
 - **TypeScript** support
@@ -47,6 +51,7 @@ The project uses:
 ## Mocks
 
 The test setup includes mocks for:
+
 - `$app/environment` - SvelteKit environment module
 - `localStorage` - Browser storage API
 - File System Access API
@@ -56,16 +61,19 @@ The test setup includes mocks for:
 ## Running Tests
 
 To run all tests:
+
 ```bash
 npm test
 ```
 
 To run specific test files:
+
 ```bash
 npm test advanced-filtering
 ```
 
 To run tests with UI:
+
 ```bash
 npm run test:ui
 ```
@@ -73,8 +81,9 @@ npm run test:ui
 ## Migration Summary
 
 The following test files were migrated from the root directory:
+
 - `test-advanced-filtering.js` → `tests/unit/advanced-filtering.test.ts`
-- `test-clean-urls.js` → `tests/unit/clean-urls.test.ts` 
+- `test-clean-urls.js` → `tests/unit/clean-urls.test.ts`
 - `test-improved-tag-filtering.js` → `tests/unit/improved-tag-filtering.test.ts`
 - `test-tag-issue.js` → `tests/unit/tag-filtering.test.ts`
 - `test-url-validation.js` → `tests/unit/url-validation.test.ts`

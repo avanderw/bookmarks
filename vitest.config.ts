@@ -10,7 +10,7 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			'$lib': new URL('./src/lib', import.meta.url).pathname,
+			$lib: new URL('./src/lib', import.meta.url).pathname,
 			'$app/environment': new URL('./tests/mocks/app-environment.ts', import.meta.url).pathname
 		}
 	}

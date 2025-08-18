@@ -16,7 +16,7 @@
 	// Initialize bookmark data
 	let formData = bookmark ? { ...bookmark } : createEmptyBookmark();
 	let tagsString = formData.tags.join(' ');
-	
+
 	// Error state
 	let urlError = false;
 	let urlErrorMessage = '';
@@ -27,7 +27,7 @@
 	function handleSubmit() {
 		// Validate bookmark (simple validation without duplicate check)
 		const validation = validateBookmark(formData);
-		
+
 		if (validation.urlError) {
 			urlError = true;
 			urlErrorMessage = validation.urlErrorMessage;
@@ -36,10 +36,10 @@
 
 		// Prepare bookmark for saving
 		const preparedBookmark = prepareBookmarkForSave(formData, tagsString, isEdit);
-		
+
 		// Dispatch save event with prepared bookmark
 		dispatch('save', preparedBookmark);
-		
+
 		// Close the form
 		isOpen = false;
 	}
@@ -54,20 +54,20 @@
 	<dialog open>
 		<article>
 			<header>
-				<button aria-label="Close" data-rel="prev" on:click={handleClose}></button>
+				<button aria-label="Close" data-rel="prev" on:click={handleClose} />
 				<h3>
 					<svg><use href="feather-sprite.svg#bookmark" /></svg>
 					{isEdit ? 'Edit' : 'New'} bookmark
 				</h3>
 			</header>
-			
+
 			<form on:submit|preventDefault={handleSubmit}>
 				<fieldset>
 					<label>
 						URL
-						<input 
-							type="url" 
-							bind:value={formData.url} 
+						<input
+							type="url"
+							bind:value={formData.url}
 							aria-invalid={urlError}
 							disabled={isEdit}
 							autofocus
@@ -85,7 +85,7 @@
 
 					<label>
 						Description (optional)
-						<textarea bind:value={formData.description}></textarea>
+						<textarea bind:value={formData.description} />
 					</label>
 
 					<label>
@@ -96,15 +96,15 @@
 
 					<label>
 						Notes (optional)
-						<textarea bind:value={formData.notes}></textarea>
+						<textarea bind:value={formData.notes} />
 						<small>Additional notes, supports Markdown.</small>
 					</label>
 
 					{#if formData.browser || formData.os || formData.device}
 						<label>
 							Source Information (automatically captured)
-							<input 
-								type="text" 
+							<input
+								type="text"
 								value={formatUserAgentInfo({
 									userAgent: formData.userAgent || '',
 									browser: formData.browser || 'Unknown',
@@ -132,25 +132,25 @@
 	dialog {
 		z-index: 1000;
 	}
-	
+
 	h3 {
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
 		margin: 0;
 	}
-	
+
 	textarea {
 		min-height: 5rem;
 		resize: vertical;
 	}
-	
+
 	footer {
 		display: flex;
 		justify-content: space-between;
 		gap: 1rem;
 	}
-	
+
 	footer button {
 		flex: 1;
 		margin: 0;

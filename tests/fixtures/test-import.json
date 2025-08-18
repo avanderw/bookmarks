@@ -1,35 +1,35 @@
 {
-  "version": "2025-08-13",
-  "bookmarks": [
-    {
-      "url": "https://github.com",
-      "title": "GitHub",
-      "description": "Code hosting platform",
-      "tags": ["development", "code"],
-      "notes": "Primary code repository",
-      "added": "2025-08-13T12:00:00.000Z",
-      "clicked": 5,
-      "last": "2025-08-12T15:30:00.000Z"
-    },
-    {
-      "url": "https://stackoverflow.com",
-      "title": "Stack Overflow",
-      "description": "Q&A for developers",
-      "tags": ["development", "help"],
-      "notes": "Programming help",
-      "added": "2025-08-13T12:01:00.000Z",
-      "clicked": 10,
-      "last": "2025-08-13T09:15:00.000Z"
-    },
-    {
-      "url": "https://developer.mozilla.org",
-      "title": "MDN Web Docs",
-      "description": "Web development documentation",
-      "tags": ["documentation", "web"],
-      "notes": "Reference documentation",
-      "added": "2025-08-13T12:02:00.000Z",
-      "clicked": 3,
-      "last": "2025-08-11T14:20:00.000Z"
-    }
-  ]
+	"version": "2025-08-13",
+	"bookmarks": [
+		{
+			"url": "https://github.com",
+			"title": "GitHub",
+			"description": "Code hosting platform",
+			"tags": ["development", "code"],
+			"notes": "Primary code repository",
+			"added": "2025-08-13T12:00:00.000Z",
+			"clicked": 5,
+			"last": "2025-08-12T15:30:00.000Z"
+		},
+		{
+			"url": "https://stackoverflow.com",
+			"title": "Stack Overflow",
+			"description": "Q&A for developers",
+			"tags": ["development", "help"],
+			"notes": "Programming help",
+			"added": "2025-08-13T12:01:00.000Z",
+			"clicked": 10,
+			"last": "2025-08-13T09:15:00.000Z"
+		},
+		{
+			"url": "https://developer.mozilla.org",
+			"title": "MDN Web Docs",
+			"description": "Web development documentation",
+			"tags": ["documentation", "web"],
+			"notes": "Reference documentation",
+			"added": "2025-08-13T12:02:00.000Z",
+			"clicked": 3,
+			"last": "2025-08-11T14:20:00.000Z"
+		}
+	]
 }

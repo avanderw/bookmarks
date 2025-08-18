@@ -21,9 +21,9 @@
 				const exportEvent = new CustomEvent('trigger-export');
 				window.dispatchEvent(exportEvent);
 			};
-			
+
 			window.addEventListener('storage-full-export', handleStorageFullExport);
-			
+
 			return () => {
 				unsubscribe();
 				window.removeEventListener('storage-full-export', handleStorageFullExport);
@@ -47,7 +47,7 @@
 	function handleBookmarkClicked(event: CustomEvent<any>) {
 		// The BookmarkManager already updates the bookmark, just need to sync to store
 		if (bookmarkData) {
-			const updatedBookmarks = bookmarkData.bookmarks.map(b => 
+			const updatedBookmarks = bookmarkData.bookmarks.map((b) =>
 				b.url === event.detail.url ? event.detail : b
 			);
 			appData.set({
@@ -82,7 +82,7 @@
 </svelte:head>
 
 {#if bookmarkData}
-	<BookmarkManager 
+	<BookmarkManager
 		initialData={bookmarkData}
 		on:dataChanged={handleDataChanged}
 		on:bookmarkClicked={handleBookmarkClicked}
@@ -95,19 +95,29 @@
 
 <nav>
 	<ul>
-		<li><a href="https://avanderw.co.za"><svg><use href="feather-sprite.svg#home" /></svg>My homepage</a></li>
-		<li><a href="https://github.com/avanderw/bookmarks">
-			<svg><use href="feather-sprite.svg#github" /></svg>
-			Repo
-		</a></li>
-		<li><a href="https://github.com/avanderw/bookmarks/blob/main/README.md">
-			<svg><use href="feather-sprite.svg#help-circle" /></svg>
-			Help
-		</a></li>
-		<li><a href="https://tracking.avanderw.co.za/avanderw.co.za">
-			<svg><use href="feather-sprite.svg#bar-chart-2" /></svg>
-			Analytics
-		</a></li>
+		<li>
+			<a href="https://avanderw.co.za"
+				><svg><use href="feather-sprite.svg#home" /></svg>My homepage</a
+			>
+		</li>
+		<li>
+			<a href="https://github.com/avanderw/bookmarks">
+				<svg><use href="feather-sprite.svg#github" /></svg>
+				Repo
+			</a>
+		</li>
+		<li>
+			<a href="https://github.com/avanderw/bookmarks/blob/main/README.md">
+				<svg><use href="feather-sprite.svg#help-circle" /></svg>
+				Help
+			</a>
+		</li>
+		<li>
+			<a href="https://tracking.avanderw.co.za/avanderw.co.za">
+				<svg><use href="feather-sprite.svg#bar-chart-2" /></svg>
+				Analytics
+			</a>
+		</li>
 		<li>
 			<button class="secondary btn-compact" on:click={toggleTheme} title="Toggle theme">
 				<svg><use href="feather-sprite.svg#sun" /></svg>
@@ -116,7 +126,6 @@
 		</li>
 	</ul>
 </nav>
-
 
 <style>
 	.loading {
@@ -131,14 +140,14 @@
 		justify-content: center;
 		margin: 1rem 0;
 	}
-	
+
 	nav a {
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
 		text-decoration: none;
 	}
-	
+
 	nav a:hover {
 		text-decoration: underline;
 	}

@@ -29,11 +29,7 @@
 	}
 </script>
 
-<button
-	class={buttonClass}
-	on:click={openForm}
-	title={buttonText}
->
+<button class={buttonClass} on:click={openForm} title={buttonText}>
 	{#if iconOnly}
 		<svg>
 			<use href="feather-sprite.svg#{isEdit ? 'edit' : 'plus'}" />
@@ -46,12 +42,7 @@
 	{/if}
 </button>
 
-<BookmarkForm.View
-	bind:isOpen={isFormOpen}
-	{bookmark}
-	{isEdit}
-	on:save={handleSave}
-/>
+<BookmarkForm.View bind:isOpen={isFormOpen} {bookmark} {isEdit} on:save={handleSave} />
 
 <style>
 	button {

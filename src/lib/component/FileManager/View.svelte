@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import { downloadCache } from '$lib/cache-store';
 
 	let expanded = false;
 	let isDragging = false;

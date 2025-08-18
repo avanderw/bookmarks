@@ -2,15 +2,15 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 	import type { Bookmark } from '$lib/bookmarks';
-	import { 
-		analyzeDuplicates, 
-		getSuggestedAction, 
-		getConfidenceColor, 
+	import {
+		analyzeDuplicates,
+		getSuggestedAction,
+		getConfidenceColor,
 		getTypeLabel,
 		type DuplicateAnalysis,
-		type DuplicateGroup 
+		type DuplicateGroup
 	} from './Logic';
-	import { formatRelativeTime, formatFriendlyDate } from '$lib/utils/DateUtils';
+	import { formatRelativeTime } from '$lib/utils/DateUtils';
 
 	// Props
 	export let bookmarks: Bookmark[] = [];
@@ -36,9 +36,10 @@
 	}
 
 	// Filtered groups based on user preferences
-	$: filteredGroups = analysis?.duplicateGroups.filter(group => 
-		selectedGroupTypes.has(group.type) && group.confidence >= minConfidence
-	) || [];
+	$: filteredGroups =
+		analysis?.duplicateGroups.filter(
+			(group) => selectedGroupTypes.has(group.type) && group.confidence >= minConfidence
+		) || [];
 
 	function toggleGroupType(type: string) {
 		if (selectedGroupTypes.has(type)) {
@@ -78,10 +79,10 @@
 
 	// Keep only the newest bookmark in a group
 	function keepNewest(group: DuplicateGroup) {
-		const sortedByDate = [...group.bookmarks].sort((a, b) => 
-			new Date(b.added).getTime() - new Date(a.added).getTime()
+		const sortedByDate = [...group.bookmarks].sort(
+			(a, b) => new Date(b.added).getTime() - new Date(a.added).getTime()
 		);
-		
+
 		// Delete all except the newest
 		for (let i = 1; i < sortedByDate.length; i++) {
 			handleDeleteBookmark(sortedByDate[i]);
@@ -91,7 +92,7 @@
 	// Keep the most clicked bookmark in a group
 	function keepMostClicked(group: DuplicateGroup) {
 		const sortedByClicks = [...group.bookmarks].sort((a, b) => b.clicked - a.clicked);
-		
+
 		// Delete all except the most clicked
 		for (let i = 1; i < sortedByClicks.length; i++) {
 			handleDeleteBookmark(sortedByClicks[i]);
@@ -99,7 +100,7 @@
 	}
 
 	function expandAll() {
-		expandedGroups = new Set(filteredGroups.map(g => g.id));
+		expandedGroups = new Set(filteredGroups.map((g) => g.id));
 	}
 
 	function collapseAll() {
@@ -111,7 +112,7 @@
 	<dialog open>
 		<article class="duplicate-detector">
 			<header>
-				<button aria-label="Close" on:click={handleClose}></button>
+				<button aria-label="Close" on:click={handleClose} />
 				<h2>
 					<svg><use href="feather-sprite.svg#copy" /></svg>
 					Duplicate Detector
@@ -152,32 +153,32 @@
 								<span>Detection Types:</span>
 								<div class="type-filters">
 									<label class="checkbox-label">
-										<input 
-											type="checkbox" 
+										<input
+											type="checkbox"
 											checked={selectedGroupTypes.has('exact_url')}
 											on:change={() => toggleGroupType('exact_url')}
 										/>
 										Exact Duplicates
 									</label>
 									<label class="checkbox-label">
-										<input 
-											type="checkbox" 
+										<input
+											type="checkbox"
 											checked={selectedGroupTypes.has('similar_url')}
 											on:change={() => toggleGroupType('similar_url')}
 										/>
 										Similar URLs
 									</label>
 									<label class="checkbox-label">
-										<input 
-											type="checkbox" 
+										<input
+											type="checkbox"
 											checked={selectedGroupTypes.has('similar_title')}
 											on:change={() => toggleGroupType('similar_title')}
 										/>
 										Similar Titles
 									</label>
 									<label class="checkbox-label">
-										<input 
-											type="checkbox" 
+										<input
+											type="checkbox"
 											checked={selectedGroupTypes.has('same_domain')}
 											on:change={() => toggleGroupType('same_domain')}
 										/>
@@ -185,21 +186,15 @@
 									</label>
 								</div>
 							</div>
-							
+
 							<div class="filter-group">
 								<label>
 									Minimum Confidence: {Math.round(minConfidence * 100)}%
-									<input 
-										type="range" 
-										min="0.5" 
-										max="1" 
-										step="0.05" 
-										bind:value={minConfidence}
-									/>
+									<input type="range" min="0.5" max="1" step="0.05" bind:value={minConfidence} />
 								</label>
 							</div>
 						</div>
-						
+
 						<div class="view-controls">
 							<button class="btn-compact secondary" on:click={expandAll}>
 								<svg><use href="feather-sprite.svg#maximize-2" /></svg>
@@ -227,8 +222,8 @@
 					{:else}
 						{#each filteredGroups as group (group.id)}
 							<div class="duplicate-group">
-								<div 
-									class="group-header" 
+								<div
+									class="group-header"
 									role="button"
 									tabindex="0"
 									on:click={() => toggleGroupExpansion(group.id)}
@@ -239,9 +234,12 @@
 											{getTypeLabel(group.type)}
 										</span>
 										<span class="group-reason">{group.reason}</span>
-										<span class="confidence-badge" style="background-color: {getConfidenceColor(group.confidence)}">
+										<span
+											class="confidence-badge"
+											style="background-color: {getConfidenceColor(group.confidence)}"
+										>
 											{Math.round(group.confidence * 100)}%
-						 				</span>
+										</span>
 									</div>
 									<div class="group-actions">
 										<span class="bookmark-count">{group.bookmarks.length} bookmarks</span>
@@ -254,11 +252,12 @@
 								{#if expandedGroups.has(group.id)}
 									<div class="group-content">
 										<div class="group-suggestion">
-											<strong>Suggestion:</strong> {getSuggestedAction(group)}
+											<strong>Suggestion:</strong>
+											{getSuggestedAction(group)}
 										</div>
-										
+
 										<div class="bulk-actions">
-											<button 
+											<button
 												class="btn-compact secondary"
 												on:click={() => keepNewest(group)}
 												title="Keep only the newest bookmark"
@@ -266,7 +265,7 @@
 												<svg><use href="feather-sprite.svg#clock" /></svg>
 												Keep Newest
 											</button>
-											<button 
+											<button
 												class="btn-compact secondary"
 												on:click={() => keepMostClicked(group)}
 												title="Keep only the most clicked bookmark"
@@ -282,7 +281,7 @@
 													<div class="bookmark-content">
 														<div class="bookmark-title">
 															<span class="bookmark-index">{index + 1}.</span>
-															<a 
+															<a
 																href={bookmark.url}
 																target="_blank"
 																rel="noopener noreferrer"
@@ -291,17 +290,17 @@
 																{bookmark.title || 'Untitled'}
 															</a>
 														</div>
-														
+
 														<div class="bookmark-url">
 															{bookmark.url}
 														</div>
-														
+
 														{#if bookmark.description}
 															<div class="bookmark-description">
 																{bookmark.description}
 															</div>
 														{/if}
-														
+
 														<div class="bookmark-meta">
 															<span>
 																{bookmark.clicked} clicks
@@ -316,16 +315,16 @@
 															{/if}
 														</div>
 													</div>
-													
+
 													<div class="bookmark-actions">
-														<button 
+														<button
 															class="btn-compact secondary"
 															on:click={() => handleEditBookmark(bookmark)}
 															title="Edit bookmark"
 														>
 															<svg><use href="feather-sprite.svg#edit" /></svg>
 														</button>
-														<button 
+														<button
 															class="btn-compact secondary"
 															on:click={() => handleDeleteBookmark(bookmark)}
 															title="Delete bookmark"
@@ -620,26 +619,26 @@
 			width: 95vw;
 			max-height: 95vh;
 		}
-		
+
 		.stats-grid {
 			grid-template-columns: repeat(2, 1fr);
 		}
-		
+
 		.filter-grid {
 			grid-template-columns: 1fr;
 			gap: 1rem;
 		}
-		
+
 		.type-filters {
 			flex-direction: column;
 			gap: 0.5rem;
 		}
-		
+
 		.bookmark-item {
 			flex-direction: column;
 			gap: 0.75rem;
 		}
-		
+
 		.bookmark-actions {
 			align-self: flex-end;
 			margin-left: 0;

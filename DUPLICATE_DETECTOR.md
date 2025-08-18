@@ -7,14 +7,17 @@ The **Duplicate Detector** is a powerful tool for finding and managing duplicate
 ### Detection Types
 
 1. **Exact Duplicates** (🔴 High Confidence - 100%)
+
    - Identical URLs (ignoring protocol differences like http/https and www)
    - These are definitely the same bookmark and can be safely merged
 
 2. **Similar URLs** (🟡 Medium Confidence - 80%)
+
    - URLs from the same domain with similar paths
    - Different pages that might be related (e.g., /page vs /page/subpage)
 
 3. **Similar Titles** (🟡 Medium Confidence - 75%)
+
    - Bookmarks with very similar titles that might refer to the same resource
    - Uses fuzzy matching to find titles that are 85% similar
 
@@ -35,7 +38,7 @@ The **Duplicate Detector** is a powerful tool for finding and managing duplicate
 ### Understanding Confidence Scores
 
 - **90-100%**: Almost certainly duplicates (red badge)
-- **75-89%**: Likely related or similar (amber badge)  
+- **75-89%**: Likely related or similar (amber badge)
 - **60-74%**: Potentially related (blue badge)
 
 ### Quick Actions
@@ -53,15 +56,18 @@ The **Duplicate Detector** is a powerful tool for finding and managing duplicate
 
 ### Example Scenarios
 
-**Exact Duplicates**: 
+**Exact Duplicates**:
+
 - `https://github.com/user/repo` and `http://github.com/user/repo`
 - `https://example.com` and `https://www.example.com`
 
 **Similar URLs**:
+
 - `https://news.ycombinator.com/` and `https://news.ycombinator.com/newest`
 - `https://reddit.com/r/programming` and `https://www.reddit.com/r/programming/`
 
 **Similar Titles**:
+
 - "Stack Overflow" and "Stack Overflow Questions"
 - "Hacker News" and "Hacker News - Newest"
 

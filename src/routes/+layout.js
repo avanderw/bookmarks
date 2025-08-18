@@ -1,3 +1,3 @@
 export const prerender = true;
 
-import '../global.css'
+import '../global.css';

@@ -1,13 +1,13 @@
 <!-- Storage Monitor View Component -->
 <script lang="ts">
 	import { createEventDispatcher, onMount } from 'svelte';
-	import { 
-		getStorageInfo, 
-		formatBytes, 
-		getStorageStatusColor, 
+	import {
+		getStorageInfo,
+		formatBytes,
+		getStorageStatusColor,
 		getStorageStatusText,
 		generateCleanupSuggestions,
-		type StorageStats 
+		type StorageStats
 	} from './Logic';
 
 	// Props
@@ -27,12 +27,12 @@
 	// Lifecycle
 	onMount(() => {
 		refreshStats();
-		
+
 		// Refresh stats every 5 seconds when open
 		if (isOpen) {
 			refreshInterval = setInterval(refreshStats, 5000);
 		}
-		
+
 		return () => {
 			if (refreshInterval) {
 				clearInterval(refreshInterval);
@@ -72,24 +72,27 @@
 	<dialog open>
 		<article>
 			<header>
-				<button aria-label="Close" data-rel="prev" on:click={handleClose}></button>
+				<button aria-label="Close" data-rel="prev" on:click={handleClose} />
 				<h3>📊 Storage Monitor</h3>
 			</header>
-			
+
 			{#if stats}
 				<div class="storage-overview">
 					<div class="storage-bar">
 						<div class="storage-label">
-							Storage Usage: {stats.percentUsed.toFixed(1)}% 
+							Storage Usage: {stats.percentUsed.toFixed(1)}%
 							<span class="status" style="color: {getStorageStatusColor(stats.percentUsed)}">
 								({getStorageStatusText(stats.percentUsed)})
 							</span>
 						</div>
 						<div class="progress-bar">
-							<div 
-								class="progress-fill" 
-								style="width: {Math.min(stats.percentUsed, 100)}%; background-color: {getStorageStatusColor(stats.percentUsed)}"
-							></div>
+							<div
+								class="progress-fill"
+								style="width: {Math.min(
+									stats.percentUsed,
+									100
+								)}%; background-color: {getStorageStatusColor(stats.percentUsed)}"
+							/>
 						</div>
 					</div>
 
@@ -134,14 +137,14 @@
 							<svg><use href="feather-sprite.svg#download" /></svg>
 							Export Bookmarks
 						</button>
-						
+
 						{#if stats.percentUsed > 60}
 							<button class="btn-warning" on:click={handleCleanup}>
 								<svg><use href="feather-sprite.svg#trash-2" /></svg>
 								Find Duplicates
 							</button>
 						{/if}
-						
+
 						<button on:click={refreshStats}>
 							<svg><use href="feather-sprite.svg#refresh-cw" /></svg>
 							Refresh
@@ -254,7 +257,7 @@
 		.detail-grid {
 			grid-template-columns: 1fr;
 		}
-		
+
 		.actions {
 			flex-direction: column;
 		}

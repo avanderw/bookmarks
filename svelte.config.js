@@ -17,11 +17,11 @@ const config = {
 			assets: 'build',
 			fallback: undefined,
 			preprocess: false,
-			strict: true,
+			strict: true
 		}),
 		paths: {
-			base: '/bookmarks',
-		},
+			base: '/bookmarks'
+		}
 	}
 };
 

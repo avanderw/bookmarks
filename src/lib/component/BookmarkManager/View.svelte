@@ -34,7 +34,6 @@
 	let sortedBookmarks: Bookmark[] = [];
 	let paginatedBookmarks: Bookmark[] = [];
 	let sortOrder: string = 'usage';
-	let viewMode: string = 'condensed'; // 'condensed' (HN-style) or 'detailed' (current)
 	let isSearchActive = false;
 	let previousSortOrder: string = sortOrder;
 	let selectedBookmark: Bookmark | null = null;
@@ -43,21 +42,13 @@
 	let showTagSummary: boolean = false;
 	let showStorageMonitor: boolean = false;
 	let showSortingHelp: boolean = false;
+	let showToolsMenu: boolean = false;
 	let isLocallyModified = false; // Flag to prevent store sync when we've intentionally modified data
 	// Reference to search component to allow setting search from tag clicks
 	let searchFilterComponent: any;
 	// Pagination state
 	let currentPage = 1;
-	let itemsPerPage = 25;
-	
-	// Adjust default items per page based on view mode
-	$: {
-		if (viewMode === 'condensed' && itemsPerPage < 25) {
-			itemsPerPage = 50; // Show more items in condensed view
-		} else if (viewMode === 'detailed' && itemsPerPage > 25) {
-			itemsPerPage = 10; // Show fewer items in detailed view
-		}
-	}
+	let itemsPerPage = 50; // Default to 50 for condensed view
 	let totalPages = 0;
 	let startIndex = 0;
 	let endIndex = 0;
@@ -84,6 +75,7 @@
 			window.addEventListener('dragover', handleDragOver);
 			window.addEventListener('dragleave', handleDragLeave);
 			window.addEventListener('drop', handleDrop);
+			window.addEventListener('click', handleGlobalClick);
 
 			// Handle storage full export event
 			window.addEventListener('trigger-export', onExportRequested);
@@ -117,6 +109,7 @@
 			window.removeEventListener('dragover', handleDragOver);
 			window.removeEventListener('dragleave', handleDragLeave);
 			window.removeEventListener('drop', handleDrop);
+			window.removeEventListener('click', handleGlobalClick);
 			window.removeEventListener('trigger-export', onExportRequested);
 		}
 	});
@@ -435,6 +428,15 @@
 		}
 	}
 
+	function handleGlobalClick(e: Event) {
+		if (!showToolsMenu) return;
+		
+		const dropdown = (e.target as Element)?.closest('.dropdown');
+		if (!dropdown) {
+			showToolsMenu = false;
+		}
+	}
+
 	// Reactive declarations
 	// -------------------------------------
 
@@ -557,57 +559,73 @@
 
 			<div class="action-section">
 				<button
-					class="btn-compact secondary"
+					class="btn-icon-only secondary"
 					on:click={() => document.getElementById('fileInput')?.click()}
-					title="Import bookmarks"
+					title="Import bookmarks from file"
 				>
 					<svg><use href="feather-sprite.svg#upload" /></svg>
-					Import
 				</button>
 
-				<button class="btn-compact secondary" on:click={onExportRequested} title="Export bookmarks">
+				<button 
+					class="btn-icon-only secondary" 
+					on:click={onExportRequested} 
+					title="Export all bookmarks to file"
+				>
 					<svg><use href="feather-sprite.svg#download" /></svg>
-					Export
 				</button>
 
 				<button
-					class="btn-compact secondary"
+					class="btn-icon-only secondary"
 					on:click={onOpenTagSummary}
 					title="Browse and filter by tags"
 					disabled={bookmarks.length === 0}
 				>
 					<svg><use href="feather-sprite.svg#tag" /></svg>
-					Tags
 				</button>
 
 				<button
-					class="btn-compact secondary"
-					on:click={onOpenDuplicateDetector}
-					title="Find duplicate or similar bookmarks"
-					disabled={bookmarks.length === 0}
-				>
-					<svg><use href="feather-sprite.svg#copy" /></svg>
-					Find Duplicates
-				</button>
-
-				<button
-					class="btn-compact secondary"
+					class="btn-icon-only secondary"
 					on:click={onCleanUrls}
 					title="Remove bookmarks with invalid URLs"
 					disabled={bookmarks.length === 0}
 				>
 					<svg><use href="feather-sprite.svg#trash" /></svg>
-					Clean URLs
 				</button>
 
 				<button
-					class="btn-compact secondary"
+					class="btn-icon-only secondary"
 					on:click={onOpenStorageMonitor}
-					title="Monitor localStorage usage and get cleanup suggestions"
+					title="Monitor storage usage and get cleanup suggestions"
 				>
 					<svg><use href="feather-sprite.svg#database" /></svg>
-					Storage
 				</button>
+
+				<div class="dropdown">
+					<button
+						class="btn-icon-only secondary dropdown-toggle"
+						title="More tools and options"
+						on:click={() => showToolsMenu = !showToolsMenu}
+					>
+						<svg><use href="feather-sprite.svg#more-horizontal" /></svg>
+					</button>
+					{#if showToolsMenu}
+						<div class="dropdown-menu" 
+							role="menu" 
+							tabindex="-1"
+							on:click|stopPropagation
+							on:keydown={(e) => e.key === 'Escape' && (showToolsMenu = false)}
+						>
+							<button
+								class="dropdown-item"
+								on:click={() => {onOpenDuplicateDetector(); showToolsMenu = false;}}
+								disabled={bookmarks.length === 0}
+							>
+								<svg><use href="feather-sprite.svg#copy" /></svg>
+								Find Duplicates
+							</button>
+						</div>
+					{/if}
+				</div>
 
 				<BookmarkForm.Button
 					on:save={onBookmarkSave}
@@ -618,7 +636,7 @@
 				<a
 					href={getBookmarkletCode()}
 					class="btn-compact secondary bookmarklet-button"
-					title="Drag to your bookmarks bar"
+					title="Drag to your bookmarks bar to save bookmarks"
 					draggable="true"
 					on:dragstart={(e) => e.dataTransfer?.setData('text/plain', getBookmarkletCode())}
 				>
@@ -660,22 +678,12 @@
 				</div>
 
 				<label>
-					View:
-					<select bind:value={viewMode}>
-						<option value="condensed">Condensed</option>
-						<option value="detailed">Detailed</option>
-					</select>
-				</label>
-
-				<label>
 					Items per page:
 					<select bind:value={itemsPerPage}>
-						<option value={5}>5</option>
-						<option value={10}>10</option>
-						<option value={20}>20</option>
 						<option value={25}>25</option>
 						<option value={50}>50</option>
 						<option value={100}>100</option>
+						<option value={200}>200</option>
 					</select>
 				</label>
 			</div>
@@ -704,179 +712,83 @@
 				<p>No bookmarks found. Import a bookmark file or add new bookmarks.</p>
 			</div>
 		{:else}
-			<div class="bookmark-items" class:condensed={viewMode === 'condensed'}>
+			<div class="bookmark-items condensed">
 				{#each paginatedBookmarks as bookmark, index (bookmark.url)}
-					{#if viewMode === 'condensed'}
-						<!-- Condensed HN-style view -->
-						<article class="bookmark-row-condensed">
-							<div class="bookmark-line">
-								<span class="bookmark-number condensed">{startIndex + index}.</span>
-								<a
-									href={bookmark.url}
-									target="_blank"
-									rel="noopener noreferrer"
-									class="bookmark-link"
-									on:click|preventDefault={() => onBookmarkClick(bookmark)}
-									>{bookmark.title || 'Untitled'}</a
+					<!-- Condensed HN-style view -->
+					<article class="bookmark-row-condensed">
+						<div class="bookmark-line">
+							<span class="bookmark-number condensed">{startIndex + index}.</span>
+							<a
+								href={bookmark.url}
+								target="_blank"
+								rel="noopener noreferrer"
+								class="bookmark-link"
+								on:click|preventDefault={() => onBookmarkClick(bookmark)}
+								>{bookmark.title || 'Untitled'}</a
+							>
+							{#if bookmark.url}
+								<span class="bookmark-domain">
+									({bookmark.url.replace(/^https?:\/\/([^\/]+).*$/, '$1')})
+								</span>
+							{/if}
+							<div class="bookmark-actions-condensed">
+								<button
+									class="btn-icon"
+									on:click={() => onEditBookmarkClick(bookmark)}
+									title="Edit bookmark"
 								>
-								{#if bookmark.url}
-									<span class="bookmark-domain">
-										({bookmark.url.replace(/^https?:\/\/([^\/]+).*$/, '$1')})
-									</span>
-								{/if}
-								<div class="bookmark-actions-condensed">
-									<button
-										class="btn-icon"
-										on:click={() => onEditBookmarkClick(bookmark)}
-										title="Edit bookmark"
-									>
-										<svg><use href="feather-sprite.svg#edit" /></svg>
-									</button>
-									<button
-										class="btn-icon"
-										on:click={() => onDeleteBookmarkClick(bookmark)}
-										title="Delete bookmark"
-									>
-										<svg><use href="feather-sprite.svg#trash-2" /></svg>
-									</button>
-								</div>
+									<svg><use href="feather-sprite.svg#edit" /></svg>
+								</button>
+								<button
+									class="btn-icon"
+									on:click={() => onDeleteBookmarkClick(bookmark)}
+									title="Delete bookmark"
+								>
+									<svg><use href="feather-sprite.svg#trash-2" /></svg>
+								</button>
 							</div>
-							<div class="bookmark-meta-condensed">
-								{#if bookmark.clicked > 0}
-									<span>{bookmark.clicked} clicks</span>
-									{#if bookmark.last}
-										<span>visited {formatRelativeTime(bookmark.last)}</span>
-									{/if}
-								{:else}
-									<span>never visited</span>
+						</div>
+						<div class="bookmark-meta-condensed">
+							{#if bookmark.clicked > 0}
+								<span>{bookmark.clicked} clicks</span>
+								{#if bookmark.last}
+									<span>visited {formatRelativeTime(bookmark.last)}</span>
 								{/if}
-								
-								{#if bookmark.added}
-									<span>added {formatRelativeTime(bookmark.added)}</span>
-								{/if}
+							{:else}
+								<span>never visited</span>
+							{/if}
+							
+							{#if bookmark.added}
+								<span>added {formatRelativeTime(bookmark.added)}</span>
+							{/if}
 
-								{#if bookmark.notes}
-									<button
-										class="btn-link"
-										on:click={() => onViewNotesClick(bookmark)}
-										title="View notes"
-									>
-										notes
-									</button>
-								{/if}
+							{#if bookmark.notes}
+								<button
+									class="btn-link"
+									on:click={() => onViewNotesClick(bookmark)}
+									title="View notes"
+								>
+									notes
+								</button>
+							{/if}
 
-								{#if bookmark.tags && bookmark.tags.length > 0}
-									<span class="tags-condensed">
-										{#each bookmark.tags as tag, tagIndex}
-											<span class="tag-condensed">#{tag}</span>{tagIndex < bookmark.tags.length - 1 ? ', ' : ''}
-										{/each}
-									</span>
-								{/if}
+							{#if bookmark.tags && bookmark.tags.length > 0}
+								<span class="tags-condensed">
+									{#each bookmark.tags as tag, tagIndex}
+										<span class="tag-condensed">#{tag}</span>{tagIndex < bookmark.tags.length - 1 ? ', ' : ''}
+									{/each}
+								</span>
+							{/if}
 
-								{#if bookmark.description}
-									<span class="description-condensed">— {bookmark.description}</span>
-								{/if}
-							</div>
-						</article>
-					{:else}
-						<!-- Detailed view (current) -->
-						<article class="bookmark-row">
-							<div class="bookmark-content">
-								<div class="bookmark-title-row">
-									<div class="title-section">
-										<span class="bookmark-number">{startIndex + index}.</span>
-										<a
-											href={bookmark.url}
-											target="_blank"
-											rel="noopener noreferrer"
-											on:click|preventDefault={() => onBookmarkClick(bookmark)}
-											>{bookmark.title || 'Untitled'}</a
-										>
-										{#if bookmark.url}
-											<span class="bookmark-domain">
-												({bookmark.url.replace(/^https?:\/\/([^\/]+).*$/, '$1')})
-											</span>
-										{/if}
-
-										{#if bookmark.description}
-											<span class="bookmark-description">{bookmark.description}</span>
-										{/if}
-									</div>
-
-									<div class="bookmark-actions">
-										<button
-											class="btn-compact secondary"
-											on:click={() => onEditBookmarkClick(bookmark)}
-											title="Edit bookmark"
-										>
-											<svg><use href="feather-sprite.svg#edit" /></svg>
-										</button>
-										<button
-											class="btn-compact secondary"
-											on:click={() => onDeleteBookmarkClick(bookmark)}
-											title="Delete bookmark"
-										>
-											<svg><use href="feather-sprite.svg#trash-2" /></svg>
-										</button>
-									</div>
-								</div>
-
-								<div class="bookmark-meta">
-									{#if bookmark.clicked > 0}
-										<span>{bookmark.clicked} clicks</span>
-										{#if bookmark.last}
-											<span title={formatFriendlyDate(bookmark.last)}>
-												visited {formatRelativeTime(bookmark.last)}
-											</span>
-										{/if}
-									{:else}
-										<span>Never visited</span>
-									{/if}
-
-									{#if bookmark.added}
-										<span title={formatFriendlyDate(bookmark.added)}>
-											added {formatRelativeTime(bookmark.added)}
-										</span>
-									{/if}
-
-									{#if bookmark.browser && bookmark.device}
-										<span title="Added from {bookmark.browser} on {bookmark.os} ({bookmark.device})">
-											<svg><use href="feather-sprite.svg#monitor" /></svg>
-											{getShortUserAgentSummary({
-												userAgent: bookmark.userAgent || '',
-												browser: bookmark.browser,
-												os: bookmark.os || 'Unknown',
-												device: bookmark.device
-											})}
-										</span>
-									{/if}
-
-									{#if bookmark.notes}
-										<button
-											class="btn-compact secondary"
-											on:click={() => onViewNotesClick(bookmark)}
-											title="View notes"
-										>
-											<svg><use href="feather-sprite.svg#file-text" /></svg>
-											Notes
-										</button>
-									{/if}
-
-									{#if bookmark.tags && bookmark.tags.length > 0}
-										<div class="tags">
-											{#each bookmark.tags as tag}
-												<span class="bookmark-tag">#{tag}</span>
-											{/each}
-										</div>
-									{/if}
-								</div>
-							</div>
-						</article>
-					{/if}
+							{#if bookmark.description}
+								<span class="description-condensed">— {bookmark.description}</span>
+							{/if}
+						</div>
+					</article>
 				{/each}
 			</div>
 
-			<nav class="pagination" class:condensed={viewMode === 'condensed'}>
+			<nav class="pagination">
 				<div class="pagination-info">
 					{#if sortedBookmarks.length > 0}
 						Showing {startIndex}-{endIndex} of {sortedBookmarks.length} bookmarks
@@ -1100,54 +1012,6 @@
 		pointer-events: none;
 	}
 
-	.bookmark-row {
-		border-bottom: 1px solid var(--bookmark-border);
-		padding: 0.5rem 0;
-	}
-
-	.bookmark-row:last-child {
-		border-bottom: none;
-	}
-
-	.bookmark-title-row {
-		display: flex;
-		justify-content: space-between;
-		align-items: flex-start;
-		margin-bottom: 0.25rem;
-	}
-
-	.title-section {
-		flex: 1;
-		min-width: 0;
-		display: flex;
-		flex-wrap: wrap;
-		align-items: baseline;
-		gap: 0.25rem;
-	}
-
-	.title-section a {
-		font-weight: 500;
-		text-decoration: none;
-	}
-
-	.title-section a:hover {
-		text-decoration: underline;
-	}
-
-	.bookmark-actions {
-		display: flex;
-		gap: 0.25rem;
-		flex-shrink: 0;
-	}
-
-	.bookmark-actions button {
-		padding: 0.25rem;
-		margin: 0;
-		min-width: auto;
-		width: auto;
-		height: auto;
-	}
-
 	.pagination-controls {
 		display: flex;
 		align-items: center;
@@ -1180,37 +1044,6 @@
 		font-size: 0.875rem;
 	}
 
-	.tags {
-		display: inline-flex;
-		flex-wrap: wrap;
-		gap: 0.25rem;
-		align-items: center;
-	}
-
-	.bookmark-tag {
-		background: var(--pico-primary-background);
-		color: var(--pico-primary);
-		border: 1px solid var(--pico-primary-border);
-		border-radius: 0.25rem;
-		padding: 0.125rem 0.375rem;
-		font-size: 0.75rem;
-		font-weight: 500;
-		cursor: pointer;
-		transition: all 0.2s ease;
-		text-decoration: none;
-		margin: 0;
-		min-width: auto;
-		height: auto;
-		line-height: 1.2;
-	}
-
-	.bookmark-tag:hover {
-		background: var(--pico-primary);
-		color: var(--pico-primary-inverse);
-		transform: translateY(-1px);
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-	}
-
 	/* Mobile responsive adjustments */
 	@media (max-width: 768px) {
 		.toolbar {
@@ -1231,13 +1064,12 @@
 			justify-content: center;
 		}
 
-		.bookmark-title-row {
-			flex-direction: column;
-			gap: 0.5rem;
+		.bookmark-meta-condensed {
+			margin-left: 1rem;
 		}
 
-		.bookmark-actions {
-			align-self: flex-end;
+		.bookmark-number {
+			min-width: 1.5rem;
 		}
 	}
 
@@ -1384,13 +1216,94 @@
 	}
 
 	/* Compact pagination for condensed view */
-	.pagination.condensed {
+	.pagination {
 		margin: 0.5rem 0;
 	}
 
-	.pagination.condensed .pagination-info {
+	.pagination .pagination-info {
 		font-size: 0.75rem;
 		margin: 0.25rem 0;
+	}
+
+	/* Icon-only button styles */
+	.btn-icon-only {
+		padding: 0.5rem;
+		margin: 0.125rem;
+		min-width: auto;
+		width: auto;
+		height: auto;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0;
+		border-radius: var(--pico-border-radius);
+		transition: all 0.2s ease;
+	}
+
+	.btn-icon-only svg {
+		width: 1rem;
+		height: 1rem;
+	}
+
+	.btn-icon-only:hover {
+		transform: translateY(-1px);
+	}
+
+	.btn-icon-only:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+		transform: none;
+	}
+
+	/* Dropdown styles */
+	.dropdown {
+		position: relative;
+		display: inline-block;
+	}
+
+	.dropdown-menu {
+		position: absolute;
+		top: 100%;
+		right: 0;
+		background: var(--pico-card-background-color);
+		border: 1px solid var(--pico-muted-border-color);
+		border-radius: var(--pico-border-radius);
+		box-shadow: var(--pico-box-shadow);
+		z-index: 1000;
+		min-width: 160px;
+		padding: 0.25rem 0;
+		margin-top: 0.125rem;
+	}
+
+	.dropdown-item {
+		width: 100%;
+		padding: 0.5rem 1rem;
+		margin: 0;
+		border: none;
+		background: none;
+		color: var(--pico-color);
+		text-align: left;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.875rem;
+		transition: background-color 0.2s ease;
+	}
+
+	.dropdown-item:hover:not(:disabled) {
+		background: var(--pico-secondary-background);
+	}
+
+	.dropdown-item:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.dropdown-item svg {
+		width: 0.875rem;
+		height: 0.875rem;
+		flex-shrink: 0;
 	}
 
 	/* Responsive adjustments for condensed view */

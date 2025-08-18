@@ -1,5 +1,5 @@
 /* Import Pico CSS */
-@import '@picocss/pico';
+@import '@picocss/pico/css/pico.min.css';
 
 /* Custom CSS Variables and Overrides */
 :root {

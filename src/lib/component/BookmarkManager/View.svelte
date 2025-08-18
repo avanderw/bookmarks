@@ -666,7 +666,7 @@
 					</label>
 					{#if sortOrder === 'usage'}
 						<button
-							class="sort-help-button"
+							class="sort-help-button secondary"
 							on:click={onOpenSortingHelp}
 							title="Learn about Smart Usage sorting"
 							type="button"
@@ -946,9 +946,6 @@
 		min-width: auto;
 		width: auto;
 		height: auto;
-		background: var(--pico-secondary-background);
-		border: 1px solid var(--pico-secondary-border);
-		color: var(--pico-secondary);
 		border-radius: var(--pico-border-radius);
 		cursor: pointer;
 		transition: all 0.2s ease;
@@ -958,9 +955,6 @@
 	}
 
 	.sort-help-button:hover {
-		background: var(--pico-secondary-hover-background);
-		border-color: var(--pico-secondary-hover-border);
-		color: var(--pico-secondary-hover);
 		transform: translateY(-1px);
 	}
 

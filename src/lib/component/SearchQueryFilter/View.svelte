@@ -70,7 +70,7 @@
 	<div class="search-input-wrapper">
 		<input type="search" bind:value={query} on:input={handleInput} {placeholder} />
 		<button
-			class="help-button"
+			class="help-button secondary"
 			on:click={toggleHelp}
 			title="Show filter help and examples"
 			type="button"
@@ -164,9 +164,6 @@
 		min-width: auto;
 		width: auto;
 		height: auto;
-		background: var(--pico-secondary-background);
-		border: 1px solid var(--pico-secondary-border);
-		color: var(--pico-secondary);
 		border-radius: var(--pico-border-radius);
 		cursor: pointer;
 		transition: all 0.2s ease;
@@ -176,9 +173,6 @@
 	}
 
 	.help-button:hover {
-		background: var(--pico-secondary-hover-background);
-		border-color: var(--pico-secondary-hover-border);
-		color: var(--pico-secondary-hover);
 		transform: translateY(-1px);
 	}
 
@@ -225,7 +219,7 @@
 
 	.filter-tag.and {
 		background-color: var(--pico-ins-color);
-		color: white;
+		color: var(--pico-contrast);
 	}
 
 	.filter-tag.or {
@@ -236,12 +230,12 @@
 
 	.filter-tag.not {
 		background-color: var(--pico-del-color);
-		color: white;
+		color: var(--pico-contrast);
 	}
 
 	.filter-tag.not-special {
 		background-color: var(--pico-del-color);
-		color: white;
+		color: var(--pico-contrast);
 		border: 1px solid var(--pico-del-color);
 	}
 

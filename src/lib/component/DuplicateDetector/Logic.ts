@@ -308,9 +308,9 @@ export function getSuggestedAction(group: DuplicateGroup): string {
  * Get confidence color for UI display
  */
 export function getConfidenceColor(confidence: number): string {
-	if (confidence >= 0.9) return 'var(--pico-color-red-500)';
-	if (confidence >= 0.75) return 'var(--pico-color-amber-500)';
-	return 'var(--pico-color-blue-500)';
+	if (confidence >= 0.9) return 'var(--pico-del-color)';
+	if (confidence >= 0.75) return 'var(--pico-ins-color)';
+	return 'var(--pico-primary)';
 }
 
 /**

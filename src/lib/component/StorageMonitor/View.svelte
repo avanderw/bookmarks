@@ -215,14 +215,14 @@
 	.cleanup-suggestions {
 		margin-bottom: 1.5rem;
 		padding: 1rem;
-		background: var(--pico-color-amber-50);
-		border: 1px solid var(--pico-color-amber-500);
+		background: var(--pico-card-sectioning-background-color);
+		border: 1px solid var(--pico-muted-border-color);
 		border-radius: 0.5rem;
 	}
 
 	.cleanup-suggestions h4 {
 		margin: 0 0 0.5rem 0;
-		color: var(--pico-color-amber-700);
+		color: var(--pico-primary);
 	}
 
 	.cleanup-suggestions ul {
@@ -232,7 +232,7 @@
 
 	.cleanup-suggestions li {
 		margin-bottom: 0.25rem;
-		color: var(--pico-color-amber-800);
+		color: var(--pico-color);
 	}
 
 	.actions {
@@ -245,12 +245,13 @@
 	.btn-warning {
 		background-color: var(--pico-ins-color);
 		border-color: var(--pico-ins-color);
-		color: white;
+		color: var(--pico-contrast);
 	}
 
 	.btn-warning:hover {
 		background-color: var(--pico-del-color);
 		border-color: var(--pico-del-color);
+		color: var(--pico-contrast);
 	}
 
 	@media (max-width: 768px) {

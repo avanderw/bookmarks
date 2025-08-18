@@ -490,7 +490,7 @@
 	}
 
 	.confidence-badge {
-		color: white;
+		color: var(--pico-contrast);
 		padding: 0.125rem 0.5rem;
 		border-radius: 12px;
 		font-size: 0.75rem;

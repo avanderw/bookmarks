@@ -9,7 +9,7 @@
     export let debounceTime: number = 500; // Increased from 300ms to 500ms for better performance
     
     let query: string = '';
-    let filterOptions: FilterOptions = { and: [], or: [], not: [], special: [] };
+    let filterOptions: FilterOptions = { and: [], or: [], not: [], special: [], notSpecial: [] };
     let timer: ReturnType<typeof setTimeout>;
     let showHelp = false;
     let lastDataHash = '';
@@ -92,6 +92,20 @@
             {#each filterOptions.special as filter}
               <span class="filter-tag special">
                 {filter.type}
+                {#if filter.value}:{filter.value}{/if}
+                {#if filter.operator && filter.duration}{filter.operator}{filter.duration}d{/if}
+                {#if filter.duration && !filter.operator}:{filter.duration}d{/if}
+              </span>
+            {/each}
+          </div>
+        {/if}
+        
+        {#if filterOptions.notSpecial.length > 0}
+          <div class="filter-group">
+            <small>NOT special filters:</small>
+            {#each filterOptions.notSpecial as filter}
+              <span class="filter-tag not-special">
+                -{filter.type}
                 {#if filter.value}:{filter.value}{/if}
                 {#if filter.operator && filter.duration}{filter.operator}{filter.duration}d{/if}
                 {#if filter.duration && !filter.operator}:{filter.duration}d{/if}
@@ -227,6 +241,12 @@
     .filter-tag.not {
       background-color: var(--pico-del-color);
       color: white;
+    }
+    
+    .filter-tag.not-special {
+      background-color: var(--pico-del-color);
+      color: white;
+      border: 1px solid var(--pico-del-color);
     }
     
     @media (max-width: 768px) {

@@ -7,7 +7,7 @@
 	import { BookmarkForm } from '$lib/component/BookmarkForm';
 	import { Bookmarklet } from '$lib/component/Bookmarklet';
 	import { exportBookmarks } from '$lib/storage';
-	import { updateBookmarkClickCount, sortBookmarks, cleanExistingBookmarks } from './Logic';
+	import { updateBookmarkClickCount, sortBookmarks, sortBookmarksByUsageRelevance, cleanExistingBookmarks } from './Logic';
 	import { PaginationUtils } from './PaginationUtils';
 	import { FileUtils } from './FileUtils';
 	import { formatRelativeTime, formatFriendlyDate } from '$lib/utils/DateUtils';
@@ -15,6 +15,7 @@
 	import { DuplicateDetector } from '$lib/component/DuplicateDetector';
 	import { TagSummary } from '$lib/component/TagSummary';
 	import { StorageMonitor } from '$lib/component/StorageMonitor';
+	import SortingHelp from './SortingHelp.svelte';
 
 	// Event dispatcher
 	const dispatch = createEventDispatcher<{
@@ -27,7 +28,7 @@
 	let filteredBookmarks: Bookmark[] = [];
 	let sortedBookmarks: Bookmark[] = [];
 	let paginatedBookmarks: Bookmark[] = [];
-	let sortOrder: string = 'clicks';
+	let sortOrder: string = 'usage';
 	let isSearchActive = false;
 	let previousSortOrder: string = sortOrder;
 	let selectedBookmark: Bookmark | null = null;
@@ -35,6 +36,7 @@
 	let showDuplicateDetector: boolean = false;
 	let showTagSummary: boolean = false;
 	let showStorageMonitor: boolean = false;
+	let showSortingHelp: boolean = false;
 	let isLocallyModified = false; // Flag to prevent store sync when we've intentionally modified data
 	// Reference to search component to allow setting search from tag clicks
 	let searchFilterComponent: any;
@@ -266,6 +268,20 @@
 	}
 
 	/**
+	 * Open the sorting help
+	 */
+	function onOpenSortingHelp() {
+		showSortingHelp = true;
+	}
+
+	/**
+	 * Close the sorting help
+	 */
+	function onCloseSortingHelp() {
+		showSortingHelp = false;
+	}
+
+	/**
 	 * Handle storage monitor events
 	 */
 	function onStorageExport() {
@@ -409,6 +425,8 @@
 	$: sortedBookmarks =
 		sortOrder === 'relevance' && isSearchActive
 			? filteredBookmarks // Keep the relevancy order from search
+			: sortOrder === 'usage'
+			? sortBookmarksByUsageRelevance(filteredBookmarks) // Use dedicated relevance function for performance
 			: sortBookmarks(filteredBookmarks, sortOrder);
 
 	// Calculate pagination values using utility (optimized to reduce recalculations)
@@ -592,21 +610,34 @@
 
 		<div class="settings-bar">
 			<div class="display-settings">
-				<label>
-					Sort by:
-					<select bind:value={sortOrder}>
-						{#if isSearchActive}
-							<option value="relevance">Relevance</option>
+				<div class="sort-section">
+					<label>
+						Sort by:
+						<select bind:value={sortOrder}>
+							{#if isSearchActive}
+								<option value="relevance">Relevance</option>
+							{/if}
+							<option value="usage">Smart Usage</option>
+							<option value="clicks">Clicks</option>
+							<option value="date">Date Added</option>
+							<option value="title">Title</option>
+							<option value="url">URL</option>
+						</select>
+						{#if isSearchActive && sortOrder !== 'relevance'}
+							<small class="text-muted">(search relevance overridden)</small>
 						{/if}
-						<option value="clicks">Clicks</option>
-						<option value="date">Date Added</option>
-						<option value="title">Title</option>
-						<option value="url">URL</option>
-					</select>
-					{#if isSearchActive && sortOrder !== 'relevance'}
-						<small class="text-muted">(search relevance overridden)</small>
+					</label>
+					{#if sortOrder === 'usage'}
+						<button
+							class="sort-help-button"
+							on:click={onOpenSortingHelp}
+							title="Learn about Smart Usage sorting"
+							type="button"
+						>
+							<svg><use href="feather-sprite.svg#help-circle" /></svg>
+						</button>
 					{/if}
-				</label>				
+				</div>				
 
 				<label>
 					Items per page:
@@ -839,6 +870,13 @@
 		on:export={onStorageExport}
 		on:cleanup={onStorageCleanup}
 	/>
+
+	<!-- Sorting Help (conditionally rendered) -->
+	<SortingHelp
+		{bookmarks}
+		isOpen={showSortingHelp}
+		on:close={onCloseSortingHelp}
+	/>
 </div>
 
 <style>
@@ -886,6 +924,39 @@
 		gap: 1.5rem;
 		align-items: center;
 		flex-wrap: wrap;
+	}
+
+	.sort-section {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.sort-help-button {
+		padding: 0.25rem;
+		margin: 0;
+		min-width: auto;
+		width: auto;
+		height: auto;
+		background: var(--pico-secondary-background);
+		border: 1px solid var(--pico-secondary-border);
+		color: var(--pico-secondary);
+		border-radius: var(--pico-border-radius);
+		cursor: pointer;
+		transition: all 0.2s ease;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.sort-help-button:hover {
+		background: var(--pico-secondary-hover-background);
+		border-color: var(--pico-secondary-hover-border);
+	}
+
+	.sort-help-button svg {
+		width: 14px;
+		height: 14px;
 	}
 
 	.display-settings label {

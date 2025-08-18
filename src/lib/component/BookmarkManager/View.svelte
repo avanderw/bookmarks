@@ -34,6 +34,7 @@
 	let sortedBookmarks: Bookmark[] = [];
 	let paginatedBookmarks: Bookmark[] = [];
 	let sortOrder: string = 'usage';
+	let viewMode: string = 'condensed'; // 'condensed' (HN-style) or 'detailed' (current)
 	let isSearchActive = false;
 	let previousSortOrder: string = sortOrder;
 	let selectedBookmark: Bookmark | null = null;
@@ -47,7 +48,16 @@
 	let searchFilterComponent: any;
 	// Pagination state
 	let currentPage = 1;
-	let itemsPerPage = 10;
+	let itemsPerPage = 25;
+	
+	// Adjust default items per page based on view mode
+	$: {
+		if (viewMode === 'condensed' && itemsPerPage < 25) {
+			itemsPerPage = 50; // Show more items in condensed view
+		} else if (viewMode === 'detailed' && itemsPerPage > 25) {
+			itemsPerPage = 10; // Show fewer items in detailed view
+		}
+	}
 	let totalPages = 0;
 	let startIndex = 0;
 	let endIndex = 0;
@@ -650,6 +660,14 @@
 				</div>
 
 				<label>
+					View:
+					<select bind:value={viewMode}>
+						<option value="condensed">Condensed</option>
+						<option value="detailed">Detailed</option>
+					</select>
+				</label>
+
+				<label>
 					Items per page:
 					<select bind:value={itemsPerPage}>
 						<option value={5}>5</option>
@@ -686,41 +704,36 @@
 				<p>No bookmarks found. Import a bookmark file or add new bookmarks.</p>
 			</div>
 		{:else}
-			<div class="bookmark-items">
+			<div class="bookmark-items" class:condensed={viewMode === 'condensed'}>
 				{#each paginatedBookmarks as bookmark, index (bookmark.url)}
-					<article class="bookmark-row">
-						<div class="bookmark-content">
-							<div class="bookmark-title-row">
-								<div class="title-section">
-									<span class="bookmark-number">{startIndex + index}.</span>
-									<a
-										href={bookmark.url}
-										target="_blank"
-										rel="noopener noreferrer"
-										on:click|preventDefault={() => onBookmarkClick(bookmark)}
-										>{bookmark.title || 'Untitled'}</a
-									>
-									{#if bookmark.url}
-										<span class="bookmark-domain">
-											({bookmark.url.replace(/^https?:\/\/([^\/]+).*$/, '$1')})
-										</span>
-									{/if}
-
-									{#if bookmark.description}
-										<span class="bookmark-description">{bookmark.description}</span>
-									{/if}
-								</div>
-
-								<div class="bookmark-actions">
+					{#if viewMode === 'condensed'}
+						<!-- Condensed HN-style view -->
+						<article class="bookmark-row-condensed">
+							<div class="bookmark-line">
+								<span class="bookmark-number condensed">{startIndex + index}.</span>
+								<a
+									href={bookmark.url}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="bookmark-link"
+									on:click|preventDefault={() => onBookmarkClick(bookmark)}
+									>{bookmark.title || 'Untitled'}</a
+								>
+								{#if bookmark.url}
+									<span class="bookmark-domain">
+										({bookmark.url.replace(/^https?:\/\/([^\/]+).*$/, '$1')})
+									</span>
+								{/if}
+								<div class="bookmark-actions-condensed">
 									<button
-										class="btn-compact secondary"
+										class="btn-icon"
 										on:click={() => onEditBookmarkClick(bookmark)}
 										title="Edit bookmark"
 									>
 										<svg><use href="feather-sprite.svg#edit" /></svg>
 									</button>
 									<button
-										class="btn-compact secondary"
+										class="btn-icon"
 										on:click={() => onDeleteBookmarkClick(bookmark)}
 										title="Delete bookmark"
 									>
@@ -728,62 +741,142 @@
 									</button>
 								</div>
 							</div>
-
-							<div class="bookmark-meta">
+							<div class="bookmark-meta-condensed">
 								{#if bookmark.clicked > 0}
 									<span>{bookmark.clicked} clicks</span>
 									{#if bookmark.last}
-										<span title={formatFriendlyDate(bookmark.last)}>
-											visited {formatRelativeTime(bookmark.last)}
-										</span>
+										<span>visited {formatRelativeTime(bookmark.last)}</span>
 									{/if}
 								{:else}
-									<span>Never visited</span>
+									<span>never visited</span>
 								{/if}
-
+								
 								{#if bookmark.added}
-									<span title={formatFriendlyDate(bookmark.added)}>
-										added {formatRelativeTime(bookmark.added)}
-									</span>
-								{/if}
-
-								{#if bookmark.browser && bookmark.device}
-									<span title="Added from {bookmark.browser} on {bookmark.os} ({bookmark.device})">
-										<svg><use href="feather-sprite.svg#monitor" /></svg>
-										{getShortUserAgentSummary({
-											userAgent: bookmark.userAgent || '',
-											browser: bookmark.browser,
-											os: bookmark.os || 'Unknown',
-											device: bookmark.device
-										})}
-									</span>
+									<span>added {formatRelativeTime(bookmark.added)}</span>
 								{/if}
 
 								{#if bookmark.notes}
 									<button
-										class="btn-compact secondary"
+										class="btn-link"
 										on:click={() => onViewNotesClick(bookmark)}
 										title="View notes"
 									>
-										<svg><use href="feather-sprite.svg#file-text" /></svg>
-										Notes
+										notes
 									</button>
 								{/if}
 
 								{#if bookmark.tags && bookmark.tags.length > 0}
-									<div class="tags">
-										{#each bookmark.tags as tag}
-											<span class="bookmark-tag">#{tag}</span>
+									<span class="tags-condensed">
+										{#each bookmark.tags as tag, tagIndex}
+											<span class="tag-condensed">#{tag}</span>{tagIndex < bookmark.tags.length - 1 ? ', ' : ''}
 										{/each}
-									</div>
+									</span>
+								{/if}
+
+								{#if bookmark.description}
+									<span class="description-condensed">— {bookmark.description}</span>
 								{/if}
 							</div>
-						</div>
-					</article>
+						</article>
+					{:else}
+						<!-- Detailed view (current) -->
+						<article class="bookmark-row">
+							<div class="bookmark-content">
+								<div class="bookmark-title-row">
+									<div class="title-section">
+										<span class="bookmark-number">{startIndex + index}.</span>
+										<a
+											href={bookmark.url}
+											target="_blank"
+											rel="noopener noreferrer"
+											on:click|preventDefault={() => onBookmarkClick(bookmark)}
+											>{bookmark.title || 'Untitled'}</a
+										>
+										{#if bookmark.url}
+											<span class="bookmark-domain">
+												({bookmark.url.replace(/^https?:\/\/([^\/]+).*$/, '$1')})
+											</span>
+										{/if}
+
+										{#if bookmark.description}
+											<span class="bookmark-description">{bookmark.description}</span>
+										{/if}
+									</div>
+
+									<div class="bookmark-actions">
+										<button
+											class="btn-compact secondary"
+											on:click={() => onEditBookmarkClick(bookmark)}
+											title="Edit bookmark"
+										>
+											<svg><use href="feather-sprite.svg#edit" /></svg>
+										</button>
+										<button
+											class="btn-compact secondary"
+											on:click={() => onDeleteBookmarkClick(bookmark)}
+											title="Delete bookmark"
+										>
+											<svg><use href="feather-sprite.svg#trash-2" /></svg>
+										</button>
+									</div>
+								</div>
+
+								<div class="bookmark-meta">
+									{#if bookmark.clicked > 0}
+										<span>{bookmark.clicked} clicks</span>
+										{#if bookmark.last}
+											<span title={formatFriendlyDate(bookmark.last)}>
+												visited {formatRelativeTime(bookmark.last)}
+											</span>
+										{/if}
+									{:else}
+										<span>Never visited</span>
+									{/if}
+
+									{#if bookmark.added}
+										<span title={formatFriendlyDate(bookmark.added)}>
+											added {formatRelativeTime(bookmark.added)}
+										</span>
+									{/if}
+
+									{#if bookmark.browser && bookmark.device}
+										<span title="Added from {bookmark.browser} on {bookmark.os} ({bookmark.device})">
+											<svg><use href="feather-sprite.svg#monitor" /></svg>
+											{getShortUserAgentSummary({
+												userAgent: bookmark.userAgent || '',
+												browser: bookmark.browser,
+												os: bookmark.os || 'Unknown',
+												device: bookmark.device
+											})}
+										</span>
+									{/if}
+
+									{#if bookmark.notes}
+										<button
+											class="btn-compact secondary"
+											on:click={() => onViewNotesClick(bookmark)}
+											title="View notes"
+										>
+											<svg><use href="feather-sprite.svg#file-text" /></svg>
+											Notes
+										</button>
+									{/if}
+
+									{#if bookmark.tags && bookmark.tags.length > 0}
+										<div class="tags">
+											{#each bookmark.tags as tag}
+												<span class="bookmark-tag">#{tag}</span>
+											{/each}
+										</div>
+									{/if}
+								</div>
+							</div>
+						</article>
+					{/if}
 				{/each}
 			</div>
 
-			<nav class="pagination">
+			<nav class="pagination" class:condensed={viewMode === 'condensed'}>
 				<div class="pagination-info">
 					{#if sortedBookmarks.length > 0}
 						Showing {startIndex}-{endIndex} of {sortedBookmarks.length} bookmarks
@@ -1145,6 +1238,179 @@
 
 		.bookmark-actions {
 			align-self: flex-end;
+		}
+	}
+
+	/* Condensed (HN-style) View Styles */
+	.bookmark-items.condensed {
+		font-size: 0.875rem;
+		line-height: 1.3;
+		max-width: none; /* Remove any max-width constraints */
+	}
+
+	.bookmark-row-condensed {
+		padding: 0.0625rem 0; /* Even tighter spacing */
+		margin: 0;
+		border: none;
+		background: none;
+	}
+
+	.bookmark-line {
+		display: flex;
+		align-items: baseline;
+		gap: 0.25rem;
+		flex-wrap: wrap;
+	}
+
+	.bookmark-number {
+		color: var(--pico-muted-color);
+		font-size: 0.8em;
+		margin-right: 0.25rem;
+		min-width: 1.75rem;
+		display: inline-block;
+		text-align: right;
+		flex-shrink: 0;
+	}
+
+	.bookmark-number.condensed {
+		font-size: 0.75rem;
+		min-width: 1.5rem;
+		margin-right: 0.375rem;
+	}
+
+	.bookmark-link {
+		color: var(--pico-color);
+		text-decoration: none;
+		font-weight: normal;
+		flex: 1;
+		min-width: 0; /* Allow text to truncate */
+	}
+
+	.bookmark-link:hover {
+		color: var(--pico-primary);
+		text-decoration: underline;
+	}
+
+	.bookmark-domain {
+		color: var(--pico-muted-color);
+		font-size: 0.85em;
+		white-space: nowrap;
+		flex-shrink: 0;
+	}
+
+	.bookmark-actions-condensed {
+		display: flex;
+		gap: 0.125rem;
+		margin-left: auto;
+		opacity: 0;
+		transition: opacity 0.15s ease;
+		flex-shrink: 0;
+	}
+
+	.bookmark-row-condensed:hover .bookmark-actions-condensed {
+		opacity: 1;
+	}
+
+	.btn-icon {
+		padding: 0.125rem;
+		margin: 0;
+		min-width: auto;
+		width: auto;
+		height: auto;
+		background: none;
+		border: none;
+		color: var(--pico-muted-color);
+		cursor: pointer;
+		border-radius: 2px;
+		transition: all 0.15s ease;
+	}
+
+	.btn-icon:hover {
+		background: var(--pico-secondary-background);
+		color: var(--pico-secondary);
+	}
+
+	.btn-icon svg {
+		width: 12px;
+		height: 12px;
+	}
+
+	.bookmark-meta-condensed {
+		font-size: 0.75rem;
+		color: var(--pico-muted-color);
+		margin-left: 2rem;
+		margin-top: 0.05rem;
+		margin-bottom: 0.25rem;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		line-height: 1.2;
+	}
+
+	.bookmark-meta-condensed span {
+		margin: 0;
+	}
+
+	.btn-link {
+		background: none;
+		border: none;
+		padding: 0;
+		margin: 0;
+		color: var(--pico-muted-color);
+		text-decoration: underline;
+		cursor: pointer;
+		font-size: inherit;
+		min-width: auto;
+		width: auto;
+		height: auto;
+	}
+
+	.btn-link:hover {
+		color: var(--pico-color);
+	}
+
+	.tags-condensed {
+		color: var(--pico-muted-color);
+	}
+
+	.tag-condensed {
+		color: var(--pico-primary);
+		text-decoration: none;
+	}
+
+	.description-condensed {
+		color: var(--pico-muted-color);
+		font-style: italic;
+	}
+
+	/* Compact pagination for condensed view */
+	.pagination.condensed {
+		margin: 0.5rem 0;
+	}
+
+	.pagination.condensed .pagination-info {
+		font-size: 0.75rem;
+		margin: 0.25rem 0;
+	}
+
+	/* Responsive adjustments for condensed view */
+	@media (max-width: 768px) {
+		.bookmark-line {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+
+		.bookmark-actions-condensed {
+			margin-left: 0;
+			align-self: flex-end;
+		}
+
+		.bookmark-meta-condensed {
+			margin-left: 1rem;
+		}
+
+		.bookmark-number {
+			min-width: 1.5rem;
 		}
 	}
 </style>

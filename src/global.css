@@ -10,6 +10,10 @@
 	--bookmark-domain-color: var(--pico-muted-color);
 	--bookmark-border: var(--pico-muted-border-color);
 	--bookmark-hover-background: var(--pico-dropdown-background-color);
+	
+	/* Condensed view specific variables */
+	--bookmark-condensed-line-height: 1.4;
+	--bookmark-condensed-gap: 0.375rem;
 }
 
 /* Custom styles for bookmark-specific elements */

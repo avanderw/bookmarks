@@ -36,10 +36,24 @@
 				window.dispatchEvent(exportEvent);
 			};
 
+			// Listen for system theme changes and update if no custom theme is saved
+			const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+			const handleSystemThemeChange = (e: MediaQueryListEvent) => {
+				const savedTheme = localStorage.getItem('theme');
+				if (!savedTheme) {
+					// Only update if user hasn't manually set a theme
+					const systemTheme = e.matches ? 'dark' : 'light';
+					document.documentElement.setAttribute('data-theme', systemTheme);
+				}
+			};
+			
+			mediaQuery.addEventListener('change', handleSystemThemeChange);
+
 			window.addEventListener('storage-full-export', handleStorageFullExport);
 
 			return () => {
 				unsubscribe();
+				mediaQuery.removeEventListener('change', handleSystemThemeChange);
 				window.removeEventListener('storage-full-export', handleStorageFullExport);
 			};
 		}
@@ -119,6 +133,11 @@
 		const savedTheme = localStorage.getItem('theme');
 		if (savedTheme) {
 			document.documentElement.setAttribute('data-theme', savedTheme);
+		} else {
+			// If no saved theme, detect system preference
+			const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+			const systemTheme = prefersDark ? 'dark' : 'light';
+			document.documentElement.setAttribute('data-theme', systemTheme);
 		}
 	}
 </script>

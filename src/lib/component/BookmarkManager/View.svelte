@@ -44,6 +44,7 @@
 	let showSortingHelp: boolean = false;
 	let showToolsMenu: boolean = false;
 	let isLocallyModified = false; // Flag to prevent store sync when we've intentionally modified data
+	let refreshVersion = 0; // Used to force pagination recalculation when bookmarks are updated
 	// Reference to search component to allow setting search from tag/domain clicks
 	let searchFilterComponent: any;
 
@@ -215,8 +216,16 @@
 			b.url === bookmark.url ? updatedBookmark : b
 		);
 
+		// Force Svelte to recalculate pagination and update the view
+		filteredBookmarks = [...filteredBookmarks];
+		refreshVersion++;
+
 		// Dispatch event for parent component to handle (e.g., updating stores)
 		dispatch('bookmarkClicked', updatedBookmark);
+		dispatch('dataChanged', bookmarks);
+
+		// Open the link in a new tab
+		window.open(bookmark.url, '_blank', 'noopener');
 	}
 
 	/**
@@ -482,7 +491,8 @@
 		const needsRecalculation =
 			sortedBookmarks.length !== lastSortedBookmarksLength ||
 			currentPage !== lastCurrentPage ||
-			itemsPerPage !== lastItemsPerPage;
+			itemsPerPage !== lastItemsPerPage ||
+			refreshVersion;
 
 		if (needsRecalculation) {
 			const pagination = PaginationUtils.calculatePagination(

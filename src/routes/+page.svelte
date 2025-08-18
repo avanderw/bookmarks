@@ -1,15 +1,29 @@
 <script lang="ts">
 	import { BookmarkManager } from '$lib/component/BookmarkManager';
+	import { BookmarkForm } from '$lib/component/BookmarkForm';
 	import { browser } from '$app/environment';
 	import { appData } from '$lib/bookmarks';
 	import { onMount } from 'svelte';
-	import type { BookmarkStore } from '$lib/bookmarks';
+	import { getUrlParameter } from '$lib/url';
+	import type { BookmarkStore, Bookmark } from '$lib/bookmarks';
 
 	let bookmarkData: BookmarkStore | null = null;
+	let isBookmarkletMode = false;
+	let bookmarkFormOpen = false;
 
-	// Initialize data from the store
+	// Initialize data from the store and check for bookmarklet parameters
 	onMount(() => {
 		if (browser) {
+			// Check if we have bookmarklet parameters
+			const urlParam = getUrlParameter('h');
+			const titleParam = getUrlParameter('t');
+			const descParam = getUrlParameter('d');
+			
+			if (urlParam) {
+				isBookmarkletMode = true;
+				bookmarkFormOpen = true;
+			}
+
 			// Subscribe to the store to get current data
 			const unsubscribe = appData.subscribe((data) => {
 				bookmarkData = data;
@@ -30,6 +44,38 @@
 			};
 		}
 	});
+
+	// Handle bookmark save from bookmarklet form
+	function handleBookmarkletSave(event: CustomEvent<Bookmark>) {
+		// Add the bookmark to the store like normal bookmark saves
+		if (bookmarkData) {
+			const newBookmarks = [...bookmarkData.bookmarks, event.detail];
+			appData.set({
+				...bookmarkData,
+				bookmarks: newBookmarks
+			});
+		}
+		
+		// Close the form
+		bookmarkFormOpen = false;
+		
+		// Close the window if in bookmarklet mode (opened from bookmarklet)
+		if (isBookmarkletMode && browser) {
+			// Try to close the window - this will only work if the window was opened by a script
+			window.close();
+		}
+	}
+
+	// Handle bookmark form close from bookmarklet
+	function handleBookmarkletClose() {
+		bookmarkFormOpen = false;
+		
+		// Close the window if in bookmarklet mode (opened from bookmarklet)
+		if (isBookmarkletMode && browser) {
+			// Try to close the window - this will only work if the window was opened by a script
+			window.close();
+		}
+	}
 
 	// Handle data changes from BookmarkManager
 	function handleDataChanged(event: CustomEvent<any[]>) {
@@ -78,19 +124,37 @@
 </script>
 
 <svelte:head>
-	<title>Bookmarks</title>
+	<title>Bookmarks{isBookmarkletMode ? ' - Add Bookmark' : ''}</title>
 </svelte:head>
 
-{#if bookmarkData}
-	<BookmarkManager
-		initialData={bookmarkData}
-		on:dataChanged={handleDataChanged}
-		on:bookmarkClicked={handleBookmarkClicked}
+{#if isBookmarkletMode}
+	<!-- Show simplified view for bookmarklet mode -->
+	<div class="bookmarklet-mode">
+		<h2>Add Bookmark</h2>
+		<p>Adding bookmark from page...</p>
+	</div>
+	
+	<!-- Bookmarklet bookmark form -->
+	<BookmarkForm.View
+		bind:isOpen={bookmarkFormOpen}
+		bookmark={null}
+		isEdit={false}
+		on:save={handleBookmarkletSave}
+		on:close={handleBookmarkletClose}
 	/>
 {:else}
-	<div class="loading">
-		<p>Loading bookmarks...</p>
-	</div>
+	<!-- Normal bookmark manager view -->
+	{#if bookmarkData}
+		<BookmarkManager
+			initialData={bookmarkData}
+			on:dataChanged={handleDataChanged}
+			on:bookmarkClicked={handleBookmarkClicked}
+		/>
+	{:else}
+		<div class="loading">
+			<p>Loading bookmarks...</p>
+		</div>
+	{/if}
 {/if}
 
 <nav>
@@ -134,6 +198,17 @@
 		align-items: center;
 		min-height: 200px;
 		color: var(--pico-muted-color);
+	}
+
+	.bookmarklet-mode {
+		text-align: center;
+		padding: 2rem;
+		color: var(--pico-muted-color);
+	}
+
+	.bookmarklet-mode h2 {
+		margin: 0 0 0.5rem 0;
+		color: var(--pico-color);
 	}
 
 	nav ul {

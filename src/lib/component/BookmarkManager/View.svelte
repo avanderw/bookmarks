@@ -44,8 +44,33 @@
 	let showSortingHelp: boolean = false;
 	let showToolsMenu: boolean = false;
 	let isLocallyModified = false; // Flag to prevent store sync when we've intentionally modified data
-	// Reference to search component to allow setting search from tag clicks
+	// Reference to search component to allow setting search from tag/domain clicks
 	let searchFilterComponent: any;
+
+	/**
+	 * Add a tag to the filter/search input
+	 */
+	function onTagFilterClick(tag: string) {
+		if (searchFilterComponent && searchFilterComponent.setQuery) {
+			const current = searchFilterComponent.query || '';
+			const tagSyntax = `#${tag}`;
+			if (current.split(/\s+/).includes(tagSyntax)) return;
+			const newQuery = current.trim() ? `${current.trim()} +${tagSyntax}` : tagSyntax;
+			searchFilterComponent.setQuery(newQuery);
+		}
+	}
+
+	/**
+	 * Add a domain to the filter/search input
+	 */
+	function onDomainFilterClick(domain: string) {
+		if (searchFilterComponent && searchFilterComponent.setQuery) {
+			const current = searchFilterComponent.query || '';
+			if (current.includes(domain)) return;
+			const newQuery = current.trim() ? `${current.trim()} +${domain}` : domain;
+			searchFilterComponent.setQuery(newQuery);
+		}
+	}
 	// Pagination state
 	let currentPage = 1;
 	let itemsPerPage = 25; // Default to 25 for better user experience
@@ -717,19 +742,23 @@
 					<article class="bookmark-row-condensed">
 						<div class="bookmark-line">
 							<span class="bookmark-number condensed">{startIndex + index}.</span>
-							<a
-								href={bookmark.url}
-								target="_blank"
-								rel="noopener noreferrer"
-								class="bookmark-link"
-								on:click|preventDefault={() => onBookmarkClick(bookmark)}
-								>{bookmark.title || 'Untitled'}</a
-							>
-							{#if bookmark.url}
-								<span class="bookmark-domain">
-									({bookmark.url.replace(/^https?:\/\/([^\/]+).*$/, '$1')})
-								</span>
-							{/if}
+										<a
+											href={bookmark.url}
+											target="_blank"
+											rel="noopener noreferrer"
+											class="bookmark-link"
+											on:click|preventDefault={() => onBookmarkClick(bookmark)}
+											>{bookmark.title || 'Untitled'}</a
+										>
+													{#if bookmark.url}
+														<span class="bookmark-domain">
+															(
+																<a href="#" class="domain-link" title="Filter by domain" on:click|preventDefault={() => onDomainFilterClick(bookmark.url.replace(/^https?:\/\/([^\/]+).*$/, '$1'))}>
+																	{bookmark.url.replace(/^https?:\/\/([^\/]+).*$/, '$1')}
+																</a>
+															)
+														</span>
+													{/if}
 							<div class="bookmark-actions-condensed">
 								<button
 									class="btn-icon"
@@ -771,13 +800,13 @@
 								</button>
 							{/if}
 
-							{#if bookmark.tags && bookmark.tags.length > 0}
-								<span class="tags-condensed">
-									{#each bookmark.tags as tag, tagIndex}
-										<span class="tag-condensed">#{tag}</span>{tagIndex < bookmark.tags.length - 1 ? ', ' : ''}
-									{/each}
-								</span>
-							{/if}
+											{#if bookmark.tags && bookmark.tags.length > 0}
+												<span class="tags-condensed">
+													{#each bookmark.tags as tag, tagIndex}
+														<button class="tag-condensed tag-link" type="button" title="Filter by tag" on:click={() => onTagFilterClick(tag)}>#{tag}</button>{tagIndex < bookmark.tags.length - 1 ? ', ' : ''}
+													{/each}
+												</span>
+											{/if}
 
 							{#if bookmark.description}
 								<span class="description-condensed">— {bookmark.description}</span>
@@ -1203,7 +1232,52 @@
 	.tag-condensed {
 		color: var(--pico-primary);
 		text-decoration: none;
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: 0;
+		font-size: inherit;
+		font-family: inherit;
 	}
+
+.tag-condensed.tag-link:hover {
+	text-decoration: underline;
+	color: var(--pico-secondary);
+	}
+
+.domain-link {
+	color: var(--pico-primary);
+	text-decoration: none;
+	cursor: pointer;
+	background: none;
+	border: none;
+	font-size: inherit;
+	font-family: inherit;
+	padding: 0;
+	display: inline;
+	margin: 0;
+	outline: none;
+	transition: color 0.15s;
+	line-height: inherit;
+	vertical-align: baseline;
+	appearance: none;
+	box-shadow: none;
+	background-color: transparent;
+	border-radius: 0;
+	font-weight: normal;
+	letter-spacing: normal;
+	word-break: break-all;
+	white-space: normal;
+	user-select: text;
+	text-align: left;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	max-width: 200px;
+}
+.domain-link:hover {
+	text-decoration: underline;
+	color: var(--pico-secondary);
+}
 
 	.description-condensed {
 		color: var(--pico-muted-color);

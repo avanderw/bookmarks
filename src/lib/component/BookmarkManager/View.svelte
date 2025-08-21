@@ -43,6 +43,8 @@
 	let showStorageMonitor: boolean = false;
 	let showSortingHelp: boolean = false;
 	let showToolsMenu: boolean = false;
+	let showImportModeDialog: boolean = false;
+	let pendingImportFile: File | null = null;
 	let isLocallyModified = false; // Flag to prevent store sync when we've intentionally modified data
 	let refreshVersion = 0; // Used to force pagination recalculation when bookmarks are updated
 	// Reference to search component to allow setting search from tag/domain clicks
@@ -118,12 +120,6 @@
 				initialData.bookmarks[0].url !== bookmarks[0].url);
 
 		if (needsUpdate) {
-			console.log(
-				'🔄 Syncing from store: initialData has',
-				initialData.bookmarks.length,
-				'bookmarks, local has',
-				bookmarks.length
-			);
 			bookmarks = [...initialData.bookmarks];
 			filteredBookmarks = [...bookmarks];
 		}
@@ -175,27 +171,53 @@
 	 */
 	async function onFileImported(event: CustomEvent<File>) {
 		try {
-			console.log('📥 Importing file:', event.detail.name);
-			const result = await FileUtils.importFile(event.detail);
+			// Store the file and show the import mode dialog
+			pendingImportFile = event.detail;
+			showImportModeDialog = true;
+		} catch (error) {
+			console.error('❌ Error importing file:', error);
+			alert('Failed to import file. Please check the file format.');
+		}
+	}
 
-			// Handle duplicates during import
+	/**
+	 * Process the import based on the selected mode
+	 */
+	async function processImport(mode: 'replace' | 'add') {
+		if (!pendingImportFile) return;
+
+		try {
+			const result = await FileUtils.importFile(pendingImportFile);
+			
+			// Handle duplicates in the imported data
 			const { deduplicatedBookmarks, duplicateCount } = removeDuplicatesByUrl(result.bookmarks);
 			
-			if (duplicateCount > 0) {
-				console.warn(`⚠️ Found and removed ${duplicateCount} duplicate bookmarks during import`);
-				const message = `Import completed with ${deduplicatedBookmarks.length} unique bookmarks.\n\n${duplicateCount} duplicate URLs were automatically removed.`;
-				alert(message);
-			}
-
 			// Set flag to prevent store sync from overwriting our changes
 			isLocallyModified = true;
 
-			// Update local component state
-			bookmarks = deduplicatedBookmarks;
-			filteredBookmarks = [...bookmarks];
-			currentPage = 1; // Reset to first page on new import
+			let finalBookmarks: Bookmark[] = [];
+			let message = '';
 
-			console.log('✅ Import successful:', bookmarks.length, 'unique bookmarks loaded');
+			switch (mode) {
+				case 'replace':
+					finalBookmarks = deduplicatedBookmarks;
+					message = `Import completed: ${deduplicatedBookmarks.length} bookmarks loaded (${duplicateCount} duplicates removed from file).`;
+					break;
+				
+				case 'add':
+					// Merge with existing bookmarks and remove overall duplicates
+					const combined = [...bookmarks, ...deduplicatedBookmarks];
+					const { deduplicatedBookmarks: finalDeduped, duplicateCount: totalDuplicates } = removeDuplicatesByUrl(combined);
+					finalBookmarks = finalDeduped;
+					const newBookmarks = finalDeduped.length - bookmarks.length;
+					message = `Import completed: ${newBookmarks} new bookmarks added (${totalDuplicates} total duplicates removed).`;
+					break;
+			}
+
+			// Update local component state
+			bookmarks = finalBookmarks;
+			filteredBookmarks = [...bookmarks];
+			currentPage = 1; // Reset to first page
 
 			// Notify parent component to update the store
 			dispatch('dataChanged', bookmarks);
@@ -204,10 +226,26 @@
 			setTimeout(() => {
 				isLocallyModified = false;
 			}, 100);
+
+			// Show success message
+			alert(message);
+
 		} catch (error) {
-			console.error('❌ Error importing file:', error);
+			console.error('❌ Error processing import:', error);
 			alert('Failed to import file. Please check the file format.');
+		} finally {
+			// Clean up
+			showImportModeDialog = false;
+			pendingImportFile = null;
 		}
+	}
+
+	/**
+	 * Cancel the import process
+	 */
+	function cancelImport() {
+		showImportModeDialog = false;
+		pendingImportFile = null;
 	}
 
 	/**
@@ -299,6 +337,33 @@
 			setTimeout(() => {
 				isLocallyModified = false;
 			}, 100);
+		}
+	}
+
+	/**
+	 * Clear all bookmarks after confirmation
+	 */
+	function onClearAllBookmarks() {
+		const confirmed = confirm('Are you sure you want to delete ALL bookmarks? This action cannot be undone.');
+		
+		if (confirmed) {
+			// Set flag to prevent store sync issues
+			isLocallyModified = true;
+			
+			// Clear all bookmarks
+			bookmarks = [];
+			filteredBookmarks = [];
+			currentPage = 1;
+			
+			// Notify parent component of data change
+			dispatch('dataChanged', bookmarks);
+			
+			// Clear the flag after a brief delay
+			setTimeout(() => {
+				isLocallyModified = false;
+			}, 100);
+			
+			alert('All bookmarks have been cleared.');
 		}
 	}
 
@@ -414,11 +479,6 @@
 	 */
 	function onBookmarkSave(event: CustomEvent<Bookmark>) {
 		const savedBookmark = event.detail;
-		console.log('🔍 BookmarkManager.onBookmarkSave called with:', {
-			url: savedBookmark.url,
-			title: savedBookmark.title,
-			currentBookmarksLength: bookmarks.length
-		});
 
 		// Set flag to prevent store sync from overwriting our changes
 		isLocallyModified = true;
@@ -428,19 +488,12 @@
 
 		if (existingIndex >= 0) {
 			// Update existing bookmark
-			console.log('🔄 Updating existing bookmark at index:', existingIndex);
 			bookmarks[existingIndex] = savedBookmark;
 			bookmarks = [...bookmarks]; // Trigger reactivity
 		} else {
 			// Add new bookmark
-			console.log('➕ Adding new bookmark');
 			bookmarks = [...bookmarks, savedBookmark];
 		}
-
-		console.log('📊 BookmarkManager state after save:', {
-			bookmarksLength: bookmarks.length,
-			lastBookmarkTitle: bookmarks[bookmarks.length - 1]?.title
-		});
 
 		// Update filtered bookmarks to match
 		if (!isSearchActive) {
@@ -451,7 +504,6 @@
 		selectedBookmark = null;
 
 		// Notify parent component of data change
-		console.log('📤 Dispatching dataChanged event with', bookmarks.length, 'bookmarks');
 		dispatch('dataChanged', bookmarks);
 		
 		// Reset the local modification flag after a brief delay to allow store to update
@@ -986,10 +1038,56 @@
 		on:close={onCloseStorageMonitor}
 		on:export={onStorageExport}
 		on:cleanup={onStorageCleanup}
+		on:clearAll={onClearAllBookmarks}
 	/>
 
 	<!-- Sorting Help (conditionally rendered) -->
 	<SortingHelp {bookmarks} isOpen={showSortingHelp} on:close={onCloseSortingHelp} />
+
+	<!-- Import Mode Dialog -->
+	{#if showImportModeDialog}
+		<dialog open>
+			<article>
+				<header>
+					<h3>Import Bookmarks</h3>
+					<p>How would you like to handle the imported bookmarks?</p>
+				</header>
+				
+				<main>
+					<div class="import-options">
+						<p><strong>File:</strong> {pendingImportFile?.name || 'Unknown'}</p>
+						<p>Choose an import mode:</p>
+						
+						<div class="button-group">
+							<button 
+								class="secondary" 
+								on:click={() => processImport('add')}
+								title="Add imported bookmarks to existing ones"
+							>
+								📥 Add to Current
+							</button>
+							
+							<button 
+								on:click={() => processImport('replace')}
+								title="Replace all bookmarks with imported ones"
+							>
+								🔄 Replace All
+							</button>
+						</div>
+					</div>
+				</main>
+				
+				<footer>
+					<button 
+						class="secondary"
+						on:click={cancelImport}
+					>
+						Cancel
+					</button>
+				</footer>
+			</article>
+		</dialog>
+	{/if}
 </div>
 
 <style>
@@ -1470,5 +1568,34 @@
 		.bookmark-number {
 			min-width: 1.5rem;
 		}
+	}
+
+	/* Import Dialog Styles */
+	.import-options {
+		text-align: center;
+	}
+
+	.button-group {
+		display: flex;
+		gap: 0.5rem;
+		justify-content: center;
+		flex-wrap: wrap;
+		margin-top: 1rem;
+	}
+
+	.button-group button {
+		flex: 1;
+		min-width: 140px;
+	}
+
+	dialog {
+		border: none;
+		border-radius: var(--pico-border-radius);
+		box-shadow: var(--pico-box-shadow);
+		max-width: 500px;
+	}
+
+	dialog::backdrop {
+		background-color: rgba(0, 0, 0, 0.5);
 	}
 </style>

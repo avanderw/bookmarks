@@ -94,12 +94,6 @@ function checkStorageSize(dataSize: number, totalSize: number): void {
 export function saveToLocalStorage(data: BookmarkStore): boolean {
 	if (!browser) return false;
 
-	console.log('🔍 saveToLocalStorage called with:', {
-		version: data.version,
-		bookmarkCount: data.bookmarks.length,
-		storageKey: STORAGE_KEY
-	});
-
 	try {
 		const dataSize = calculateStorageSize(data);
 		const totalSize = getTotalLocalStorageSize();
@@ -108,13 +102,6 @@ export function saveToLocalStorage(data: BookmarkStore): boolean {
 		checkStorageSize(dataSize, totalSize);
 
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-		console.log('✅ Successfully saved to localStorage');
-
-		console.debug('💾 Saved bookmarks to localStorage:', {
-			bookmarkCount: data.bookmarks.length,
-			dataSize: `${(dataSize / 1024).toFixed(1)}KB`,
-			totalStorage: `${(totalSize / 1024).toFixed(1)}KB`
-		});
 
 		return true;
 	} catch (error) {

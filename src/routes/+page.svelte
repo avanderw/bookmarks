@@ -107,16 +107,11 @@
 
 	// Handle data changes from BookmarkManager
 	function handleDataChanged(event: CustomEvent<any[]>) {
-		console.log('🔍 +page.handleDataChanged called with', event.detail.length, 'bookmarks');
 		if (bookmarkData) {
 			const newData = {
 				...bookmarkData,
 				bookmarks: event.detail
 			};
-			console.log('🔄 Setting appData.set with:', {
-				version: newData.version,
-				bookmarkCount: newData.bookmarks.length
-			});
 			appData.set(newData);
 		} else {
 			console.warn('⚠️ bookmarkData is null, cannot update store');

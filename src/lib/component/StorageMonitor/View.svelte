@@ -18,6 +18,7 @@
 		close: void;
 		export: void;
 		cleanup: void;
+		clearAll: void;
 	}>();
 
 	// State
@@ -65,6 +66,10 @@
 
 	function handleCleanup() {
 		dispatch('cleanup');
+	}
+
+	function handleClearAll() {
+		dispatch('clearAll');
 	}
 </script>
 
@@ -144,6 +149,11 @@
 								Find Duplicates
 							</button>
 						{/if}
+
+						<button class="contrast outline" on:click={handleClearAll}>
+							<svg><use href="feather-sprite.svg#trash-2" /></svg>
+							Clear All Bookmarks
+						</button>
 
 						<button on:click={refreshStats}>
 							<svg><use href="feather-sprite.svg#refresh-cw" /></svg>

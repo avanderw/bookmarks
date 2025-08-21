@@ -7,7 +7,7 @@ import { isValidUrl } from './url';
 import { getCurrentUserAgent } from './utils/UserAgentUtils';
 
 // Storage configuration
-const STORAGE_KEY = 'bookmarks';
+const STORAGE_KEY = 'bookmarks/cache-store';
 const WARNING_THRESHOLD = 4 * 1024 * 1024; // 4MB warning threshold (localStorage is typically 5-10MB)
 const CRITICAL_THRESHOLD = 8 * 1024 * 1024; // 8MB critical threshold
 
@@ -94,6 +94,12 @@ function checkStorageSize(dataSize: number, totalSize: number): void {
 export function saveToLocalStorage(data: BookmarkStore): boolean {
 	if (!browser) return false;
 
+	console.log('🔍 saveToLocalStorage called with:', {
+		version: data.version,
+		bookmarkCount: data.bookmarks.length,
+		storageKey: STORAGE_KEY
+	});
+
 	try {
 		const dataSize = calculateStorageSize(data);
 		const totalSize = getTotalLocalStorageSize();
@@ -102,6 +108,7 @@ export function saveToLocalStorage(data: BookmarkStore): boolean {
 		checkStorageSize(dataSize, totalSize);
 
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+		console.log('✅ Successfully saved to localStorage');
 
 		console.debug('💾 Saved bookmarks to localStorage:', {
 			bookmarkCount: data.bookmarks.length,
@@ -111,7 +118,7 @@ export function saveToLocalStorage(data: BookmarkStore): boolean {
 
 		return true;
 	} catch (error) {
-		console.error('Failed to save to localStorage:', error);
+		console.error('❌ Failed to save to localStorage:', error);
 
 		if (error instanceof DOMException && error.name === 'QuotaExceededError') {
 			alert(
@@ -138,7 +145,21 @@ export function loadFromLocalStorage(): BookmarkStore {
 	}
 
 	try {
-		const stored = localStorage.getItem(STORAGE_KEY);
+		let stored = localStorage.getItem(STORAGE_KEY);
+
+		// Migration: Check for data in the old 'bookmarks' key
+		if (!stored) {
+			const oldData = localStorage.getItem('bookmarks');
+			if (oldData) {
+				console.log('🔄 Migrating from old storage key "bookmarks" to "bookmarks/cache-store"...');
+				stored = oldData;
+				
+				// Save to new location and remove from old location
+				localStorage.setItem(STORAGE_KEY, oldData);
+				localStorage.removeItem('bookmarks');
+				console.log('✅ Migration completed: moved data from "bookmarks" to "bookmarks/cache-store"');
+			}
+		}
 
 		if (!stored) {
 			console.log('📁 No bookmark data found in localStorage');
@@ -267,6 +288,29 @@ export function exportBookmarks(data?: BookmarkStore): void {
 }
 
 /**
+ * Remove duplicate bookmarks based on URL
+ * @param bookmarks Array of bookmarks to deduplicate
+ * @returns Object with deduplicatedBookmarks and duplicateCount
+ */
+function removeDuplicatesByUrl(bookmarks: Bookmark[]): { deduplicatedBookmarks: Bookmark[]; duplicateCount: number } {
+	const seen = new Set<string>();
+	const deduplicatedBookmarks: Bookmark[] = [];
+	let duplicateCount = 0;
+
+	for (const bookmark of bookmarks) {
+		if (seen.has(bookmark.url)) {
+			duplicateCount++;
+			console.log(`🔍 Duplicate found during import: ${bookmark.title || 'Untitled'} (${bookmark.url})`);
+		} else {
+			seen.add(bookmark.url);
+			deduplicatedBookmarks.push(bookmark);
+		}
+	}
+
+	return { deduplicatedBookmarks, duplicateCount };
+}
+
+/**
  * Clean invalid URLs from existing bookmarks
  * @param bookmarks Array of bookmarks to clean
  * @param showAlerts Whether to show alert dialogs (default: false for silent operation)
@@ -380,22 +424,45 @@ export async function importBookmarks(file: File): Promise<BookmarkStore> {
 		const cleanupResult = cleanInvalidUrls(bookmarkStore.bookmarks, false);
 		bookmarkStore.bookmarks = cleanupResult.cleanedBookmarks;
 
+		// Remove duplicate URLs
+		const duplicateResult = removeDuplicatesByUrl(bookmarkStore.bookmarks);
+		bookmarkStore.bookmarks = duplicateResult.deduplicatedBookmarks;
+
+		// Report cleanup results
+		let message = '';
+		let hasIssues = false;
+
 		if (cleanupResult.removedCount > 0) {
 			console.warn(
 				`⚠️ Filtered out ${cleanupResult.removedCount} bookmark(s) with invalid URLs during import`
 			);
-			// Show import-specific alert for invalid URLs
-			const message = `Import complete!\n\n${cleanupResult.cleanedBookmarks.length} bookmarks imported successfully.\n${cleanupResult.removedCount} bookmark(s) with invalid URLs were removed.`;
-			alert(message);
+			message += `${cleanupResult.removedCount} bookmark(s) with invalid URLs were removed.`;
+			hasIssues = true;
+		}
+
+		if (duplicateResult.duplicateCount > 0) {
+			console.warn(
+				`⚠️ Removed ${duplicateResult.duplicateCount} duplicate bookmark(s) during import`
+			);
+			if (hasIssues) message += '\n';
+			message += `${duplicateResult.duplicateCount} duplicate bookmark(s) were removed.`;
+			hasIssues = true;
+		}
+
+		if (hasIssues) {
+			// Show import-specific alert for issues
+			const finalMessage = `Import complete!\n\n${bookmarkStore.bookmarks.length} unique bookmarks imported successfully.\n\n${message}`;
+			alert(finalMessage);
 		} else {
 			console.log(
-				`✅ All ${cleanupResult.cleanedBookmarks.length} bookmarks imported successfully - no invalid URLs found`
+				`✅ All ${bookmarkStore.bookmarks.length} bookmarks imported successfully - no issues found`
 			);
 		}
 
 		console.log('📥 Imported bookmarks:', {
-			bookmarkCount: cleanupResult.cleanedBookmarks.length,
-			removedCount: cleanupResult.removedCount,
+			bookmarkCount: bookmarkStore.bookmarks.length,
+			invalidUrlsRemoved: cleanupResult.removedCount,
+			duplicatesRemoved: duplicateResult.duplicateCount,
 			fileSize: `${(file.size / 1024).toFixed(1)}KB`
 		});
 

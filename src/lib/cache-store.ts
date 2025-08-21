@@ -4,6 +4,11 @@ import type { BookmarkStore } from '$lib/bookmarks';
 import { isValidUrl } from '$lib/url';
 import type { Bookmark } from '$lib/bookmarks';
 
+// NOTE: This file provides File System Access API functionality for bookmark syncing.
+// It uses the same localStorage key as the main storage.ts ('bookmarks/cache-store')
+// but adds file watching and sync capabilities. This is currently unused but available
+// for future file system integration features.
+
 const CACHE_NAME = 'bookmarks/cache-store';
 
 function hashFn(str: string): string {

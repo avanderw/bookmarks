@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug localStorage</title>
+</head>
+<body>
+    <h1>localStorage Debug Tool</h1>
+    <div id="output"></div>
+    
+    <script>
+        function debugLocalStorage() {
+            const output = document.getElementById('output');
+            let html = '<h2>All localStorage keys:</h2>';
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key) {
+                    const value = localStorage.getItem(key);
+                    html += `<h3>Key: ${key}</h3>`;
+                    
+                    if (key.includes('bookmark')) {
+                        // Try to parse as JSON for bookmark-related keys
+                        try {
+                            const parsed = JSON.parse(value);
+                            html += `<pre>${JSON.stringify(parsed, null, 2)}</pre>`;
+                        } catch (e) {
+                            html += `<p>Raw value: ${value}</p>`;
+                        }
+                    } else {
+                        html += `<p>Raw value: ${value}</p>`;
+                    }
+                    html += '<hr>';
+                }
+            }
+            
+            output.innerHTML = html;
+        }
+        
+        // Run on load
+        debugLocalStorage();
+    </script>
+</body>
+</html>

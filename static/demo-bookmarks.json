@@ -1,0 +1,155 @@
+{
+	"version": "2025-08-13",
+	"bookmarks": [
+		{
+			"url": "https://news.ycombinator.com",
+			"title": "Hacker News",
+			"description": "Social news website focusing on computer science and entrepreneurship",
+			"tags": ["news", "tech", "startup", "programming"],
+			"notes": "Great source for tech news and discussions",
+			"added": "2025-01-15T09:30:00.000Z",
+			"clicked": 156,
+			"last": "2025-08-18T08:30:00.000Z"
+		},
+		{
+			"url": "https://reactjs.org",
+			"title": "React - A JavaScript library for building user interfaces",
+			"description": "Official React documentation",
+			"tags": ["react", "javascript", "frontend", "library", "documentation"],
+			"notes": "Main React docs with getting started guide",
+			"added": "2025-01-15T09:30:00.000Z",
+			"clicked": 25,
+			"last": "2025-08-10T14:20:00.000Z"
+		},
+		{
+			"url": "https://stackoverflow.com",
+			"title": "Stack Overflow",
+			"description": "Programming Q&A community",
+			"tags": ["programming", "community", "qa", "help", "developer"],
+			"notes": "Best place to find programming solutions",
+			"added": "2025-01-10T11:20:00.000Z",
+			"clicked": 289,
+			"last": "2025-08-18T07:45:00.000Z"
+		},
+		{
+			"url": "https://github.com",
+			"title": "GitHub",
+			"description": "Where the world builds software",
+			"tags": ["git", "github", "repository", "code", "collaboration"],
+			"notes": "Essential for code collaboration and open source",
+			"added": "2025-01-05T10:00:00.000Z",
+			"clicked": 412,
+			"last": "2025-08-18T09:15:00.000Z"
+		},
+		{
+			"url": "https://mdn.mozilla.org",
+			"title": "MDN Web Docs",
+			"description": "Web technology documentation",
+			"tags": ["documentation", "web", "html", "css", "javascript", "reference"],
+			"notes": "The best web development reference",
+			"added": "2025-01-12T14:15:00.000Z",
+			"clicked": 167,
+			"last": "2025-08-17T19:10:00.000Z"
+		},
+		{
+			"url": "https://devdocs.io",
+			"title": "DevDocs",
+			"description": "API documentation browser",
+			"tags": ["documentation", "api", "reference", "developer", "tools"],
+			"notes": "Fast documentation browser for developers",
+			"added": "2025-03-01T12:00:00.000Z",
+			"clicked": 89,
+			"last": "2025-08-16T17:45:00.000Z"
+		},
+		{
+			"url": "https://css-tricks.com",
+			"title": "CSS-Tricks",
+			"description": "Tips, tricks, and techniques on using CSS",
+			"tags": ["css", "frontend", "design", "tutorial", "reference"],
+			"notes": "Excellent CSS tutorials and guides",
+			"added": "2025-02-14T14:00:00.000Z",
+			"clicked": 73,
+			"last": "2025-08-15T09:15:00.000Z"
+		},
+		{
+			"url": "https://nodejs.org",
+			"title": "Node.js",
+			"description": "Node.js JavaScript runtime",
+			"tags": ["nodejs", "javascript", "backend", "runtime", "server"],
+			"notes": "Server-side JavaScript runtime",
+			"added": "2025-01-20T13:45:00.000Z",
+			"clicked": 45,
+			"last": "2025-08-14T10:30:00.000Z"
+		},
+		{
+			"url": "https://svelte.dev",
+			"title": "Svelte",
+			"description": "Cybernetically enhanced web apps",
+			"tags": ["svelte", "frontend", "framework", "javascript", "compiler"],
+			"notes": "Innovative frontend framework with compile-time optimizations",
+			"added": "2025-04-05T10:00:00.000Z",
+			"clicked": 12,
+			"last": "2025-08-12T16:20:00.000Z"
+		},
+		{
+			"url": "https://tailwindcss.com",
+			"title": "Tailwind CSS",
+			"description": "Utility-first CSS framework",
+			"tags": ["css", "framework", "tailwind", "utility", "design"],
+			"notes": "Great for rapid UI development",
+			"added": "2025-03-15T15:30:00.000Z",
+			"clicked": 28,
+			"last": "2025-08-11T11:45:00.000Z"
+		},
+		{
+			"url": "https://vercel.com",
+			"title": "Vercel",
+			"description": "Deploy web projects with zero configuration",
+			"tags": ["deployment", "hosting", "jamstack", "serverless"],
+			"notes": "Easy deployment for frontend projects",
+			"added": "2025-02-20T09:15:00.000Z",
+			"clicked": 34,
+			"last": "2025-08-13T14:30:00.000Z"
+		},
+		{
+			"url": "https://regex101.com",
+			"title": "regex101",
+			"description": "Online regex tester and debugger",
+			"tags": ["regex", "tools", "testing", "debugging", "patterns"],
+			"notes": "Best online regex tester",
+			"added": "2025-02-28T13:20:00.000Z",
+			"clicked": 18,
+			"last": "2025-08-10T10:45:00.000Z"
+		},
+		{
+			"url": "https://codepen.io",
+			"title": "CodePen",
+			"description": "Online code editor and learning environment",
+			"tags": ["coding", "editor", "frontend", "demo", "learning"],
+			"notes": "Great for prototyping and sharing code snippets",
+			"added": "2025-01-25T16:30:00.000Z",
+			"clicked": 56,
+			"last": "2025-08-09T12:15:00.000Z"
+		},
+		{
+			"url": "https://caniuse.com",
+			"title": "Can I use",
+			"description": "Browser support tables for modern web technologies",
+			"tags": ["browser", "support", "compatibility", "web", "standards"],
+			"notes": "Check browser compatibility for web features",
+			"added": "2025-01-18T11:45:00.000Z",
+			"clicked": 67,
+			"last": "2025-08-08T15:20:00.000Z"
+		},
+		{
+			"url": "https://typescript-tutorial.dev",
+			"title": "TypeScript Tutorial for Beginners",
+			"description": "Complete TypeScript tutorial",
+			"tags": ["typescript", "tutorial", "javascript", "programming", "beginner"],
+			"notes": "Step by step TypeScript guide",
+			"added": "2025-03-10T08:20:00.000Z",
+			"clicked": 8,
+			"last": "2025-08-07T12:10:00.000Z"
+		}
+	]
+}

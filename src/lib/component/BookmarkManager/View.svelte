@@ -140,6 +140,32 @@
 		}
 	});
 
+	// Utility functions
+	// -------------------------------------
+	
+	/**
+	 * Remove duplicate bookmarks based on URL
+	 * @param bookmarks Array of bookmarks to deduplicate
+	 * @returns Object with deduplicatedBookmarks and duplicateCount
+	 */
+	function removeDuplicatesByUrl(bookmarks: Bookmark[]): { deduplicatedBookmarks: Bookmark[]; duplicateCount: number } {
+		const seen = new Set<string>();
+		const deduplicatedBookmarks: Bookmark[] = [];
+		let duplicateCount = 0;
+
+		for (const bookmark of bookmarks) {
+			if (seen.has(bookmark.url)) {
+				duplicateCount++;
+				console.log(`🔍 Duplicate found: ${bookmark.title || 'Untitled'} (${bookmark.url})`);
+			} else {
+				seen.add(bookmark.url);
+				deduplicatedBookmarks.push(bookmark);
+			}
+		}
+
+		return { deduplicatedBookmarks, duplicateCount };
+	}
+
 	// File handling
 	// -------------------------------------
 	// File handling functions
@@ -149,18 +175,35 @@
 	 */
 	async function onFileImported(event: CustomEvent<File>) {
 		try {
-			console.log('� Importing file:', event.detail.name);
+			console.log('📥 Importing file:', event.detail.name);
 			const result = await FileUtils.importFile(event.detail);
 
+			// Handle duplicates during import
+			const { deduplicatedBookmarks, duplicateCount } = removeDuplicatesByUrl(result.bookmarks);
+			
+			if (duplicateCount > 0) {
+				console.warn(`⚠️ Found and removed ${duplicateCount} duplicate bookmarks during import`);
+				const message = `Import completed with ${deduplicatedBookmarks.length} unique bookmarks.\n\n${duplicateCount} duplicate URLs were automatically removed.`;
+				alert(message);
+			}
+
+			// Set flag to prevent store sync from overwriting our changes
+			isLocallyModified = true;
+
 			// Update local component state
-			bookmarks = result.bookmarks;
+			bookmarks = deduplicatedBookmarks;
 			filteredBookmarks = [...bookmarks];
 			currentPage = 1; // Reset to first page on new import
 
-			console.log('✅ Import successful:', bookmarks.length, 'bookmarks loaded');
+			console.log('✅ Import successful:', bookmarks.length, 'unique bookmarks loaded');
 
 			// Notify parent component to update the store
 			dispatch('dataChanged', bookmarks);
+			
+			// Reset the local modification flag after a brief delay to allow store to update
+			setTimeout(() => {
+				isLocallyModified = false;
+			}, 100);
 		} catch (error) {
 			console.error('❌ Error importing file:', error);
 			alert('Failed to import file. Please check the file format.');
@@ -371,18 +414,33 @@
 	 */
 	function onBookmarkSave(event: CustomEvent<Bookmark>) {
 		const savedBookmark = event.detail;
+		console.log('🔍 BookmarkManager.onBookmarkSave called with:', {
+			url: savedBookmark.url,
+			title: savedBookmark.title,
+			currentBookmarksLength: bookmarks.length
+		});
+
+		// Set flag to prevent store sync from overwriting our changes
+		isLocallyModified = true;
 
 		// Check if we're updating an existing bookmark or adding a new one
 		const existingIndex = bookmarks.findIndex((b) => b.url === savedBookmark.url);
 
 		if (existingIndex >= 0) {
 			// Update existing bookmark
+			console.log('🔄 Updating existing bookmark at index:', existingIndex);
 			bookmarks[existingIndex] = savedBookmark;
 			bookmarks = [...bookmarks]; // Trigger reactivity
 		} else {
 			// Add new bookmark
+			console.log('➕ Adding new bookmark');
 			bookmarks = [...bookmarks, savedBookmark];
 		}
+
+		console.log('📊 BookmarkManager state after save:', {
+			bookmarksLength: bookmarks.length,
+			lastBookmarkTitle: bookmarks[bookmarks.length - 1]?.title
+		});
 
 		// Update filtered bookmarks to match
 		if (!isSearchActive) {
@@ -393,7 +451,13 @@
 		selectedBookmark = null;
 
 		// Notify parent component of data change
+		console.log('📤 Dispatching dataChanged event with', bookmarks.length, 'bookmarks');
 		dispatch('dataChanged', bookmarks);
+		
+		// Reset the local modification flag after a brief delay to allow store to update
+		setTimeout(() => {
+			isLocallyModified = false;
+		}, 100);
 	}
 
 	// Pagination functions
@@ -748,7 +812,7 @@
 			</div>
 		{:else}
 			<div class="bookmark-items condensed">
-				{#each paginatedBookmarks as bookmark, index (bookmark.url)}
+				{#each paginatedBookmarks as bookmark, index (`${bookmark.url}-${bookmark.added}-${index}`)}
 					<!-- Condensed HN-style view -->
 					<article class="bookmark-row-condensed">
 						<div class="bookmark-line">

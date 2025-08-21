@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Bookmarks Storage</title>
+    <style>
+        body { font-family: monospace; margin: 20px; }
+        .section { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+        pre { background: #f5f5f5; padding: 10px; overflow-x: auto; }
+        button { padding: 10px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Bookmarks Storage Debug</h1>
+    
+    <div class="section">
+        <h3>Current localStorage Status</h3>
+        <div id="storage-status">Loading...</div>
+        <button onclick="refreshStatus()">Refresh Status</button>
+        <button onclick="clearAllBookmarkData()">Clear All Bookmark Data</button>
+    </div>
+    
+    <div class="section">
+        <h3>Load Demo Data</h3>
+        <button onclick="loadDemoData()">Load Demo Data from /demo-bookmarks.json</button>
+        <div id="demo-status"></div>
+    </div>
+    
+    <div class="section">
+        <h3>Test Export</h3>
+        <button onclick="testExport()">Test Export (main storage)</button>
+        <button onclick="testExportWithData()">Test Export (with current data)</button>
+        <div id="export-status"></div>
+    </div>
+    
+    <script>
+        // Storage keys
+        const MAIN_STORAGE_KEY = 'bookmarks/cache-store';  // Now unified
+        const OLD_STORAGE_KEY = 'bookmarks';  // For migration check
+        
+        function refreshStatus() {
+            const mainData = localStorage.getItem(MAIN_STORAGE_KEY);
+            const oldData = localStorage.getItem(OLD_STORAGE_KEY);
+            
+            let status = '<h4>Current Storage ("bookmarks/cache-store"):</h4>';
+            if (mainData) {
+                try {
+                    const parsed = JSON.parse(mainData);
+                    status += `<p>Found ${parsed.bookmarks ? parsed.bookmarks.length : 0} bookmarks</p>`;
+                    status += `<pre>${JSON.stringify(parsed, null, 2).substring(0, 500)}...</pre>`;
+                } catch (e) {
+                    status += `<p>Error parsing: ${e.message}</p>`;
+                }
+            } else {
+                status += '<p>No data found</p>';
+            }
+            
+            status += '<h4>Old Storage ("bookmarks") - for migration check:</h4>';
+            if (oldData) {
+                try {
+                    const parsed = JSON.parse(oldData);
+                    status += `<p>⚠️ Found ${parsed.bookmarks ? parsed.bookmarks.length : 0} bookmarks in old location</p>`;
+                    status += '<p><button onclick="migrateOldData()">Migrate Old Data</button></p>';
+                    status += `<pre>${JSON.stringify(parsed, null, 2).substring(0, 500)}...</pre>`;
+                } catch (e) {
+                    status += `<p>Error parsing: ${e.message}</p>`;
+                }
+            } else {
+                status += '<p>No old data found (good!)</p>';
+            }
+            
+            document.getElementById('storage-status').innerHTML = status;
+        }
+        
+        function clearAllBookmarkData() {
+            localStorage.removeItem(MAIN_STORAGE_KEY);
+            localStorage.removeItem(OLD_STORAGE_KEY);
+            alert('Cleared both storage locations');
+            refreshStatus();
+        }
+        
+        function migrateOldData() {
+            const oldData = localStorage.getItem(OLD_STORAGE_KEY);
+            if (oldData) {
+                localStorage.setItem(MAIN_STORAGE_KEY, oldData);
+                localStorage.removeItem(OLD_STORAGE_KEY);
+                alert('Migrated data from old location to new location');
+                refreshStatus();
+            }
+        }
+        
+        async function loadDemoData() {
+            try {
+                const response = await fetch('/bookmarks/demo-bookmarks.json');
+                const demoData = await response.json();
+                
+                // Save to main storage
+                localStorage.setItem(MAIN_STORAGE_KEY, JSON.stringify(demoData));
+                
+                document.getElementById('demo-status').innerHTML = 
+                    `<p>✅ Loaded ${demoData.bookmarks.length} demo bookmarks to main storage</p>`;
+                refreshStatus();
+            } catch (e) {
+                document.getElementById('demo-status').innerHTML = 
+                    `<p>❌ Error loading demo data: ${e.message}</p>`;
+            }
+        }
+        
+        function testExport() {
+            // Test export with no parameters (should load from localStorage)
+            const mainData = localStorage.getItem(MAIN_STORAGE_KEY);
+            if (mainData) {
+                const parsed = JSON.parse(mainData);
+                exportBookmarks();
+                document.getElementById('export-status').innerHTML = 
+                    `<p>🔍 Called exportBookmarks() without parameters. Check console and downloads.</p>`;
+            } else {
+                document.getElementById('export-status').innerHTML = 
+                    `<p>❌ No main storage data to export</p>`;
+            }
+        }
+        
+        function testExportWithData() {
+            // Test export with explicit data parameter
+            const mainData = localStorage.getItem(MAIN_STORAGE_KEY);
+            if (mainData) {
+                const parsed = JSON.parse(mainData);
+                exportBookmarks(parsed);
+                document.getElementById('export-status').innerHTML = 
+                    `<p>🔍 Called exportBookmarks(data) with ${parsed.bookmarks.length} bookmarks. Check console and downloads.</p>`;
+            } else {
+                document.getElementById('export-status').innerHTML = 
+                    `<p>❌ No main storage data to export</p>`;
+            }
+        }
+        
+        // Simple export function for testing
+        function exportBookmarks(data) {
+            const exportData = data || JSON.parse(localStorage.getItem(MAIN_STORAGE_KEY) || '{"version":"2025-08-13","bookmarks":[]}');
+            
+            console.log('🔍 Export function called with:', {
+                dataProvided: !!data,
+                exportDataBookmarks: exportData.bookmarks.length
+            });
+            
+            const jsonString = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `debug-bookmarks-${new Date().toISOString().split('T')[0]}.json`;
+            a.style.display = 'none';
+            
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            URL.revokeObjectURL(url);
+        }
+        
+        // Initialize
+        refreshStatus();
+    </script>
+</body>
+</html>

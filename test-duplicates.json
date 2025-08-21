@@ -1,0 +1,65 @@
+{
+	"version": "2025-08-13",
+	"bookmarks": [
+		{
+			"url": "https://techurls.com/",
+			"title": "Tech URLs - First Entry",
+			"description": "A collection of useful tech URLs",
+			"tags": ["tech", "resources"],
+			"notes": "First instance",
+			"added": "2025-08-21T10:00:00.000Z",
+			"clicked": 0,
+			"last": null
+		},
+		{
+			"url": "https://example.com/",
+			"title": "Example Website",
+			"description": "Example description",
+			"tags": ["example"],
+			"notes": "This is unique",
+			"added": "2025-08-21T10:15:00.000Z",
+			"clicked": 5,
+			"last": "2025-08-21T12:00:00.000Z"
+		},
+		{
+			"url": "https://github.com/",
+			"title": "GitHub",
+			"description": "Code hosting platform",
+			"tags": ["development", "git"],
+			"notes": "For version control",
+			"added": "2025-08-21T10:30:00.000Z",
+			"clicked": 12,
+			"last": "2025-08-21T13:00:00.000Z"
+		},
+		{
+			"url": "https://techurls.com/",
+			"title": "Tech URLs - Duplicate Entry",
+			"description": "Same URL as the first one",
+			"tags": ["tech", "duplicate"],
+			"notes": "This is a duplicate and should be removed",
+			"added": "2025-08-21T10:45:00.000Z",
+			"clicked": 2,
+			"last": "2025-08-21T11:00:00.000Z"
+		},
+		{
+			"url": "https://techurls.com/",
+			"title": "Tech URLs - Another Duplicate",
+			"description": "Yet another duplicate",
+			"tags": ["tech", "resources", "duplicate"],
+			"notes": "This is also a duplicate",
+			"added": "2025-08-21T11:00:00.000Z",
+			"clicked": 1,
+			"last": "2025-08-21T11:30:00.000Z"
+		},
+		{
+			"url": "https://stackoverflow.com/",
+			"title": "Stack Overflow",
+			"description": "Programming Q&A community",
+			"tags": ["programming", "community"],
+			"notes": "Great for finding solutions",
+			"added": "2025-08-21T11:15:00.000Z",
+			"clicked": 8,
+			"last": "2025-08-21T14:00:00.000Z"
+		}
+	]
+}

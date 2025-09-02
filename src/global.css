@@ -1,6 +1,11 @@
 /* Import Pico CSS */
 @import '@picocss/pico/css/pico.min.css';
 
+/* Ensure proper theme inheritance */
+html[data-theme="auto"] {
+	color-scheme: light dark;
+}
+
 /* Custom CSS Variables and Overrides */
 :root {
 	/* Bookmark-specific custom properties */

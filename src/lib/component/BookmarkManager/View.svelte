@@ -1511,11 +1511,12 @@
 		background: var(--pico-card-background-color);
 		border: 1px solid var(--pico-muted-border-color);
 		border-radius: var(--pico-border-radius);
-		box-shadow: var(--pico-box-shadow);
+		box-shadow: var(--pico-card-box-shadow);
 		z-index: 1000;
 		min-width: 160px;
 		padding: 0.25rem 0;
 		margin-top: 0.125rem;
+		color: var(--pico-color);
 	}
 
 	.dropdown-item {
@@ -1523,7 +1524,7 @@
 		padding: 0.5rem 1rem;
 		margin: 0;
 		border: none;
-		background: none;
+		background: transparent;
 		color: var(--pico-color);
 		text-align: left;
 		cursor: pointer;
@@ -1532,10 +1533,13 @@
 		gap: 0.5rem;
 		font-size: 0.875rem;
 		transition: background-color 0.2s ease;
+		font-family: inherit;
+		line-height: 1.5;
 	}
 
 	.dropdown-item:hover:not(:disabled) {
-		background: var(--pico-secondary-background);
+		background-color: var(--pico-secondary-background);
+		color: var(--pico-secondary);
 	}
 
 	.dropdown-item:disabled {
@@ -1547,6 +1551,8 @@
 		width: 0.875rem;
 		height: 0.875rem;
 		flex-shrink: 0;
+		stroke: currentColor;
+		fill: none;
 	}
 
 	/* Responsive adjustments for condensed view */

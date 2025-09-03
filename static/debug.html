@@ -32,6 +32,16 @@
         <div id="export-status"></div>
     </div>
     
+    <div class="section">
+        <h3>PWA Cache Debug</h3>
+        <button onclick="debugPWA.fullReset()">Full PWA Reset (Clear all + reload)</button>
+        <button onclick="debugPWA.clearAllCaches()">Clear All Caches</button>
+        <button onclick="debugPWA.unregisterServiceWorker()">Unregister Service Worker</button>
+        <button onclick="debugPWA.inspectCaches()">Inspect Caches (console)</button>
+        <button onclick="debugPWA.checkServiceWorker()">Check Service Worker (console)</button>
+        <div id="pwa-status">Check browser console for PWA debug output</div>
+    </div>
+    
     <script>
         // Storage keys
         const MAIN_STORAGE_KEY = 'bookmarks/cache-store';  // Now unified
@@ -160,6 +170,93 @@
         
         // Initialize
         refreshStatus();
+        
+        // PWA Debug Tools
+        window.debugPWA = {
+            async clearAllCaches() {
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    console.log('Found caches:', cacheNames);
+                    
+                    await Promise.all(
+                        cacheNames.map(async (name) => {
+                            const deleted = await caches.delete(name);
+                            console.log(`Cache "${name}" deleted:`, deleted);
+                        })
+                    );
+                    
+                    console.log('All caches cleared!');
+                    document.getElementById('pwa-status').innerHTML = `✅ Cleared ${cacheNames.length} caches`;
+                } else {
+                    console.log('Cache API not supported');
+                    document.getElementById('pwa-status').innerHTML = '❌ Cache API not supported';
+                }
+            },
+
+            async unregisterServiceWorker() {
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    console.log('Found service worker registrations:', registrations.length);
+                    
+                    await Promise.all(
+                        registrations.map(async (registration) => {
+                            const unregistered = await registration.unregister();
+                            console.log('Service worker unregistered:', unregistered);
+                        })
+                    );
+                    
+                    document.getElementById('pwa-status').innerHTML = `✅ Unregistered ${registrations.length} service workers`;
+                } else {
+                    console.log('Service Worker not supported');
+                    document.getElementById('pwa-status').innerHTML = '❌ Service Worker not supported';
+                }
+            },
+
+            async fullReset() {
+                console.log('🔄 Starting full PWA reset...');
+                await this.clearAllCaches();
+                await this.unregisterServiceWorker();
+                console.log('✅ PWA reset complete. Refreshing page...');
+                document.getElementById('pwa-status').innerHTML = '🔄 PWA reset complete. Refreshing...';
+                setTimeout(() => window.location.reload(), 1000);
+            },
+
+            async inspectCaches() {
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    console.log('Available caches:', cacheNames);
+                    
+                    for (const name of cacheNames) {
+                        const cache = await caches.open(name);
+                        const keys = await cache.keys();
+                        console.log(`\nCache "${name}" contains ${keys.length} items:`);
+                        keys.forEach(request => console.log('  -', request.url));
+                    }
+                    
+                    document.getElementById('pwa-status').innerHTML = `🔍 Found ${cacheNames.length} caches. Check console for details.`;
+                }
+            },
+
+            async checkServiceWorker() {
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    console.log('Service Worker registrations:', registrations);
+                    
+                    if (navigator.serviceWorker.controller) {
+                        console.log('Active service worker:', navigator.serviceWorker.controller);
+                        console.log('SW script URL:', navigator.serviceWorker.controller.scriptURL);
+                        document.getElementById('pwa-status').innerHTML = `✅ Active SW: ${navigator.serviceWorker.controller.scriptURL}`;
+                    } else {
+                        console.log('No active service worker controller');
+                        document.getElementById('pwa-status').innerHTML = '⚠️ No active service worker controller';
+                    }
+                } else {
+                    document.getElementById('pwa-status').innerHTML = '❌ Service Worker not supported';
+                }
+            }
+        };
+        
+        console.log('🛠️ PWA Debug tools loaded in debug.html!');
     </script>
 </body>
 </html>

@@ -103,15 +103,34 @@ export class CacheValidator {
 			return status;
 
 		} catch (error) {
-			const status: CacheStatus = {
-				isStale: false,
-				currentVersion: null,
-				latestVersion: null,
-				lastCheck: new Date(),
-				error: error instanceof Error ? error.message : 'Unknown error'
-			};
-			this.updateStatus(status);
-			return status;
+			console.warn('Cache version check failed, performing direct check:', error);
+			
+			// Fallback: directly check version file
+			try {
+				const versionResponse = await fetch('/bookmarks/_app/version.json');
+				const versionData = await versionResponse.json();
+				
+				const status: CacheStatus = {
+					isStale: false, // Can't determine staleness without SW comparison
+					currentVersion: null,
+					latestVersion: versionData.version,
+					lastCheck: new Date(),
+					error: 'Service worker unavailable, showing latest version only'
+				};
+				
+				this.updateStatus(status);
+				return status;
+			} catch (fetchError) {
+				const status: CacheStatus = {
+					isStale: false,
+					currentVersion: null,
+					latestVersion: null,
+					lastCheck: new Date(),
+					error: error instanceof Error ? error.message : 'Unknown error'
+				};
+				this.updateStatus(status);
+				return status;
+			}
 		}
 	}
 

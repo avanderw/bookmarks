@@ -199,12 +199,6 @@
 	/>
 {:else}
 	<!-- Normal bookmark manager view -->
-	{#if bookmarkData?.hasUnsavedChanges}
-		<div class="unsaved-banner" role="alert">
-			<svg><use href="feather-sprite.svg#alert-circle" /></svg>
-			<span>You have unsaved changes. <button class="btn-link" on:click={() => window.dispatchEvent(new CustomEvent('trigger-export'))}>Export bookmarks</button> to save them.</span>
-		</div>
-	{/if}
 	{#if bookmarkData}
 		<BookmarkManager
 			initialData={bookmarkData}
@@ -214,6 +208,12 @@
 	{:else}
 		<div class="loading">
 			<p>Loading bookmarks...</p>
+		</div>
+	{/if}
+	{#if bookmarkData?.hasUnsavedChanges}
+		<div class="unsaved-banner" role="alert">
+			<svg><use href="feather-sprite.svg#alert-circle" /></svg>
+			<span>You have unsaved changes. <button class="btn-link" on:click={() => window.dispatchEvent(new CustomEvent('trigger-export'))}>Export bookmarks</button> to save them.</span>
 		</div>
 	{/if}
 {/if}

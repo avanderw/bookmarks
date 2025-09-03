@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { BookmarkManager } from '$lib/component/BookmarkManager';
 	import { BookmarkForm } from '$lib/component/BookmarkForm';
+	import { CacheRefreshNotification } from '$lib/component/CacheRefreshNotification';
 	import { browser } from '$app/environment';
 	import { appData, markDataAsUnsaved } from '$lib/bookmarks';
 	import { onMount } from 'svelte';
@@ -176,6 +177,9 @@
 <svelte:head>
 	<title>Bookmarks{isBookmarkletMode ? ' - Add Bookmark' : ''}{bookmarkData?.hasUnsavedChanges ? ' (unsaved changes)' : ''}</title>
 </svelte:head>
+
+<!-- PWA Cache Refresh Notification -->
+<CacheRefreshNotification />
 
 {#if isBookmarkletMode}
 	<!-- Show simplified view for bookmarklet mode -->

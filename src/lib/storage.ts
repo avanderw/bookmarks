@@ -122,13 +122,33 @@ export function saveToLocalStorage(data: BookmarkStore): boolean {
 }
 
 /**
+ * Mark bookmarks as having unsaved changes
+ */
+export function markAsUnsaved(data: BookmarkStore): BookmarkStore {
+	return {
+		...data,
+		hasUnsavedChanges: true
+	};
+}
+
+/**
+ * Mark bookmarks as saved (clear unsaved changes flag)
+ */
+export function markAsSaved(data: BookmarkStore): BookmarkStore {
+	return {
+		...data,
+		hasUnsavedChanges: false
+	};
+}
+
+/**
  * Load data from localStorage with migration support
  */
 export function loadFromLocalStorage(): BookmarkStore {
 	const version = '2025-08-13'; // Updated for storage optimization
 
 	if (!browser) {
-		return { version, bookmarks: [] };
+		return { version, bookmarks: [], hasUnsavedChanges: false };
 	}
 
 	try {
@@ -150,7 +170,7 @@ export function loadFromLocalStorage(): BookmarkStore {
 
 		if (!stored) {
 			console.log('📁 No bookmark data found in localStorage');
-			return { version, bookmarks: [] };
+			return { version, bookmarks: [], hasUnsavedChanges: false };
 		}
 
 		const data = JSON.parse(stored);
@@ -167,7 +187,8 @@ export function loadFromLocalStorage(): BookmarkStore {
 					browser: undefined,
 					os: undefined,
 					device: undefined
-				}))
+				})),
+				hasUnsavedChanges: false
 			};
 
 			// Save migrated data
@@ -179,6 +200,13 @@ export function loadFromLocalStorage(): BookmarkStore {
 		if (data.version !== version) {
 			console.log(`🔄 Updating bookmark store from ${data.version} to ${version}`);
 			data.version = version;
+		}
+
+		// Ensure hasUnsavedChanges field exists and is properly set
+		if (typeof data.hasUnsavedChanges !== 'boolean') {
+			console.log('🔄 Adding hasUnsavedChanges field to existing data');
+			data.hasUnsavedChanges = false;
+			// Save the updated data structure immediately
 			saveToLocalStorage(data);
 		}
 
@@ -191,7 +219,7 @@ export function loadFromLocalStorage(): BookmarkStore {
 	} catch (error) {
 		console.error('Failed to load from localStorage:', error);
 		console.log('🆕 Starting with fresh bookmark store');
-		return { version, bookmarks: [] };
+		return { version, bookmarks: [], hasUnsavedChanges: false };
 	}
 }
 
@@ -228,8 +256,8 @@ export function getStorageStats() {
 /**
  * Export bookmarks as a JSON file download
  */
-export function exportBookmarks(data?: BookmarkStore): void {
-	if (!browser) return;
+export function exportBookmarks(data?: BookmarkStore): BookmarkStore | undefined {
+	if (!browser) return undefined;
 
 	// Get data from localStorage if not provided
 	const exportData = data || loadFromLocalStorage();
@@ -272,6 +300,16 @@ export function exportBookmarks(data?: BookmarkStore): void {
 		fileSize: `${(blob.size / 1024).toFixed(1)}KB`,
 		filename: `${filename}.json`
 	});
+
+	// Mark as saved (clear unsaved changes flag) and return the updated data
+	const savedData = markAsSaved(exportData);
+	
+	// If this was the current data (not passed in), update localStorage to clear the flag
+	if (!data) {
+		saveToLocalStorage(savedData);
+	}
+
+	return savedData;
 }
 
 /**
@@ -382,7 +420,8 @@ export async function importBookmarks(file: File): Promise<BookmarkStore> {
 					browser: item.browser,
 					os: item.os,
 					device: item.device
-				}))
+				})),
+				hasUnsavedChanges: true // Mark as having unsaved changes after import
 			};
 		} else if (data.bookmarks && Array.isArray(data.bookmarks)) {
 			// Handle BookmarkStore format
@@ -401,7 +440,8 @@ export async function importBookmarks(file: File): Promise<BookmarkStore> {
 					browser: bookmark.browser,
 					os: bookmark.os,
 					device: bookmark.device
-				}))
+				})),
+				hasUnsavedChanges: true // Mark as having unsaved changes after import
 			};
 		} else {
 			throw new Error('Invalid file format: Expected array of bookmarks or BookmarkStore object');

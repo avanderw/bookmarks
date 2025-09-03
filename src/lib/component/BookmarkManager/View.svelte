@@ -120,9 +120,22 @@
 				initialData.bookmarks[0].url !== bookmarks[0].url);
 
 		if (needsUpdate) {
+			console.debug('🔧 BookmarkManager: Syncing bookmarks from initialData', {
+				newCount: initialData.bookmarks.length,
+				oldCount: bookmarks.length,
+				hasUnsavedChanges: initialData.hasUnsavedChanges
+			});
 			bookmarks = [...initialData.bookmarks];
 			filteredBookmarks = [...bookmarks];
 		}
+	}
+
+	// Add reactive logging for unsaved changes flag
+	$: if (initialData) {
+		console.debug('🔧 BookmarkManager: initialData updated', {
+			hasUnsavedChanges: initialData.hasUnsavedChanges,
+			bookmarkCount: initialData.bookmarks?.length
+		});
 	}
 
 	onDestroy(() => {
@@ -219,7 +232,7 @@
 			filteredBookmarks = [...bookmarks];
 			currentPage = 1; // Reset to first page
 
-			// Notify parent component to update the store
+			// Notify parent component to update the store (this will mark as unsaved)
 			dispatch('dataChanged', bookmarks);
 			
 			// Reset the local modification flag after a brief delay to allow store to update
@@ -251,13 +264,39 @@
 	/**
 	 * Handle export request from FileManager
 	 */
+	let isExporting = false;
 	function onExportRequested() {
-		// Create a BookmarkStore from current data and export
-		const bookmarkStore = {
-			version: initialData?.version || '2025-08-13',
-			bookmarks: bookmarks
-		};
-		exportBookmarks(bookmarkStore);
+		// Prevent multiple rapid export calls
+		if (isExporting) {
+			console.debug('Export already in progress, skipping...');
+			return;
+		}
+		
+		isExporting = true;
+		
+		try {
+			// Create a BookmarkStore from current data and export
+			const bookmarkStore = {
+				version: initialData?.version || '2025-08-13',
+				bookmarks: bookmarks,
+				hasUnsavedChanges: initialData?.hasUnsavedChanges
+			};
+			console.debug('Starting export with', bookmarkStore.bookmarks.length, 'bookmarks');
+			const exportedData = exportBookmarks(bookmarkStore);
+			
+			// Dispatch event to notify parent that export is complete
+			if (exportedData) {
+				const exportCompleteEvent = new CustomEvent('export-completed', {
+					detail: { exportedData }
+				});
+				window.dispatchEvent(exportCompleteEvent);
+			}
+		} finally {
+			// Reset flag after a short delay to prevent immediate re-triggers
+			setTimeout(() => {
+				isExporting = false;
+			}, 1000);
+		}
 	} // Search handlers
 	// -------------------------------------
 
@@ -719,10 +758,14 @@
 
 				<button 
 					class="btn-icon-only secondary" 
+					class:unsaved-changes={initialData?.hasUnsavedChanges}
 					on:click={onExportRequested} 
-					title="Export all bookmarks to file"
+					title={initialData?.hasUnsavedChanges ? "Export bookmarks (unsaved changes)" : "Export all bookmarks to file"}
 				>
 					<svg><use href="feather-sprite.svg#download" /></svg>
+					{#if initialData?.hasUnsavedChanges}
+						<span class="unsaved-indicator">●</span>
+					{/if}
 				</button>
 
 				<button
@@ -1481,6 +1524,7 @@
 		font-size: 0;
 		border-radius: var(--pico-border-radius);
 		transition: all 0.2s ease;
+		position: relative;
 	}
 
 	.btn-icon-only svg {
@@ -1496,6 +1540,53 @@
 		opacity: 0.5;
 		cursor: not-allowed;
 		transform: none;
+	}
+
+	/* Unsaved changes indicator */
+	.btn-icon-only.unsaved-changes {
+		border-color: var(--pico-primary);
+		color: var(--pico-primary);
+		animation: pulse-border 2s infinite;
+	}
+
+	@keyframes pulse-border {
+		0%, 100% {
+			border-color: var(--pico-primary);
+			box-shadow: 0 0 0 0 rgba(var(--pico-primary-rgb, 13, 110, 253), 0.4);
+		}
+		50% {
+			border-color: var(--pico-primary);
+			box-shadow: 0 0 0 4px rgba(var(--pico-primary-rgb, 13, 110, 253), 0.2);
+		}
+	}
+
+	.unsaved-indicator {
+		position: absolute;
+		top: -2px;
+		right: -2px;
+		width: 8px;
+		height: 8px;
+		background-color: var(--pico-primary);
+		border: 1px solid var(--pico-background-color);
+		border-radius: 50%;
+		font-size: 6px;
+		color: var(--pico-primary);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		line-height: 1;
+		animation: pulse-dot 2s infinite;
+	}
+
+	@keyframes pulse-dot {
+		0%, 100% {
+			opacity: 1;
+			transform: scale(1);
+		}
+		50% {
+			opacity: 0.7;
+			transform: scale(1.2);
+		}
 	}
 
 	/* Dropdown styles */

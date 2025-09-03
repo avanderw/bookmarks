@@ -1,6 +1,6 @@
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
-import { saveToLocalStorage, loadFromLocalStorage as loadOptimized } from './storage';
+import { saveToLocalStorage, loadFromLocalStorage as loadOptimized, markAsUnsaved } from './storage';
 
 export interface Bookmark {
 	url: string;
@@ -20,10 +20,16 @@ export interface Bookmark {
 export interface BookmarkStore {
 	version: string;
 	bookmarks: Bookmark[];
+	hasUnsavedChanges: boolean;
 }
 
 // Create the main bookmark store
 export const appData = writable(loadOptimized());
+
+// Export a utility function to mark data as unsaved when modifications occur
+export function markDataAsUnsaved(data: BookmarkStore): BookmarkStore {
+	return markAsUnsaved(data);
+}
 
 // Subscribe to save changes with optimized storage
 appData.subscribe((value) => {
@@ -36,7 +42,9 @@ appData.subscribe((value) => {
 appData.subscribe((value) => {
 	console.debug('Bookmark store updated:', {
 		version: value.version,
-		count: value.bookmarks.length
+		count: value.bookmarks.length,
+		hasUnsavedChanges: value.hasUnsavedChanges,
+		hasUnsavedChangesType: typeof value.hasUnsavedChanges
 	});
 });
 

@@ -2,7 +2,7 @@
 	import { BookmarkManager } from '$lib/component/BookmarkManager';
 	import { BookmarkForm } from '$lib/component/BookmarkForm';
 	import { browser } from '$app/environment';
-	import { appData } from '$lib/bookmarks';
+	import { appData, markDataAsUnsaved } from '$lib/bookmarks';
 	import { onMount } from 'svelte';
 	import { getUrlParameter } from '$lib/url';
 	import type { BookmarkStore, Bookmark } from '$lib/bookmarks';
@@ -26,14 +26,19 @@
 
 			// Subscribe to the store to get current data
 			const unsubscribe = appData.subscribe((data) => {
+				console.debug('🔧 appData subscription update', {
+					hasUnsavedChanges: data?.hasUnsavedChanges,
+					bookmarkCount: data?.bookmarks?.length
+				});
 				bookmarkData = data;
 			});
 
-			// Set up storage full export handler
-			const handleStorageFullExport = () => {
-				// This will trigger the BookmarkManager's export functionality
-				const exportEvent = new CustomEvent('trigger-export');
-				window.dispatchEvent(exportEvent);
+			// Handle export completed event to clear unsaved changes flag
+			const handleExportCompleted = (event: any) => {
+				console.debug('🔧 handleExportCompleted: Clearing unsaved changes flag', event.detail);
+				if (bookmarkData && event.detail?.exportedData) {
+					appData.set(event.detail.exportedData);
+				}
 			};
 
 			// Listen for system theme changes and update if no custom theme is saved
@@ -49,12 +54,12 @@
 			
 			mediaQuery.addEventListener('change', handleSystemThemeChange);
 
-			window.addEventListener('storage-full-export', handleStorageFullExport);
+			window.addEventListener('export-completed', handleExportCompleted);
 
 			return () => {
 				unsubscribe();
 				mediaQuery.removeEventListener('change', handleSystemThemeChange);
-				window.removeEventListener('storage-full-export', handleStorageFullExport);
+				window.removeEventListener('export-completed', handleExportCompleted);
 			};
 		}
 	});
@@ -78,10 +83,12 @@
 				newBookmarks = [...bookmarkData.bookmarks, savedBookmark];
 			}
 
-			appData.set({
+			const newData = markDataAsUnsaved({
 				...bookmarkData,
 				bookmarks: newBookmarks
 			});
+
+			appData.set(newData);
 		}
 		
 		// Close the form
@@ -108,10 +115,14 @@
 	// Handle data changes from BookmarkManager
 	function handleDataChanged(event: CustomEvent<any[]>) {
 		if (bookmarkData) {
-			const newData = {
+			const newData = markDataAsUnsaved({
 				...bookmarkData,
 				bookmarks: event.detail
-			};
+			});
+			console.debug('🔧 handleDataChanged: Marking data as unsaved', {
+				oldUnsaved: bookmarkData.hasUnsavedChanges,
+				newUnsaved: newData.hasUnsavedChanges
+			});
 			appData.set(newData);
 		} else {
 			console.warn('⚠️ bookmarkData is null, cannot update store');
@@ -125,10 +136,15 @@
 			const updatedBookmarks = bookmarkData.bookmarks.map((b) =>
 				b.url === event.detail.url ? event.detail : b
 			);
-			appData.set({
+			const newData = markDataAsUnsaved({
 				...bookmarkData,
 				bookmarks: updatedBookmarks
 			});
+			console.debug('🔧 handleBookmarkClicked: Marking data as unsaved', {
+				oldUnsaved: bookmarkData.hasUnsavedChanges,
+				newUnsaved: newData.hasUnsavedChanges
+			});
+			appData.set(newData);
 		}
 	}
 
@@ -158,7 +174,7 @@
 </script>
 
 <svelte:head>
-	<title>Bookmarks{isBookmarkletMode ? ' - Add Bookmark' : ''}</title>
+	<title>Bookmarks{isBookmarkletMode ? ' - Add Bookmark' : ''}{bookmarkData?.hasUnsavedChanges ? ' (unsaved changes)' : ''}</title>
 </svelte:head>
 
 {#if isBookmarkletMode}
@@ -179,6 +195,12 @@
 	/>
 {:else}
 	<!-- Normal bookmark manager view -->
+	{#if bookmarkData?.hasUnsavedChanges}
+		<div class="unsaved-banner" role="alert">
+			<svg><use href="feather-sprite.svg#alert-circle" /></svg>
+			<span>You have unsaved changes. <button class="btn-link" on:click={() => window.dispatchEvent(new CustomEvent('trigger-export'))}>Export bookmarks</button> to save them.</span>
+		</div>
+	{/if}
 	{#if bookmarkData}
 		<BookmarkManager
 			initialData={bookmarkData}
@@ -269,5 +291,54 @@
 		margin: 0;
 		padding: 0.25rem 0.5rem;
 		font-size: 0.875rem;
+	}
+
+	.unsaved-banner {
+		background-color: var(--pico-secondary-background);
+		border: 1px solid var(--pico-secondary);
+		border-radius: var(--pico-border-radius);
+		color: var(--pico-secondary);
+		padding: 0.75rem 1rem;
+		margin-bottom: 1rem;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.875rem;
+		animation: fade-in 0.3s ease;
+	}
+
+	.unsaved-banner svg {
+		width: 1rem;
+		height: 1rem;
+		flex-shrink: 0;
+		stroke: currentColor;
+		fill: none;
+	}
+
+	.btn-link {
+		background: none;
+		border: none;
+		padding: 0;
+		margin: 0;
+		color: var(--pico-secondary);
+		text-decoration: underline;
+		cursor: pointer;
+		font-size: inherit;
+		font-family: inherit;
+	}
+
+	.btn-link:hover {
+		color: var(--pico-primary);
+	}
+
+	@keyframes fade-in {
+		from {
+			opacity: 0;
+			transform: translateY(-10px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
 	}
 </style>

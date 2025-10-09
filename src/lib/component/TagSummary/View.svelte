@@ -120,28 +120,28 @@
 					{/if}
 				</div>
 
-				<!-- Tag list -->
-				<div class="tag-list" class:has-selection={selectedTags.size > 0}>
+				<!-- Tag cloud -->
+				<div class="tag-cloud" class:has-selection={selectedTags.size > 0}>
 					{#each displayedTags as tagInfo (tagInfo.tag)}
-						<div class="tag-item" class:selected={selectedTags.has(tagInfo.tag)}>
-							<div
-								class="tag-content"
+						<div class="tag-bubble" class:selected={selectedTags.has(tagInfo.tag)}>
+							<input
+								type="checkbox"
+								id="tag-{tagInfo.tag}"
+								checked={selectedTags.has(tagInfo.tag)}
+								on:change={(e) => handleTagSelect(tagInfo.tag, e)}
+								title="Select for multi-tag filter"
+							/>
+							<label
+								for="tag-{tagInfo.tag}"
+								class="tag-label"
 								role="button"
 								tabindex="0"
-								on:click={() => handleTagClick(tagInfo.tag)}
+								on:click|preventDefault={() => handleTagClick(tagInfo.tag)}
 								on:keydown={(e) => e.key === 'Enter' && handleTagClick(tagInfo.tag)}
 							>
 								<span class="tag-name">#{tagInfo.tag}</span>
 								<span class="tag-count">{tagInfo.count}</span>
-							</div>
-							<div class="tag-actions">
-								<input
-									type="checkbox"
-									checked={selectedTags.has(tagInfo.tag)}
-									on:change={(e) => handleTagSelect(tagInfo.tag, e)}
-									title="Select for multi-tag filter"
-								/>
-							</div>
+							</label>
 						</div>
 					{/each}
 
@@ -214,42 +214,73 @@
 		font-weight: 500;
 	}
 
-	.tag-list {
+	.tag-cloud {
 		flex: 1;
 		overflow-y: auto;
 		max-height: 400px;
 		border: 1px solid var(--pico-muted-border-color);
 		border-radius: var(--pico-border-radius);
 		background: var(--pico-card-background-color);
+		padding: 0.75rem;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		align-content: flex-start;
 	}
 
-	.tag-item {
+	.tag-bubble {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		border-radius: 1rem;
+		transition: all 0.2s ease;
+		position: relative;
+	}
+
+	.tag-bubble input[type='checkbox'] {
+		position: absolute;
+		opacity: 0;
+		width: 0;
+		height: 0;
+		margin: 0;
+	}
+
+	.tag-label {
 		display: flex;
 		align-items: center;
-		padding: 0.5rem 0.75rem;
-		border-bottom: 1px solid var(--pico-muted-border-color);
-		transition: background-color 0.2s ease;
-	}
-
-	.tag-item:last-child {
-		border-bottom: none;
-	}
-
-	.tag-item:hover {
-		background-color: var(--pico-secondary-background);
-	}
-
-	.tag-item.selected {
-		background-color: var(--pico-primary-background);
-		border-color: var(--pico-primary-border);
-	}
-
-	.tag-content {
-		flex: 1;
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
+		gap: 0.375rem;
+		padding: 0.375rem 0.75rem;
+		background: var(--pico-secondary-background);
+		border: 1px solid var(--pico-muted-border-color);
+		border-radius: 1rem;
 		cursor: pointer;
+		transition: all 0.2s ease;
+		user-select: none;
+		margin: 0;
+		font-size: 0.875rem;
+	}
+
+	.tag-label:hover {
+		background: var(--pico-primary-background);
+		border-color: var(--pico-primary);
+		transform: translateY(-1px);
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	}
+
+	.tag-bubble.selected .tag-label {
+		background: var(--pico-primary);
+		border-color: var(--pico-primary);
+		color: var(--pico-primary-inverse);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	}
+
+	.tag-bubble.selected .tag-name {
+		color: var(--pico-primary-inverse);
+	}
+
+	.tag-bubble.selected .tag-count {
+		background: rgba(255, 255, 255, 0.2);
+		color: var(--pico-primary-inverse);
 	}
 
 	.tag-name {
@@ -258,22 +289,13 @@
 	}
 
 	.tag-count {
-		font-size: 0.875rem;
+		font-size: 0.75rem;
 		color: var(--pico-muted-color);
 		background: var(--pico-muted-background);
 		padding: 0.125rem 0.375rem;
-		border-radius: 0.25rem;
+		border-radius: 0.5rem;
 		min-width: fit-content;
-	}
-
-	.tag-actions {
-		margin-left: 0.75rem;
-	}
-
-	.tag-actions input[type='checkbox'] {
-		margin: 0;
-		width: auto;
-		height: auto;
+		font-weight: 500;
 	}
 
 	.empty-state {
@@ -306,12 +328,14 @@
 			flex-wrap: wrap;
 		}
 
-		.tag-item {
-			padding: 0.75rem;
+		.tag-cloud {
+			padding: 0.5rem;
+			gap: 0.375rem;
 		}
 
-		.tag-content {
-			gap: 0.5rem;
+		.tag-label {
+			padding: 0.25rem 0.5rem;
+			font-size: 0.8125rem;
 		}
 	}
 </style>

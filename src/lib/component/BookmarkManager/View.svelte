@@ -47,6 +47,7 @@
 	let pendingImportFile: File | null = null;
 	let isLocallyModified = false; // Flag to prevent store sync when we've intentionally modified data
 	let refreshVersion = 0; // Used to force pagination recalculation when bookmarks are updated
+	let copiedLinkUrl: string | null = null; // Track which bookmark link was just copied
 	// Reference to search component to allow setting search from tag/domain clicks
 	let searchFilterComponent: any;
 
@@ -353,6 +354,48 @@
 	 */
 	function onEditBookmarkClick(bookmark: Bookmark) {
 		selectedBookmark = bookmark;
+	}
+
+	/**
+	 * Copy bookmark URL to clipboard
+	 */
+	async function onCopyLinkClick(bookmark: Bookmark) {
+		try {
+			await navigator.clipboard.writeText(bookmark.url);
+			// Show visual feedback
+			copiedLinkUrl = bookmark.url;
+			console.log('✅ Link copied to clipboard:', bookmark.url);
+			
+			// Clear the message after 2 seconds
+			setTimeout(() => {
+				copiedLinkUrl = null;
+			}, 2000);
+		} catch (error) {
+			console.error('❌ Failed to copy link:', error);
+			// Fallback for older browsers
+			try {
+				const textArea = document.createElement('textarea');
+				textArea.value = bookmark.url;
+				textArea.style.position = 'fixed';
+				textArea.style.opacity = '0';
+				document.body.appendChild(textArea);
+				textArea.select();
+				document.execCommand('copy');
+				document.body.removeChild(textArea);
+				
+				// Show visual feedback
+				copiedLinkUrl = bookmark.url;
+				console.log('✅ Link copied to clipboard (fallback):', bookmark.url);
+				
+				// Clear the message after 2 seconds
+				setTimeout(() => {
+					copiedLinkUrl = null;
+				}, 2000);
+			} catch (fallbackError) {
+				console.error('❌ Fallback copy failed:', fallbackError);
+				alert('Failed to copy link to clipboard');
+			}
+		}
 	}
 
 	/**
@@ -932,6 +975,18 @@
 							<div class="bookmark-actions-condensed">
 								<button
 									class="btn-icon"
+									class:copied={copiedLinkUrl === bookmark.url}
+									on:click={() => onCopyLinkClick(bookmark)}
+									title={copiedLinkUrl === bookmark.url ? "Link copied!" : "Copy link to clipboard"}
+								>
+									{#if copiedLinkUrl === bookmark.url}
+										<svg><use href="feather-sprite.svg#check" /></svg>
+									{:else}
+										<svg><use href="feather-sprite.svg#link" /></svg>
+									{/if}
+								</button>
+								<button
+									class="btn-icon"
 									on:click={() => onEditBookmarkClick(bookmark)}
 									title="Edit bookmark"
 								>
@@ -1401,6 +1456,11 @@
 	.btn-icon:hover {
 		background: var(--pico-secondary-background);
 		color: var(--pico-secondary);
+	}
+
+	.btn-icon.copied {
+		color: var(--pico-primary);
+		background: var(--pico-primary-background);
 	}
 
 	.btn-icon svg {

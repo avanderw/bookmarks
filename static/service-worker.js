@@ -1,6 +1,7 @@
-const CACHE_NAME = 'bookmarks-pwa-v3'; // Increment to clear problematic cache
+const CACHE_NAME = 'bookmarks-pwa-v4'; // Increment to clear problematic cache
 const BASE_PATH = '/bookmarks';
 let CURRENT_VERSION = null;
+let CACHE_IS_STALE = false;
 
 // Only cache static files that don't change names
 const urlsToCache = [
@@ -68,7 +69,34 @@ self.addEventListener('fetch', event => {
             caches.open(CACHE_NAME)
               .then(cache => cache.put(event.request, responseClone))
               .catch(err => console.warn('Failed to cache _app resource:', err));
+            return response;
           }
+          
+          // If we get a 404, mark cache as stale and clear it
+          if (response.status === 404) {
+            console.warn('404 detected for _app resource:', event.request.url);
+            CACHE_IS_STALE = true;
+            
+            // Clear the cache in the background
+            caches.delete(CACHE_NAME)
+              .then(() => console.log('Cleared stale cache due to 404'))
+              .catch(err => console.error('Failed to clear cache:', err));
+            
+            // Notify all clients about the stale cache
+            self.clients.matchAll().then(clients => {
+              clients.forEach(client => {
+                client.postMessage({
+                  type: 'CACHE_STALE_DETECTED',
+                  reason: '404_error',
+                  url: event.request.url
+                });
+              });
+            });
+            
+            // Return the 404 to let the app handle it
+            return response;
+          }
+          
           return response;
         })
         .catch(err => {
@@ -127,18 +155,19 @@ self.addEventListener('message', event => {
       .then(response => response.json())
       .then(data => {
         const latestVersion = data.version;
-        const isStale = CURRENT_VERSION && CURRENT_VERSION !== latestVersion;
+        const isStale = CACHE_IS_STALE || (CURRENT_VERSION && CURRENT_VERSION !== latestVersion);
         
         event.ports[0].postMessage({
           type: 'VERSION_CHECK_RESULT',
           currentVersion: CURRENT_VERSION,
           latestVersion,
           isStale,
-          cacheExpired: isStale
+          cacheExpired: isStale,
+          reason: CACHE_IS_STALE ? '404_detected' : 'version_mismatch'
         });
         
         if (isStale) {
-          console.log('Cache is stale. Current:', CURRENT_VERSION, 'Latest:', latestVersion);
+          console.log('Cache is stale. Current:', CURRENT_VERSION, 'Latest:', latestVersion, 'Reason:', CACHE_IS_STALE ? '404 detected' : 'version mismatch');
         }
       })
       .catch(err => {
@@ -149,5 +178,13 @@ self.addEventListener('message', event => {
       });
   } else if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+  } else if (event.data && event.data.type === 'CLEAR_CACHE') {
+    // Allow clients to force clear the cache
+    caches.delete(CACHE_NAME)
+      .then(() => {
+        CACHE_IS_STALE = false;
+        console.log('Cache cleared by client request');
+      })
+      .catch(err => console.error('Failed to clear cache:', err));
   }
 });

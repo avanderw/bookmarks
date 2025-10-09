@@ -38,7 +38,7 @@
 
 <!-- Cache Refresh Notification -->
 {#if state.showNotification}
-	<div class="cache-notification" role="alert">
+	<div class="cache-notification" class:urgent={state.error?.includes('404') || state.error?.includes('stale')} role="alert">
 		<article>
 			<header>
 				<h4>
@@ -48,12 +48,21 @@
 						<path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10"/>
 						<path d="M3.51 15a9 9 0 0 0 14.85 3.36L23 14"/>
 					</svg>
-					App Update Available
+					{#if state.error?.includes('404') || state.error?.includes('stale')}
+						⚠️ App Update Required
+					{:else}
+						App Update Available
+					{/if}
 				</h4>
 			</header>
 			
 			<p>
-				A new version of the bookmark app is available. 
+				{#if state.error?.includes('404') || state.error?.includes('stale')}
+					The app has been updated and your cached version is no longer compatible. 
+					<strong>Please refresh to continue using the app.</strong>
+				{:else}
+					A new version of the bookmark app is available. 
+				{/if}
 				{#if state.status}
 					<small>
 						Current: {state.status.currentVersion || 'unknown'} → 
@@ -110,6 +119,19 @@
 		margin: 0;
 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 		border-left: 4px solid var(--primary);
+	}
+
+	.cache-notification.urgent article {
+		border-left-color: #e74c3c;
+		background-color: #fff5f5;
+	}
+
+	:global([data-theme="dark"]) .cache-notification.urgent article {
+		background-color: #2d1f1f;
+	}
+
+	.cache-notification.urgent h4 {
+		color: #e74c3c;
 	}
 
 	.cache-notification header {

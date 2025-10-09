@@ -277,15 +277,13 @@
 		
 		try {
 			// Create a BookmarkStore from current data and export
-			const bookmarkStore = {
-				version: initialData?.version || '2025-08-13',
-				bookmarks: bookmarks,
-				hasUnsavedChanges: initialData?.hasUnsavedChanges
-			};
-			console.debug('Starting export with', bookmarkStore.bookmarks.length, 'bookmarks');
-			const exportedData = exportBookmarks(bookmarkStore);
-			
-			// Dispatch event to notify parent that export is complete
+		const bookmarkStore = {
+			version: initialData?.version || '2025-08-13',
+			bookmarks: bookmarks,
+			hasUnsavedChanges: initialData?.hasUnsavedChanges || false
+		};
+		console.debug('Starting export with', bookmarkStore.bookmarks.length, 'bookmarks');
+		const exportedData = exportBookmarks(bookmarkStore);			// Dispatch event to notify parent that export is complete
 			if (exportedData) {
 				const exportCompleteEvent = new CustomEvent('export-completed', {
 					detail: { exportedData }

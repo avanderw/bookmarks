@@ -17,8 +17,11 @@ export class CacheValidator {
 	private intervalId: number | null = null;
 	private lastStatus: CacheStatus | null = null;
 	private listeners: ((status: CacheStatus) => void)[] = [];
+	private messageListener: ((event: MessageEvent) => void) | null = null;
 
-	private constructor() {}
+	private constructor() {
+		this.setupMessageListener();
+	}
 
 	static getInstance(): CacheValidator {
 		if (!CacheValidator.instance) {
@@ -200,6 +203,46 @@ export class CacheValidator {
 				console.error('Error in cache status listener:', error);
 			}
 		});
+	}
+
+	/**
+	 * Setup listener for service worker messages about cache staleness
+	 */
+	private setupMessageListener(): void {
+		if (!('serviceWorker' in navigator)) {
+			return;
+		}
+
+		this.messageListener = (event: MessageEvent) => {
+			if (event.data && event.data.type === 'CACHE_STALE_DETECTED') {
+				console.warn('Service worker detected stale cache:', event.data);
+				
+				// Immediately mark cache as stale and notify listeners
+				const status: CacheStatus = {
+					isStale: true,
+					currentVersion: this.lastStatus?.currentVersion || null,
+					latestVersion: this.lastStatus?.latestVersion || null,
+					lastCheck: new Date(),
+					error: `Cache is stale (${event.data.reason}): ${event.data.url}`
+				};
+				
+				this.updateStatus(status);
+			}
+		};
+
+		navigator.serviceWorker.addEventListener('message', this.messageListener);
+	}
+
+	/**
+	 * Cleanup resources
+	 */
+	destroy(): void {
+		this.stopMonitoring();
+		
+		if (this.messageListener && 'serviceWorker' in navigator) {
+			navigator.serviceWorker.removeEventListener('message', this.messageListener);
+			this.messageListener = null;
+		}
 	}
 }
 

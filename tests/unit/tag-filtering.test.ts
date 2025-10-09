@@ -45,8 +45,8 @@ describe('Tag Filtering Issue', () => {
 		}
 	];
 
-	it('should filter items with capitec tag but NOT npr tag', () => {
-		const result = applyFilter(testData, 'tag:capitec -tag:npr');
+	it('should filter items with capitec tag but NOT npr tag using # syntax', () => {
+		const result = applyFilter(testData, '#capitec -#npr');
 
 		// Should return items with capitec tag but NOT npr tag
 		expect(result.data).toHaveLength(2);
@@ -59,7 +59,7 @@ describe('Tag Filtering Issue', () => {
 	});
 
 	it('should not include items that have both required and excluded tags', () => {
-		const result = applyFilter(testData, 'tag:capitec -tag:npr');
+		const result = applyFilter(testData, '#capitec -#npr');
 
 		// Verify that no result has both capitec and npr tags
 		const hasCapitecWithNpr = result.data.some(
@@ -84,7 +84,7 @@ describe('Tag Filtering Issue', () => {
 			}
 		];
 
-		const result = applyFilter(testDataWithMoreTags, 'tag:capitec -tag:npr -tag:test');
+		const result = applyFilter(testDataWithMoreTags, '#capitec -#npr -#test');
 
 		expect(result.data).toHaveLength(2);
 		const urls = result.data.map((item) => item.url);
@@ -95,7 +95,7 @@ describe('Tag Filtering Issue', () => {
 	});
 
 	it('should handle tag inclusion with other filters', () => {
-		const result = applyFilter(testData, 'tag:capitec bank');
+		const result = applyFilter(testData, '#capitec bank');
 
 		// Should find items with capitec tag AND containing "bank" in searchable text
 		expect(result.data).toHaveLength(1);

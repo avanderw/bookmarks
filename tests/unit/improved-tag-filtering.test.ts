@@ -45,9 +45,9 @@ describe('Improved Tag Filtering', () => {
 		}
 	];
 
-	describe('Tag negation with tag: syntax', () => {
+	describe('Tag negation with # syntax (primary)', () => {
 		it('should find items with capitec tag but exclude items with npr tag', () => {
-			const result = applyFilter(testBookmarks, 'tag:capitec -tag:npr');
+			const result = applyFilter(testBookmarks, '#capitec -#npr');
 
 			// Should find capitec1.com and capitec3.com, but NOT capitec2.com
 			expect(result.data).toHaveLength(2);
@@ -60,11 +60,11 @@ describe('Improved Tag Filtering', () => {
 		});
 	});
 
-	describe('Tag negation with # syntax', () => {
-		it('should support # syntax for tags', () => {
-			const result = applyFilter(testBookmarks, '#capitec -#npr');
+	describe('Tag negation with tag: syntax (legacy support)', () => {
+		it('should still support tag: syntax for backwards compatibility', () => {
+			const result = applyFilter(testBookmarks, 'tag:capitec -tag:npr');
 
-			// Should behave identically to tag: syntax
+			// Should behave identically to # syntax
 			expect(result.data).toHaveLength(2);
 
 			const urls = result.data.map((item) => item.url);
@@ -86,7 +86,7 @@ describe('Improved Tag Filtering', () => {
 
 	describe('Complex tag combinations', () => {
 		it('should handle multiple positive tags', () => {
-			const result = applyFilter(testBookmarks, 'tag:capitec tag:finance');
+			const result = applyFilter(testBookmarks, '#capitec #finance');
 
 			// Should find items that have BOTH capitec AND finance tags
 			expect(result.data).toHaveLength(2);
@@ -96,7 +96,7 @@ describe('Improved Tag Filtering', () => {
 		});
 
 		it('should handle multiple negative tags', () => {
-			const result = applyFilter(testBookmarks, '-tag:npr -tag:news');
+			const result = applyFilter(testBookmarks, '-#npr -#news');
 
 			// Should exclude items with npr OR news tags
 			expect(result.data).toHaveLength(2);
@@ -107,8 +107,8 @@ describe('Improved Tag Filtering', () => {
 	});
 
 	describe('Parsed filter options', () => {
-		it('should correctly parse positive and negative special filters', () => {
-			const result = applyFilter(testBookmarks, 'tag:capitec -tag:npr');
+		it('should correctly parse positive and negative special filters with # syntax', () => {
+			const result = applyFilter(testBookmarks, '#capitec -#npr');
 
 			expect(result.options.special).toHaveLength(1);
 			expect(result.options.special[0]).toEqual({ type: 'tag', value: 'capitec' });
@@ -120,7 +120,7 @@ describe('Improved Tag Filtering', () => {
 			expect(result.options.not).toHaveLength(0);
 		});
 
-		it('should correctly parse # syntax', () => {
+		it('should correctly parse # syntax with different tags', () => {
 			const result = applyFilter(testBookmarks, '#react -#archived');
 
 			expect(result.options.special).toHaveLength(1);
@@ -128,6 +128,16 @@ describe('Improved Tag Filtering', () => {
 
 			expect(result.options.notSpecial).toHaveLength(1);
 			expect(result.options.notSpecial[0]).toEqual({ type: 'tag', value: 'archived' });
+		});
+
+		it('should correctly parse legacy tag: syntax', () => {
+			const result = applyFilter(testBookmarks, 'tag:capitec -tag:npr');
+
+			expect(result.options.special).toHaveLength(1);
+			expect(result.options.special[0]).toEqual({ type: 'tag', value: 'capitec' });
+
+			expect(result.options.notSpecial).toHaveLength(1);
+			expect(result.options.notSpecial[0]).toEqual({ type: 'tag', value: 'npr' });
 		});
 	});
 });

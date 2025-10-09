@@ -288,10 +288,10 @@ function parseFilterQuery(query: string): FilterOptions {
  * - 'browser:chrome', 'browser:firefox', 'browser:safari'
  *
  * Tag filtering (supports both syntaxes):
- * - 'tag:javascript', 'tag:react', 'tag:tutorial'
- * - '#javascript', '#react', '#tutorial' (new hash syntax)
- * - '-tag:deprecated', '-#deprecated' → exclude tags
- * - 'tag:react -tag:archived' → items with react tag but not archived tag
+ * - '#javascript', '#react', '#tutorial' (recommended hash syntax)
+ * - 'tag:javascript', 'tag:react', 'tag:tutorial' (legacy syntax, still supported)
+ * - '-#deprecated' → exclude tags
+ * - '#react -#archived' → items with react tag but not archived tag
  *
  * Date-based cleanup:
  * - 'added:>365' → bookmarks older than 1 year
@@ -315,9 +315,9 @@ function parseFilterQuery(query: string): FilterOptions {
  * - 'browser:chrome os:windows' → bookmarks from current setup
  *
  * Tag management:
- * - 'tag:javascript +tutorial' → JS learning resources
+ * - '#javascript +tutorial' → JS learning resources
  * - '#react -#archived' → React resources excluding archived
- * - '-tag:archived' → exclude archived bookmarks
+ * - '-#archived' → exclude archived bookmarks
  *
  * @param data The array of objects to filter
  * @param query The search query string

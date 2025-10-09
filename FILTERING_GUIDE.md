@@ -107,6 +107,25 @@ Filter bookmarks by the browser they were saved from.
 - `browser:chrome` → Bookmarks saved using Chrome
 - `browser:firefox` → Bookmarks saved using Firefox
 
+### Tag Filters
+
+```
+#javascript
+#react
+#tutorial
+-#archived
+```
+
+Filter bookmarks by tags. Use `#` followed by the tag name.
+
+**Examples**:
+
+- `#javascript` → Bookmarks tagged with "javascript"
+- `#react #tutorial` → Bookmarks with "react" OR "tutorial" tags
+- `+#react +#hooks` → Bookmarks with both "react" AND "hooks" tags
+- `-#archived` → Exclude bookmarks tagged with "archived"
+- `#react -#archived` → React bookmarks but not archived ones
+
 ### Date-Based Filters
 
 #### Added Date Filters
@@ -233,6 +252,30 @@ never-clicked -readme -documentation
 ```
 device:mobile browser:chrome old-unvisited:45d
 ```
+
+**Tag-based cleanup**:
+
+```
+#tutorial never-clicked
+```
+
+Find tutorial bookmarks you've never used.
+
+**Multiple tag filtering**:
+
+```
++#javascript +#tutorial -#archived
+```
+
+Find JavaScript tutorials that aren't archived.
+
+**Tag and device combination**:
+
+```
+#mobile-dev device:desktop
+```
+
+Find mobile development bookmarks saved from desktop.
 
 ## Tips for Effective Filtering
 

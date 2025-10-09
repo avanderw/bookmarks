@@ -538,7 +538,7 @@
 	function onTagClick(event: CustomEvent<{ tag: string }>) {
 		const tag = event.detail.tag;
 		if (searchFilterComponent && searchFilterComponent.setQuery) {
-			searchFilterComponent.setQuery(`tag:${tag}`);
+			searchFilterComponent.setQuery(`#${tag}`);
 		}
 		showTagSummary = false;
 	}
@@ -549,7 +549,7 @@
 	function onTagsSelected(event: CustomEvent<{ tags: string[] }>) {
 		const tags = event.detail.tags;
 		if (searchFilterComponent && searchFilterComponent.setQuery && tags.length > 0) {
-			const tagQuery = tags.map((tag) => `tag:${tag}`).join(' +');
+			const tagQuery = tags.map((tag) => `#${tag}`).join(' +');
 			searchFilterComponent.setQuery(tagQuery);
 		}
 		showTagSummary = false;

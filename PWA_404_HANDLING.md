@@ -317,6 +317,23 @@ Show manual instructions to users:
 - `PWA_CACHE_VALIDATION.md` - Original cache validation docs
 - `PWA_INSTALLATION.md` - PWA installation guide
 
+## SSR Compatibility
+
+The `CacheValidator` is designed to work in both browser and server-side rendering contexts:
+
+```typescript
+// Lazy initialization to avoid SSR issues
+export const cacheValidator = typeof window !== 'undefined' 
+  ? getCacheValidator() 
+  : (/* SSR stub */);
+```
+
+Key SSR guards:
+- Constructor only sets up message listener in browser (`typeof window !== 'undefined'`)
+- All methods check for `navigator` existence before accessing service worker APIs
+- Stub implementation provided for SSR that returns safe defaults
+- No singleton instantiation during module load in Node.js environment
+
 ## Summary
 
 This solution provides **comprehensive 404 handling** through:
@@ -325,5 +342,6 @@ This solution provides **comprehensive 404 handling** through:
 3. ✅ **Automatic cache clearing**
 4. ✅ **Urgent user notifications**
 5. ✅ **One-click refresh**
+6. ✅ **SSR compatible** - works in both browser and Node.js environments
 
 Users will never see a broken app after deployment - they'll always get a clear notification with instructions to refresh.

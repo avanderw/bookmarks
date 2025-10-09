@@ -20,7 +20,10 @@ export class CacheValidator {
 	private messageListener: ((event: MessageEvent) => void) | null = null;
 
 	private constructor() {
-		this.setupMessageListener();
+		// Only setup message listener in browser environment
+		if (typeof window !== 'undefined') {
+			this.setupMessageListener();
+		}
 	}
 
 	static getInstance(): CacheValidator {
@@ -209,7 +212,8 @@ export class CacheValidator {
 	 * Setup listener for service worker messages about cache staleness
 	 */
 	private setupMessageListener(): void {
-		if (!('serviceWorker' in navigator)) {
+		// Guard against SSR
+		if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
 			return;
 		}
 
@@ -239,12 +243,32 @@ export class CacheValidator {
 	destroy(): void {
 		this.stopMonitoring();
 		
-		if (this.messageListener && 'serviceWorker' in navigator) {
+		// Guard against SSR
+		if (this.messageListener && typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
 			navigator.serviceWorker.removeEventListener('message', this.messageListener);
 			this.messageListener = null;
 		}
 	}
 }
 
-// Export singleton instance
-export const cacheValidator = CacheValidator.getInstance();
+// Export singleton instance getter (lazy initialization to avoid SSR issues)
+function getCacheValidator(): CacheValidator {
+	return CacheValidator.getInstance();
+}
+
+export const cacheValidator = typeof window !== 'undefined' ? getCacheValidator() : ({
+	// Provide stub for SSR
+	startMonitoring: () => {},
+	stopMonitoring: () => {},
+	checkCacheStatus: async () => ({
+		isStale: false,
+		currentVersion: null,
+		latestVersion: null,
+		lastCheck: new Date(),
+		error: 'SSR environment'
+	}),
+	forceRefresh: async () => {},
+	onStatusChange: () => () => {},
+	getLastStatus: () => null,
+	destroy: () => {}
+} as unknown as CacheValidator);
